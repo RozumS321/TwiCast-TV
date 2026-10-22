@@ -6,7 +6,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import app.twicast.tv.data.model.PlayerEngine
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -17,6 +19,11 @@ interface PlayerSettingsRepository {
     suspend fun preferredQuality(): String?
 
     suspend fun setPreferredQuality(qualityId: String)
+
+    /** Which player opens streams (screen "Настройки"); TwiCast by default. */
+    val playerEngine: Flow<PlayerEngine>
+
+    suspend fun setPlayerEngine(engine: PlayerEngine)
 }
 
 private val Context.playerSettingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "player_settings")
@@ -28,10 +35,19 @@ class DataStorePlayerSettingsRepository @Inject constructor(
 
     private val dataStore = context.playerSettingsDataStore
     private val preferredQualityKey = stringPreferencesKey("preferred_quality")
+    private val playerEngineKey = stringPreferencesKey("player_engine")
 
     override suspend fun preferredQuality(): String? = dataStore.data.map { it[preferredQualityKey] }.first()
 
     override suspend fun setPreferredQuality(qualityId: String) {
         dataStore.edit { it[preferredQualityKey] = qualityId }
+    }
+
+    override val playerEngine: Flow<PlayerEngine> = dataStore.data.map { preferences ->
+        PlayerEngine.entries.firstOrNull { it.name == preferences[playerEngineKey] } ?: PlayerEngine.TwiCast
+    }
+
+    override suspend fun setPlayerEngine(engine: PlayerEngine) {
+        dataStore.edit { it[playerEngineKey] = engine.name }
     }
 }

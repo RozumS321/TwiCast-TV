@@ -6,6 +6,7 @@ import app.twicast.tv.core.network.HelixAuthInterceptor
 import app.twicast.tv.core.network.HelixTokenAuthenticator
 import app.twicast.tv.core.network.TwitchClientId
 import app.twicast.tv.data.remote.HelixApi
+import app.twicast.tv.data.remote.TwitchGqlApi
 import app.twicast.tv.data.remote.TwitchOAuthApi
 import dagger.Module
 import dagger.Provides
@@ -22,7 +23,11 @@ import javax.inject.Singleton
 
 private const val HelixBaseUrl = "https://api.twitch.tv/helix/"
 private const val OAuthBaseUrl = "https://id.twitch.tv/oauth2/"
+private const val GqlBaseUrl = "https://gql.twitch.tv/"
 private const val TimeoutSeconds = 15L
+
+/** The twitch.tv web client id: GQL hands out playback tokens only to Twitch's own clients. */
+private const val TwitchWebClientId = "kimne78kx3ncx6brgo4mv6wki5h1ko"
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -62,6 +67,20 @@ object NetworkModule {
         .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
         .build()
         .create(TwitchOAuthApi::class.java)
+
+    /** Separate from Helix: the user's token is never sent to GQL. */
+    @Provides
+    @Singleton
+    fun provideGqlApi(client: OkHttpClient, json: Json): TwitchGqlApi = Retrofit.Builder()
+        .baseUrl(GqlBaseUrl)
+        .client(
+            client.newBuilder()
+                .addInterceptor { chain -> chain.proceed(chain.request().newBuilder().header("Client-ID", TwitchWebClientId).build()) }
+                .build(),
+        )
+        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+        .build()
+        .create(TwitchGqlApi::class.java)
 
     @Provides
     @Singleton

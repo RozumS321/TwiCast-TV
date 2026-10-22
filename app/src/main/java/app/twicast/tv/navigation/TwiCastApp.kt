@@ -47,6 +47,8 @@ import app.twicast.tv.feature.player.PlayerDestination
 import app.twicast.tv.feature.player.PlayerRoute
 import app.twicast.tv.feature.profile.ProfileRoute
 import app.twicast.tv.feature.search.SearchRoute
+import app.twicast.tv.feature.settings.SettingsDestination
+import app.twicast.tv.feature.settings.SettingsRoute
 import app.twicast.tv.feature.update.UpdateRoute
 import kotlinx.collections.immutable.toPersistentList
 
@@ -148,7 +150,8 @@ private fun SignedInShell(user: User) {
                     onChannelClick = { channel -> navController.navigate(ChannelDestination(channel.login)) },
                 )
             }
-            composable<ProfileDestination> { ProfileRoute() }
+            composable<ProfileDestination> { ProfileRoute(onOpenSettings = { navController.navigate(SettingsDestination) }) }
+            composable<SettingsDestination> { SettingsRoute() }
             composable<ChannelDestination> {
                 ChannelRoute(
                     onWatchLive = { channel -> channel.stream?.let(navController::openStream) },

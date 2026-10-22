@@ -112,3 +112,6 @@ data class ChannelPage(
     val videos: List<Video>,
     val clips: List<Clip>,
 )
+
+/** The player that opens streams: our own (ExoPlayer on Twitch's HLS) or the official Twitch embed. */
+enum class PlayerEngine { TwiCast, Twitch }

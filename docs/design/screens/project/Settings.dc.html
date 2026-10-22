@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Настройки</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#772CE8}a:hover{color:#5C16C5}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 720px; overflow: hidden; background: #F6F5FA; color: #17151F; font-family: 'Plus Jakarta Sans', system-ui, sans-serif">
+  <main style="position: absolute; left: 88px; right: 0; top: 0; bottom: 0; padding: 30px 40px 0 40px; display: flex; flex-direction: column; gap: 22px">
+    <header style="display: flex; align-items: baseline; gap: 14px">
+      <h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.02em">Настройки</h1>
+      <span style="font-size: 14px; color: #5F5A6E">Назад — в профиль</span>
+    </header>
+    <section aria-label="Плеер" style="display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-size: 20px; font-weight: 800">Плеер</h2>
+      <div style="display: flex; gap: 20px">
+        <sc-for list="{{players}}" as="p" hint-placeholder-count="2">
+          <button role="radio" aria-checked="{{p.on}}" onClick="{{p.pick}}" style="{{p.style}}">
+            <span style="display: flex; align-items: center; justify-content: space-between; width: 100%">
+              <span style="font-size: 20px; font-weight: 800">{{p.title}}</span>
+              <span style="{{p.radio}}"><span style="{{p.dot}}"></span></span>
+            </span>
+            <span style="{{p.tagStyle}}">{{p.tag}}</span>
+            <span style="font-size: 15px; line-height: 1.45; color: #3E3A4A">{{p.text}}</span>
+            <span style="font-size: 13px; color: #5F5A6E">{{p.note}}</span>
+          </button>
+        </sc-for>
+      </div>
+      <span style="font-size: 13px; color: #5F5A6E">Применяется со следующего открытия стрима. Если видео не идёт, переключитесь на другой плеер.</span>
+    </section>
+  </main>
+  <div style="position: absolute; left: 0; top: 0; bottom: 0">
+    <dc-import name="Rail" expanded="{{no}}" active="profile" auth="{{yes}}" hint-size="88px,720px"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { pick: 0 }; }
+  renderVals() {
+    const A = '#9146FF';
+    const list = [
+      ['TwiCast player', 'Рекомендуем', 'Свой плеер: быстро запускается и легко работает даже на слабых телевизорах.', 'Качество, пауза и чат — как обычно'],
+      ['Twitch player', 'Официальный', 'Официальный плеер Twitch. Медленнее и может не работать на слабых телевизорах.', 'Запасной вариант, если свой плеер не работает']
+    ];
+    const players = list.map(([title, tag, text, note], i) => {
+      const on = this.state.pick === i;
+      return {
+        title, tag, text, note, on: on ? 'true' : 'false',
+        pick: () => this.setState({ pick: i }),
+        style: 'all: unset; cursor: pointer; box-sizing: border-box; flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 24px 26px; border-radius: 22px; background: #FFFFFF; transition: transform .2s, box-shadow .2s; ' +
+          (on ? 'transform: scale(1.03); box-shadow: 0 0 0 3px ' + A + ', 0 18px 36px rgba(145,70,255,.22);' : 'box-shadow: 0 1px 0 #E8E5F0, 0 6px 16px rgba(23,21,31,.05);'),
+        radio: 'width: 22px; height: 22px; border-radius: 11px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid ' + (on ? A : '#B7B2C4') + ';',
+        dot: 'width: 10px; height: 10px; border-radius: 5px; background: ' + (on ? A : 'transparent') + ';',
+        tagStyle: 'padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; ' + (i === 0 ? 'background: #F1EAFF; color: #772CE8;' : 'background: #F0EEF5; color: #5F5A6E;')
+      };
+    });
+    return { players, yes: true, no: false };
+  }
+}
+</script>
+</body>
+</html>

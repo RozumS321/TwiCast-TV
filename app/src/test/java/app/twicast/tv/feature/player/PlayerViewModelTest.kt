@@ -1,10 +1,16 @@
 package app.twicast.tv.feature.player
 
 import app.twicast.tv.core.device.DeviceProfile
+import app.twicast.tv.data.model.AppError
+import app.twicast.tv.data.model.AppResult
+import app.twicast.tv.data.model.PlayerEngine
+import app.twicast.tv.data.repository.PlaybackRepository
+import app.twicast.tv.data.repository.PlaybackSource
 import app.twicast.tv.data.repository.PlayerSettingsRepository
 import app.twicast.tv.feature.player.components.EmbedState
 import app.twicast.tv.feature.player.components.VideoQuality
 import app.twicast.tv.testing.MainDispatcherRule
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
@@ -17,10 +23,20 @@ import org.junit.Rule
 import org.junit.Test
 
 private class FakePlayerSettings(var stored: String? = null) : PlayerSettingsRepository {
+    // The embed by default: most tests here are about the shared controls, not the player choice.
+    override val playerEngine = MutableStateFlow(PlayerEngine.Twitch)
+    override suspend fun setPlayerEngine(engine: PlayerEngine) {
+        playerEngine.value = engine
+    }
     override suspend fun preferredQuality(): String? = stored
     override suspend fun setPreferredQuality(qualityId: String) {
         stored = qualityId
     }
+}
+
+private class FakePlayback(var result: AppResult<String> = AppResult.Success("https://usher.test/live.m3u8")) : PlaybackRepository {
+    val requests = mutableListOf<PlaybackSource>()
+    override suspend fun playbackUrl(source: PlaybackSource): AppResult<String> = result.also { requests += source }
 }
 
 class PlayerViewModelTest {
@@ -29,11 +45,12 @@ class PlayerViewModelTest {
     val mainRule = MainDispatcherRule(StandardTestDispatcher())
 
     private val settings = FakePlayerSettings()
+    private val playback = FakePlayback()
     private val device = object : DeviceProfile { override var isLowMemory = false }
     private val destination = PlayerDestination("sasavot", "sasavot", "Just Chatting", 15_300, null)
 
     private fun TestScope.viewModel(): PlayerViewModel =
-        PlayerViewModel(destination, settings, device).also { runCurrent() }
+        PlayerViewModel(destination, settings, playback, device).also { runCurrent() }
 
     @Test
     fun `preferred quality is loaded before the embed may be created`() = runTest(mainRule.dispatcher) {
@@ -121,8 +138,40 @@ class PlayerViewModelTest {
     }
 
     @Test
+    fun `TwiCast player resolves the stream playlist`() = runTest(mainRule.dispatcher) {
+        settings.playerEngine.value = PlayerEngine.TwiCast
+        val state = viewModel().uiState.value
+
+        assertEquals(PlayerEngine.TwiCast, state.engine)
+        assertEquals("https://usher.test/live.m3u8", state.streamUrl)
+        assertEquals(listOf<PlaybackSource>(PlaybackSource.Live("sasavot")), playback.requests)
+    }
+
+    @Test
+    fun `refused token or a failing TwiCast player falls back to the Twitch player`() = runTest(mainRule.dispatcher) {
+        settings.playerEngine.value = PlayerEngine.TwiCast
+        playback.result = AppResult.Failure(AppError.NotFound)
+        assertEquals(PlayerEngine.Twitch, viewModel().uiState.value.engine)
+
+        playback.result = AppResult.Success("https://usher.test/live.m3u8")
+        val viewModel = viewModel()
+        viewModel.onEmbedStateChanged(EmbedState.Error)
+        assertEquals(PlayerEngine.Twitch, viewModel.uiState.value.engine)
+        assertEquals(PlaybackStatus.Loading, viewModel.uiState.value.status)
+    }
+
+    @Test
+    fun `no network is an error, not a fallback`() = runTest(mainRule.dispatcher) {
+        settings.playerEngine.value = PlayerEngine.TwiCast
+        playback.result = AppResult.Failure(AppError.Network)
+        val state = viewModel().uiState.value
+        assertEquals(PlayerEngine.TwiCast, state.engine)
+        assertEquals(PlaybackStatus.Error, state.status)
+    }
+
+    @Test
     fun `malformed login never reaches the embed`() = runTest(mainRule.dispatcher) {
-        val viewModel = PlayerViewModel(destination.copy(channelLogin = "a&b=c"), settings, device)
+        val viewModel = PlayerViewModel(destination.copy(channelLogin = "a&b=c"), settings, playback, device)
         assertFalse(viewModel.uiState.value.canPlay)
     }
 }

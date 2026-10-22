@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.profile
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -20,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.Icon
@@ -42,7 +44,13 @@ private const val NoValue = "—"
 
 /** Mockup "Профиль": avatar, name, two counters, sign-out; app version below the panel. */
 @Composable
-fun ProfileScreen(state: ProfileUiState, versionName: String, onSignOut: () -> Unit, modifier: Modifier = Modifier) {
+fun ProfileScreen(
+    state: ProfileUiState,
+    versionName: String,
+    onOpenSettings: () -> Unit,
+    onSignOut: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(TwiDimens.ProfileFooterSpacing, Alignment.CenterVertically),
@@ -74,7 +82,10 @@ fun ProfileScreen(state: ProfileUiState, versionName: String, onSignOut: () -> U
                 Stat(state.followsCount, stringResource(R.string.profile_follows), Modifier.weight(1f))
                 Stat(state.liveCount, stringResource(R.string.profile_live_now), Modifier.weight(1f))
             }
-            SignOutButton(onSignOut)
+            Column(verticalArrangement = Arrangement.spacedBy(TwiDimens.KeySpacing), modifier = Modifier.padding(top = TwiDimens.KeySpacing)) {
+                ProfileButton(stringResource(R.string.profile_settings), TwiIcons.Settings, dark = false, onClick = onOpenSettings, initialFocus = true)
+                ProfileButton(stringResource(R.string.action_sign_out), TwiIcons.SignOut, dark = true, onClick = onSignOut)
+            }
         }
         Text(
             text = stringResource(R.string.profile_version, versionName),
@@ -121,27 +132,29 @@ private fun Stat(value: Int?, label: String, modifier: Modifier) {
     }
 }
 
-/** Full-width dark button (mockup); the only focusable element, so it takes focus. */
+/** Full-width panel button: light for "Настройки", dark for sign-out (mockup "Профиль"). */
 @Composable
-private fun SignOutButton(onSignOut: () -> Unit) {
+private fun ProfileButton(text: String, icon: ImageVector, dark: Boolean, onClick: () -> Unit, initialFocus: Boolean = false) {
     val colors = TwiTheme.colors
+    val background = if (dark) colors.inverseSurface else colors.surface
+    val content = if (dark) colors.inverseOnSurface else colors.onSurface
     val focusProgress = rememberFocusProgress()
     val interactionSource = remember { MutableInteractionSource() }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(TwiDimens.ButtonIconGap, Alignment.CenterHorizontally),
         modifier = Modifier
-            .padding(top = TwiDimens.KeySpacing)
             .fillMaxWidth()
             .height(TwiDimens.ProfileButtonHeight)
-            .requestInitialFocus()
+            .then(if (initialFocus) Modifier.requestInitialFocus() else Modifier)
             .focusTransform(focusProgress, TwiScale.ButtonFocused, TwiShapes.Button)
-            .background(colors.inverseSurface, TwiShapes.Button)
+            .background(background, TwiShapes.Button)
+            .then(if (dark) Modifier else Modifier.border(TwiDimens.OutlineWidth, colors.outlineVariant, TwiShapes.Button))
             .focusRing(focusProgress, colors.primary, TwiShapes.Button, TwiDimens.FocusBorderWidth)
             .trackFocus(focusProgress)
-            .clickable(interactionSource = interactionSource, indication = null, onClick = onSignOut),
+            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick),
     ) {
-        Icon(TwiIcons.SignOut, contentDescription = null, tint = colors.inverseOnSurface, modifier = Modifier.size(TwiDimens.ButtonIconSize))
-        Text(stringResource(R.string.action_sign_out), style = TwiTheme.typography.button, color = colors.inverseOnSurface)
+        Icon(icon, contentDescription = null, tint = content, modifier = Modifier.size(TwiDimens.ButtonIconSize))
+        Text(text, style = TwiTheme.typography.button, color = content)
     }
 }

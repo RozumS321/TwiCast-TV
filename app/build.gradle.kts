@@ -131,6 +131,9 @@ dependencies {
     implementation(libs.retrofit.kotlinx.serialization)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.webkit)
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.exoplayer.hls)
+    implementation(libs.media3.ui)
     implementation(libs.zxing.core)
 
     testImplementation(libs.junit)

@@ -5,6 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import app.twicast.tv.core.device.DeviceProfile
+import app.twicast.tv.data.model.AppError
+import app.twicast.tv.data.model.AppResult
+import app.twicast.tv.data.model.PlayerEngine
+import app.twicast.tv.data.repository.PlaybackRepository
+import app.twicast.tv.data.repository.PlaybackSource
 import app.twicast.tv.data.repository.PlayerSettingsRepository
 import app.twicast.tv.feature.player.components.EmbedState
 import app.twicast.tv.feature.player.components.VideoQuality
@@ -16,6 +21,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -56,13 +62,18 @@ const val RecoveryMaxVideoHeight = 720
 class PlayerViewModel internal constructor(
     destination: PlayerDestination,
     private val settings: PlayerSettingsRepository,
+    private val playback: PlaybackRepository,
     device: DeviceProfile,
 ) : ViewModel() {
 
     // Hilt entry: the route comes from navigation. Tests use the primary constructor (no Android in JVM tests).
     @Inject
-    constructor(savedStateHandle: SavedStateHandle, settings: PlayerSettingsRepository, device: DeviceProfile) :
-        this(savedStateHandle.toRoute<PlayerDestination>(), settings, device)
+    constructor(
+        savedStateHandle: SavedStateHandle,
+        settings: PlayerSettingsRepository,
+        playback: PlaybackRepository,
+        device: DeviceProfile,
+    ) : this(savedStateHandle.toRoute<PlayerDestination>(), settings, playback, device)
 
     // Weak TVs start below 1080p right away instead of waiting for the renderer to crash.
     private val _uiState = MutableStateFlow(
@@ -75,11 +86,41 @@ class PlayerViewModel internal constructor(
     init {
         viewModelScope.launch {
             val preferred = settings.preferredQuality()
-            _uiState.update { it.copy(preferredQualityId = preferred, settingsLoaded = true) }
+            val engine = settings.playerEngine.first()
+            _uiState.update { it.copy(preferredQualityId = preferred) }
+            if (engine == PlayerEngine.TwiCast && _uiState.value.canPlay) startTwiCast() else useTwitchPlayer()
         }
     }
 
+    /** Resolves the stream's own playlist; if Twitch refuses it, the official embed plays instead. */
+    private suspend fun startTwiCast() {
+        val channel = _uiState.value.channel
+        val source = when {
+            channel.clipSlug != null -> PlaybackSource.Clip(channel.clipSlug)
+            channel.videoId != null -> PlaybackSource.Vod(channel.videoId)
+            else -> PlaybackSource.Live(channel.channelLogin)
+        }
+        when (val result = playback.playbackUrl(source)) {
+            is AppResult.Success -> _uiState.update {
+                it.copy(engine = PlayerEngine.TwiCast, streamUrl = result.value, settingsLoaded = true)
+            }
+            // No network: the embed would not load either.
+            is AppResult.Failure -> if (result.error == AppError.Network) {
+                _uiState.update { it.copy(engine = PlayerEngine.TwiCast, settingsLoaded = true, status = PlaybackStatus.Error) }
+            } else {
+                useTwitchPlayer()
+            }
+        }
+    }
+
+    private fun useTwitchPlayer() = _uiState.update { it.copy(engine = PlayerEngine.Twitch, settingsLoaded = true) }
+
     fun onEmbedStateChanged(state: EmbedState) {
+        // The TwiCast player failed on its own (unusual playlist, codec): the official embed gets a try.
+        if (state == EmbedState.Error && _uiState.value.engine == PlayerEngine.TwiCast && _uiState.value.streamUrl != null) {
+            _uiState.update { it.copy(engine = PlayerEngine.Twitch, streamUrl = null, status = PlaybackStatus.Loading) }
+            return
+        }
         _uiState.update {
             it.copy(
                 status = when (state) {

@@ -52,14 +52,14 @@ data class VideoQuality(val id: String, val label: String) {
 const val AutoQualityId = "auto"
 
 /** Handle for the screen to control playback without touching the WebView. */
-class TwitchEmbedController internal constructor() {
+class TwitchEmbedController internal constructor() : PlaybackController {
     internal var webView: WebView? = null
 
-    fun togglePause() = call("window.twicast && twicast.togglePause()")
+    override fun togglePause() = call("window.twicast && twicast.togglePause()")
 
-    fun setQuality(id: String) = call("window.twicast && twicast.setQuality(${JSONObject.quote(id)})")
+    override fun setQuality(id: String) = call("window.twicast && twicast.setQuality(${JSONObject.quote(id)})")
 
-    fun setChatVisible(visible: Boolean, title: String, hint: String) =
+    override fun setChatVisible(visible: Boolean, title: String, hint: String) =
         call("window.twicast && twicast.setChatVisible($visible, ${JSONObject.quote(title)}, ${JSONObject.quote(hint)})")
 
     private fun call(script: String) {

@@ -1,6 +1,7 @@
 package app.twicast.tv.feature.player
 
 import androidx.compose.runtime.Immutable
+import app.twicast.tv.data.model.PlayerEngine
 import app.twicast.tv.feature.player.components.VideoQuality
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -23,6 +24,10 @@ data class PlayerUiState(
     val settingsLoaded: Boolean = false,
     /** Bumped when the WebView renderer died: the embed is rebuilt from scratch. */
     val embedAttempt: Int = 0,
+    /** Which player plays; null until read from settings. */
+    val engine: PlayerEngine? = null,
+    /** TwiCast player: the stream's playlist (or clip file), once resolved. */
+    val streamUrl: String? = null,
     /** Set after a renderer crash (out of memory on weak TV boxes): the embed keeps quality at or below it. */
     val maxVideoHeight: Int? = null,
 ) {

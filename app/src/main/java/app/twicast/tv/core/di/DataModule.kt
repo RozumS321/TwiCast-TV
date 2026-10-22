@@ -12,6 +12,8 @@ import app.twicast.tv.data.repository.HelixChannelRepository
 import app.twicast.tv.data.repository.HelixFollowsRepository
 import app.twicast.tv.data.repository.HelixSearchRepository
 import app.twicast.tv.data.repository.HelixStreamsRepository
+import app.twicast.tv.data.repository.GqlPlaybackRepository
+import app.twicast.tv.data.repository.PlaybackRepository
 import app.twicast.tv.data.repository.PlayerSettingsRepository
 import app.twicast.tv.data.repository.SearchRepository
 import app.twicast.tv.data.repository.StreamsRepository
@@ -47,6 +49,9 @@ abstract class DataModule {
 
     @Binds
     abstract fun bindPlayerSettingsRepository(impl: DataStorePlayerSettingsRepository): PlayerSettingsRepository
+
+    @Binds
+    abstract fun bindPlaybackRepository(impl: GqlPlaybackRepository): PlaybackRepository
 
     @Binds
     abstract fun bindDeviceProfile(impl: AndroidDeviceProfile): DeviceProfile

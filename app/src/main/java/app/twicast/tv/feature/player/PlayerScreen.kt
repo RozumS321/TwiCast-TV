@@ -6,6 +6,9 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -27,6 +30,11 @@ import app.twicast.tv.R
 import app.twicast.tv.core.designsystem.theme.TwiDimens
 import app.twicast.tv.core.designsystem.theme.TwiShapes
 import app.twicast.tv.core.designsystem.theme.TwiTheme
+import app.twicast.tv.data.model.PlayerEngine
+import app.twicast.tv.feature.player.components.ChatPanel
+import app.twicast.tv.feature.player.components.NativePlayerController
+import app.twicast.tv.feature.player.components.NativeStreamView
+import app.twicast.tv.feature.player.components.PlaybackController
 import app.twicast.tv.feature.player.components.PlayerControls
 import app.twicast.tv.feature.player.components.QualityPanel
 import app.twicast.tv.feature.player.components.TwitchEmbedController
@@ -44,7 +52,8 @@ private val RevealKeys = setOf(Key.DirectionCenter, Key.Enter, Key.DirectionUp, 
 @Composable
 fun PlayerScreen(
     state: PlayerUiState,
-    controller: TwitchEmbedController,
+    embedController: TwitchEmbedController,
+    nativeController: NativePlayerController,
     listener: TwitchEmbedListener,
     onRemoteActivity: () -> Unit,
     onOpenQuality: () -> Unit,
@@ -58,7 +67,10 @@ fun PlayerScreen(
     BackHandler(enabled = state.overlay != PlayerOverlay.Hidden || state.chatVisible, onBack = onBack)
     // Bare video keeps focus on the root so the next key press reaches it.
     LaunchedEffect(state.overlay) { if (state.overlay == PlayerOverlay.Hidden) rootFocus.requestFocus() }
-    ChatSync(state.chatVisible, controller)
+    val twiCast = state.engine == PlayerEngine.TwiCast
+    val controller: PlaybackController = if (twiCast) nativeController else embedController
+    // The embed draws the chat inside its page; the TwiCast player gets a panel of its own below.
+    if (!twiCast) ChatSync(state.chatVisible, embedController)
 
     Box(
         modifier = modifier
@@ -82,16 +94,39 @@ fun PlayerScreen(
             .focusRequester(rootFocus)
             .focusable(),
     ) {
-        if (state.canPlay && state.settingsLoaded) {
-            // A new attempt after a renderer crash: a fresh WebView (a dead one cannot be reused).
-            key(state.embedAttempt) {
+        val streamUrl = state.streamUrl
+        when {
+            !state.canPlay || !state.settingsLoaded -> Unit
+            twiCast && streamUrl != null -> Row(Modifier.fillMaxSize()) {
+                NativeStreamView(
+                    url = streamUrl,
+                    isLive = state.channel.isLive,
+                    // Clips are MP4 files; live streams and recordings are HLS playlists.
+                    isHls = state.channel.clipSlug == null,
+                    preferredQualityId = state.preferredQualityId,
+                    maxVideoHeight = state.maxVideoHeight,
+                    controller = nativeController,
+                    listener = listener,
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                )
+                if (state.chatVisible) {
+                    ChatPanel(
+                        channelLogin = state.channel.channelLogin,
+                        title = stringResource(R.string.player_chat_title),
+                        hint = stringResource(R.string.player_chat_read_only),
+                        modifier = Modifier.width(TwiDimens.PlayerChatWidth).fillMaxHeight(),
+                    )
+                }
+            }
+            !twiCast -> key(state.embedAttempt) {
+                // A new attempt after a renderer crash: a fresh WebView (a dead one cannot be reused).
                 TwitchEmbedView(
                     channelLogin = state.channel.channelLogin,
                     videoId = state.channel.videoId,
                     clipSlug = state.channel.clipSlug,
                     preferredQualityId = state.preferredQualityId,
                     maxVideoHeight = state.maxVideoHeight,
-                    controller = controller,
+                    controller = embedController,
                     listener = listener,
                     modifier = Modifier.fillMaxSize(),
                 )

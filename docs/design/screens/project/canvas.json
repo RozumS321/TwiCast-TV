@@ -109,6 +109,14 @@
       "x": 4080,
       "y": 1680
     },
+    "Settings.dc.html": {
+      "h": 720,
+      "is_interactive": true,
+      "title": "Настройки · плеер",
+      "w": 1280,
+      "x": 5440,
+      "y": 1680
+    },
     "Rail.dc.html": {
       "h": 720,
       "is_interactive": true,
@@ -182,7 +190,7 @@
   "notes": {
     "auth": {
       "kind": "title1",
-      "maxW": 5360,
+      "maxW": 6720,
       "text": "Вход и авторизованный режим",
       "w": 240,
       "x": 0,
@@ -247,6 +255,7 @@
     "HomeAuth.dc.html",
     "Following.dc.html",
     "Profile.dc.html",
+    "Settings.dc.html",
     "Tokens.dc.html",
     "Rail.dc.html",
     "Logo.dc.html",

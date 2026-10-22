@@ -7,7 +7,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.twicast.tv.BuildConfig
 
 @Composable
-fun ProfileRoute(viewModel: ProfileViewModel = hiltViewModel()) {
+fun ProfileRoute(onOpenSettings: () -> Unit, viewModel: ProfileViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    ProfileScreen(state = state, versionName = BuildConfig.VERSION_NAME, onSignOut = viewModel::onSignOut)
+    ProfileScreen(state = state, versionName = BuildConfig.VERSION_NAME, onOpenSettings = onOpenSettings, onSignOut = viewModel::onSignOut)
 }
