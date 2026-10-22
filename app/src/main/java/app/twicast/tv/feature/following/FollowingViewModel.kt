@@ -20,13 +20,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 private const val LiveLimit = 100
-
-enum class FollowingTab { Live, Offline }
 
 sealed interface FollowingUiState {
     data object Loading : FollowingUiState
@@ -36,10 +33,9 @@ sealed interface FollowingUiState {
 
     data class Error(val error: AppError) : FollowingUiState
 
-    /** Mockup "Подписки": live channels with their stream, offline ones with their last category. */
+    /** Mockup "Подписки": one screen, live channels with their stream, then offline ones with their last category. */
     @Immutable
     data class Content(
-        val tab: FollowingTab,
         val live: ImmutableList<Stream>,
         val offline: ImmutableList<FollowedChannel>,
     ) : FollowingUiState
@@ -61,10 +57,6 @@ class FollowingViewModel @Inject constructor(
 
     fun onRetry() = load()
 
-    fun onTabSelected(tab: FollowingTab) = _uiState.update { state ->
-        if (state is FollowingUiState.Content) state.copy(tab = tab) else state
-    }
-
     private fun load() {
         _uiState.value = FollowingUiState.Loading
         viewModelScope.launch {
@@ -85,8 +77,6 @@ class FollowingViewModel @Inject constructor(
         if (live.isEmpty() && followed.isEmpty()) return FollowingUiState.Empty
         val liveIds = live.mapTo(HashSet()) { it.userId }
         return FollowingUiState.Content(
-            // Nobody live: open straight on the offline tab instead of an empty grid.
-            tab = if (live.isEmpty()) FollowingTab.Offline else FollowingTab.Live,
             live = live.toImmutableList(),
             offline = followed.filterNot { it.id in liveIds }.toImmutableList(),
         )

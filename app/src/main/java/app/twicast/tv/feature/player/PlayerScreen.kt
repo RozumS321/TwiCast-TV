@@ -49,6 +49,7 @@ fun PlayerScreen(
     onOpenQuality: () -> Unit,
     onQualitySelected: (VideoQuality) -> Unit,
     onToggleChat: () -> Unit,
+    onOpenChannel: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -101,6 +102,7 @@ fun PlayerScreen(
                 onTogglePause = controller::togglePause,
                 onOpenQuality = onOpenQuality,
                 onToggleChat = onToggleChat,
+                onOpenChannel = onOpenChannel,
                 modifier = Modifier.align(Alignment.BottomCenter).padding(TwiDimens.PlayerControlsInset),
             )
             PlayerOverlay.Quality -> QualityPanel(

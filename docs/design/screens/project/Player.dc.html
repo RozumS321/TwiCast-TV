@@ -31,7 +31,7 @@ button{font-family:inherit}
         <span style="font-size: 18px; font-weight: 800; color: #FFFFFF">sasavot</span>
         <span style="font-size: 14px; color: #CFCBD9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Just Chatting · 15,3 тыс зрителей · 3 ч в эфире</span>
       </div>
-      <sc-for list="{{buttons}}" as="b" hint-placeholder-count="3">
+      <sc-for list="{{buttons}}" as="b" hint-placeholder-count="4">
         <button onClick="{{b.pick}}" style="{{b.style}}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{b.iconColor}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{b.d}}"></path></svg>
           {{b.label}}
@@ -76,9 +76,11 @@ class Component extends DCLogic {
     const icons = {
       pause: 'M8 5v14M16 5v14',
       quality: 'M4 7h9M17 7h3M15 5v4M4 17h3M11 17h9M9 15v4',
-      chat: 'M4 5h16v11H9l-5 4z'
+      chat: 'M4 5h16v11H9l-5 4z',
+      channel: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5'
     };
-    const buttons = [['pause', 'Пауза'], ['quality', 'Качество · 720p60'], ['chat', 'Чат']].map(([key, label], i) => {
+    // «Канал» opens the streamer page (recordings, clips, info); Back from there returns to the stream.
+    const buttons = [['pause', 'Пауза'], ['quality', 'Качество · 720p60'], ['chat', 'Чат'], ['channel', 'Канал']].map(([key, label], i) => {
       const f = this.state.focus === i;
       return {
         label, d: icons[key], iconColor: '#17151F',

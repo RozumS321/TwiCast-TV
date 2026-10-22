@@ -140,6 +140,12 @@ object TwiDimens {
     val ChannelAvatarSize = 84.dp
     val ChannelAvatarRing = 3.dp
     val ChannelGridSpacing = 20.dp
+    val ChannelCardCompactTopPadding = 14.dp
+    val ChannelCardCompactSidePadding = 8.dp
+    val ChannelCardCompactBottomPadding = 12.dp
+    val ChannelCardCompactSpacing = 4.dp
+    val ChannelAvatarCompactSize = 60.dp
+    val FollowingSectionSpacing = 22.dp
     val LiveDotSize = 8.dp
     val ProfilePanelWidth = 560.dp
     val ProfilePanelTopPadding = 44.dp

@@ -11,7 +11,7 @@ import app.twicast.tv.feature.player.components.TwitchEmbedListener
 import app.twicast.tv.feature.player.components.VideoQuality
 
 @Composable
-fun PlayerRoute(onClose: () -> Unit, viewModel: PlayerViewModel = hiltViewModel()) {
+fun PlayerRoute(onClose: () -> Unit, onOpenChannel: (String) -> Unit, viewModel: PlayerViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val controller = remember { TwitchEmbedController() }
     val listener = remember(viewModel) {
@@ -31,6 +31,7 @@ fun PlayerRoute(onClose: () -> Unit, viewModel: PlayerViewModel = hiltViewModel(
             viewModel.onQualitySelected(quality.id)
         },
         onToggleChat = viewModel::onToggleChat,
+        onOpenChannel = { onOpenChannel(state.channel.channelLogin) },
         onBack = { if (!viewModel.onBack()) onClose() },
     )
 }

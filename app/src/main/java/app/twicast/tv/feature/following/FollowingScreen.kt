@@ -1,6 +1,8 @@
 package app.twicast.tv.feature.following
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -8,20 +10,23 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.Text
 import app.twicast.tv.R
 import app.twicast.tv.core.designsystem.component.EmptyState
 import app.twicast.tv.core.designsystem.component.ErrorState
 import app.twicast.tv.core.designsystem.component.KeepFocusedVisibleScroll
-import app.twicast.tv.core.designsystem.component.SegmentedTabs
 import app.twicast.tv.core.designsystem.component.requestInitialFocus
 import app.twicast.tv.core.designsystem.format.formatViewersLabel
 import app.twicast.tv.core.designsystem.theme.TwiDimens
@@ -31,15 +36,17 @@ import app.twicast.tv.data.model.Stream
 import app.twicast.tv.feature.common.GridSkeleton
 import app.twicast.tv.feature.common.appErrorMessage
 import app.twicast.tv.feature.following.components.ChannelCard
-import kotlinx.collections.immutable.persistentListOf
 
-private const val Columns = 6
+/** 24 columns: a live card spans 4 (6 per row), a compact offline card 3 (8 per row), headers the whole line. */
+private const val GridColumns = 24
+private const val LiveSpan = 4
+private const val OfflineSpan = 3
+private const val SkeletonColumns = 6
 
-/** Mockup "Подписки": title, "В эфире · N / Офлайн · N" tabs, 6-column grid of channels. */
+/** Mockup "Подписки": one screen, "В эфире" first, "Офлайн" below it. */
 @Composable
 fun FollowingScreen(
     state: FollowingUiState,
-    onTabSelected: (FollowingTab) -> Unit,
     onStreamClick: (Stream) -> Unit,
     onChannelClick: (FollowedChannel) -> Unit,
     onRetry: () -> Unit,
@@ -47,24 +54,22 @@ fun FollowingScreen(
 ) {
     Column(modifier.fillMaxSize().padding(top = TwiDimens.ScreenTopPadding)) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.Bottom,
             modifier = Modifier.fillMaxWidth().padding(horizontal = TwiDimens.ContentStartPadding),
         ) {
             Text(stringResource(R.string.nav_following), style = TwiTheme.typography.screenTitle, color = TwiTheme.colors.onSurface)
             Spacer(Modifier.weight(1f))
             if (state is FollowingUiState.Content) {
-                SegmentedTabs(
-                    labels = persistentListOf(
-                        stringResource(R.string.following_tab_live, state.live.size),
-                        stringResource(R.string.following_tab_offline, state.offline.size),
-                    ),
-                    selectedIndex = state.tab.ordinal,
-                    onSelect = { onTabSelected(FollowingTab.entries[it]) },
+                val total = state.live.size + state.offline.size
+                Text(
+                    pluralStringResource(R.plurals.following_channels, total, total),
+                    style = TwiTheme.typography.body,
+                    color = TwiTheme.colors.onSurfaceVariant,
                 )
             }
         }
         when (state) {
-            FollowingUiState.Loading -> GridSkeleton(columns = Columns, cover = true)
+            FollowingUiState.Loading -> GridSkeleton(columns = SkeletonColumns, cover = true)
             FollowingUiState.Empty -> EmptyState(stringResource(R.string.following_empty))
             is FollowingUiState.Error -> ErrorState(appErrorMessage(state.error), onRetry)
             is FollowingUiState.Content -> KeepFocusedVisibleScroll { ChannelsGrid(state, onStreamClick, onChannelClick) }
@@ -78,13 +83,8 @@ private fun ChannelsGrid(
     onStreamClick: (Stream) -> Unit,
     onChannelClick: (FollowedChannel) -> Unit,
 ) {
-    val items = if (state.tab == FollowingTab.Live) state.live.size else state.offline.size
-    if (items == 0) {
-        EmptyState(stringResource(if (state.tab == FollowingTab.Live) R.string.following_nobody_live else R.string.following_all_live))
-        return
-    }
     LazyVerticalGrid(
-        columns = GridCells.Fixed(Columns),
+        columns = GridCells.Fixed(GridColumns),
         contentPadding = PaddingValues(
             start = TwiDimens.GridFocusInset,
             end = TwiDimens.GridFocusInset,
@@ -98,29 +98,59 @@ private fun ChannelsGrid(
             .padding(horizontal = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset)
             .focusRestorer(),
     ) {
-        if (state.tab == FollowingTab.Live) {
-            itemsIndexed(state.live, key = { _, stream -> "live-" + stream.userId }) { index, stream ->
-                ChannelCardItem(
-                    name = stream.channelName,
-                    avatarUrl = stream.avatarUrl,
-                    subtitle = stream.categoryName,
-                    liveViewers = formatViewersLabel(stream.viewerCount),
-                    first = index == 0,
-                    onClick = { onStreamClick(stream) },
-                )
+        item(key = "live-title", span = { GridItemSpan(maxLineSpan) }) {
+            SectionTitle(stringResource(R.string.following_live), state.live.size, live = true)
+        }
+        if (state.live.isEmpty()) {
+            item(key = "live-empty", span = { GridItemSpan(maxLineSpan) }) {
+                Text(stringResource(R.string.following_nobody_live), style = TwiTheme.typography.body, color = TwiTheme.colors.onSurfaceVariant)
             }
-        } else {
-            itemsIndexed(state.offline, key = { _, channel -> "offline-" + channel.id }) { index, channel ->
-                ChannelCardItem(
-                    name = channel.displayName,
-                    avatarUrl = channel.avatarUrl,
-                    subtitle = channel.categoryName,
-                    liveViewers = null,
-                    first = index == 0,
-                    onClick = { onChannelClick(channel) },
+        }
+        itemsIndexed(state.live, key = { _, stream -> "live-" + stream.userId }, span = { _, _ -> GridItemSpan(LiveSpan) }) { index, stream ->
+            ChannelCardItem(
+                name = stream.channelName,
+                avatarUrl = stream.avatarUrl,
+                subtitle = stream.categoryName,
+                liveViewers = formatViewersLabel(stream.viewerCount),
+                first = index == 0,
+                onClick = { onStreamClick(stream) },
+            )
+        }
+        if (state.offline.isNotEmpty()) {
+            item(key = "offline-title", span = { GridItemSpan(maxLineSpan) }) {
+                SectionTitle(
+                    stringResource(R.string.following_offline),
+                    state.offline.size,
+                    live = false,
+                    Modifier.padding(top = TwiDimens.FollowingSectionSpacing - TwiDimens.ChannelGridSpacing),
                 )
             }
         }
+        itemsIndexed(state.offline, key = { _, channel -> "offline-" + channel.id }, span = { _, _ -> GridItemSpan(OfflineSpan) }) { index, channel ->
+            ChannelCardItem(
+                name = channel.displayName,
+                avatarUrl = channel.avatarUrl,
+                subtitle = channel.categoryName,
+                liveViewers = null,
+                // Nobody live: the first offline channel takes the initial focus.
+                first = state.live.isEmpty() && index == 0,
+                onClick = { onChannelClick(channel) },
+            )
+        }
+    }
+}
+
+/** "● В эфире 4" / "Офлайн 16". */
+@Composable
+private fun SectionTitle(title: String, count: Int, live: Boolean, modifier: Modifier = Modifier) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(TwiDimens.RowHintSpacing),
+        modifier = modifier,
+    ) {
+        if (live) Box(Modifier.size(TwiDimens.LiveDotSize).background(TwiTheme.colors.live, CircleShape))
+        Text(title, style = TwiTheme.typography.rowTitleDense, color = TwiTheme.colors.onSurface)
+        Text(count.toString(), style = TwiTheme.typography.bodyStrong, color = TwiTheme.colors.onSurfaceVariant)
     }
 }
 

@@ -50,12 +50,14 @@ fun ChannelCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // Offline channels use the compact card (8 per row under the live block).
+    val compact = liveViewers == null
     val colors = TwiTheme.colors
     val focusProgress = rememberFocusProgress()
     val interactionSource = remember { MutableInteractionSource() }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(TwiDimens.ChannelCardSpacing),
+        verticalArrangement = Arrangement.spacedBy(if (compact) TwiDimens.ChannelCardCompactSpacing else TwiDimens.ChannelCardSpacing),
         modifier = modifier
             .fillMaxWidth()
             .focusTransform(
@@ -71,14 +73,20 @@ fun ChannelCard(
             .trackFocus(focusProgress)
             .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
             .padding(
-                start = TwiDimens.ChannelCardSidePadding,
-                end = TwiDimens.ChannelCardSidePadding,
-                top = TwiDimens.ChannelCardTopPadding,
-                bottom = TwiDimens.ChannelCardBottomPadding,
+                start = if (compact) TwiDimens.ChannelCardCompactSidePadding else TwiDimens.ChannelCardSidePadding,
+                end = if (compact) TwiDimens.ChannelCardCompactSidePadding else TwiDimens.ChannelCardSidePadding,
+                top = if (compact) TwiDimens.ChannelCardCompactTopPadding else TwiDimens.ChannelCardTopPadding,
+                bottom = if (compact) TwiDimens.ChannelCardCompactBottomPadding else TwiDimens.ChannelCardBottomPadding,
             ),
     ) {
         ChannelAvatar(avatarUrl, live = liveViewers != null)
-        Text(name, style = TwiTheme.typography.channelCardName, color = colors.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(
+            name,
+            style = if (compact) TwiTheme.typography.channelCardNameCompact else TwiTheme.typography.channelCardName,
+            color = colors.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
         if (liveViewers != null) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChannelCardSpacing)) {
                 Box(Modifier.size(TwiDimens.LiveDotSize).background(colors.live, CircleShape))
@@ -96,7 +104,7 @@ private fun ChannelAvatar(avatarUrl: String?, live: Boolean) {
     Box(
         modifier = Modifier
             .padding(bottom = TwiDimens.ChannelCardSpacing)
-            .size(TwiDimens.ChannelAvatarSize)
+            .size(if (live) TwiDimens.ChannelAvatarSize else TwiDimens.ChannelAvatarCompactSize)
             .then(
                 if (live) {
                     Modifier.border(ring, colors.live, CircleShape).padding(ring).border(ring, colors.surface, CircleShape).padding(ring)

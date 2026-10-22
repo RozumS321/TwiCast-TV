@@ -18,26 +18,37 @@ button{font-family:inherit}
 </helmet>
 <div style="position: relative; width: 1280px; height: 720px; overflow: hidden; background: #F6F5FA; color: #17151F; font-family: 'Plus Jakarta Sans', system-ui, sans-serif">
   <main style="position: absolute; left: 88px; right: 0; top: 0; bottom: 0; padding: 30px 40px 0 40px; display: flex; flex-direction: column; gap: 22px">
-    <header style="display: flex; align-items: center; justify-content: space-between">
+    <header style="display: flex; align-items: baseline; justify-content: space-between">
       <h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.02em">Подписки</h1>
-      <div role="tablist" aria-label="Статус каналов" style="display: flex; gap: 6px; padding: 6px; border-radius: 18px; background: #FFFFFF; box-shadow: 0 0 0 1px #E8E5F0">
-        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="2">
-          <button role="tab" aria-selected="{{t.on}}" onClick="{{t.pick}}" style="{{t.style}}">{{t.label}}</button>
+      <span style="font-size: 14px; color: #5F5A6E">{{summary}}</span>
+    </header>
+    <section aria-label="В эфире" style="display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; display: flex; align-items: baseline; gap: 10px; font-size: 20px; font-weight: 800">
+        <span style="width: 10px; height: 10px; border-radius: 5px; background: #E91916; align-self: center"></span>В эфире<span style="font-size: 14px; font-weight: 600; color: #5F5A6E">{{liveCount}}</span>
+      </h2>
+      <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 20px; padding: 6px 4px 0">
+        <sc-for list="{{live}}" as="c" hint-placeholder-count="4">
+          <button onClick="{{c.pick}}" aria-label="{{c.name}}" style="{{c.cardStyle}}">
+            <span style="{{c.avatar}}"></span>
+            <span style="font-size: 15px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%">{{c.name}}</span>
+            <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #E91916"><span style="width: 8px; height: 8px; border-radius: 4px; background: #E91916"></span>{{c.viewers}}</span>
+            <span style="font-size: 12px; color: #5F5A6E; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%">{{c.sub}}</span>
+          </button>
         </sc-for>
       </div>
-    </header>
-    <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 20px; padding: 6px 4px 0">
-      <sc-for list="{{channels}}" as="c" hint-placeholder-count="12">
-        <button onClick="{{c.pick}}" aria-label="{{c.name}}" style="{{c.cardStyle}}">
-          <span style="{{c.avatar}}"></span>
-          <span style="font-size: 15px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%">{{c.name}}</span>
-          <sc-if value="{{c.live}}" hint-placeholder-val="{{ true }}">
-            <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #E91916"><span style="width: 8px; height: 8px; border-radius: 4px; background: #E91916"></span>{{c.viewers}}</span>
-          </sc-if>
-          <span style="font-size: 12px; color: #5F5A6E; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%">{{c.sub}}</span>
-        </button>
-      </sc-for>
-    </div>
+    </section>
+    <section aria-label="Офлайн" style="display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; display: flex; align-items: baseline; gap: 10px; font-size: 20px; font-weight: 800">Офлайн<span style="font-size: 14px; font-weight: 600; color: #5F5A6E">{{offCount}}</span></h2>
+      <div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 16px; padding: 6px 4px 0">
+        <sc-for list="{{off}}" as="c" hint-placeholder-count="16">
+          <button onClick="{{c.pick}}" aria-label="{{c.name}}" style="{{c.cardStyle}}">
+            <span style="{{c.avatar}}"></span>
+            <span style="font-size: 13px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%">{{c.name}}</span>
+            <span style="font-size: 11px; color: #5F5A6E; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%">{{c.sub}}</span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
   </main>
   <div style="position: absolute; left: 0; top: 0; bottom: 0">
     <dc-import name="Rail" expanded="{{no}}" active="following" auth="{{yes}}" hint-size="88px,720px"></dc-import>
@@ -46,31 +57,39 @@ button{font-family:inherit}
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":720}}'>
 class Component extends DCLogic {
-  constructor(p) { super(p); this.state = { tab: 0, focus: 0 }; }
+  constructor(p) { super(p); this.state = { focus: 'live-0' }; }
   renderVals() {
     const A = '#9146FF';
     const colors = ['#FF8A5B', '#64E0C6', '#FFC857', '#7FB2FF', '#FF6B9A', '#B79CFF'];
-    const live = [['pixelmira', 'Just Chatting', '18,2 тыс'], ['kotofey', 'Minecraft', '6,4 тыс'], ['lofi_room', 'Музыка', '3,3 тыс'], ['devstream_ua', 'Программирование', '2,1 тыс']];
-    const off = [['kot_baton', '2 дня назад'], ['kotlin_dev', 'неделю назад'], ['mid_or_feed', 'вчера'], ['arena_ua', '3 дня назад'], ['jazz_cat', '5 часов назад'], ['tactic_room', 'вчера'], ['blocky_art', '2 недели назад'], ['rust_and_tea', 'месяц назад'], ['owl_squad', '4 дня назад'], ['vaskaa', 'вчера'], ['kira_aim', '6 часов назад'], ['newbie_dima', '3 недели назад']];
-    const onLive = this.state.tab === 0;
-    const src = onLive ? live.map((c) => ({ name: c[0], sub: c[1], viewers: c[2], live: true })) : off.map((c) => ({ name: c[0], sub: 'Был в эфире ' + c[1], viewers: '', live: false }));
-    const channels = src.map((c, i) => {
-      const f = this.state.focus === i;
-      return Object.assign(c, {
-        pick: () => this.setState({ focus: i }),
-        cardStyle: 'all: unset; cursor: pointer; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 18px 12px 16px; border-radius: 20px; background: #FFFFFF; min-width: 0; transition: transform .2s, box-shadow .2s; ' +
-          (f ? 'transform: scale(1.06); box-shadow: 0 0 0 3px ' + A + ', 0 18px 36px rgba(145,70,255,.28); z-index: 2;' : 'box-shadow: 0 1px 0 #E8E5F0, 0 6px 16px rgba(23,21,31,.05);'),
-        avatar: 'width: 84px; height: 84px; border-radius: 42px; margin-bottom: 6px; background: ' + colors[i % 6] + ';' +
-          (c.live ? ' box-shadow: 0 0 0 3px #FFFFFF, 0 0 0 6px #E91916;' : ' filter: grayscale(.7); opacity: .7;')
-      });
+    const live = [['pixelmira', 'Just Chatting', '18,2 тыс зрителей'], ['kotofey', 'Minecraft', '6,4 тыс зрителей'], ['lofi_room', 'Музыка', '3,3 тыс зрителей'], ['devstream_ua', 'Программирование', '2,1 тыс зрителей']];
+    // Subtitle: the channel's last category (Twitch gives no "last live" time for the follow list).
+    const off = [['jazz_cat', 'Музыка'], ['kira_aim', 'VALORANT'], ['mid_or_feed', 'Dota 2'], ['tactic_room', 'Counter-Strike'], ['vaskaa', 'Just Chatting'], ['kot_baton', 'Minecraft'], ['arena_ua', 'Dota 2'], ['owl_squad', 'Apex Legends'], ['kotlin_dev', 'Программирование'], ['blocky_art', 'Искусство'], ['newbie_dima', 'Fortnite'], ['rust_and_tea', 'Rust'], ['cs_vet', 'Counter-Strike'], ['art_lena', 'Искусство'], ['quiet_hour', 'Just Chatting'], ['retro_bit', 'Retro']];
+    const ring = (f) => f ? 'transform: scale(1.06); box-shadow: 0 0 0 3px ' + A + ', 0 18px 36px rgba(145,70,255,.28); z-index: 2;' : 'box-shadow: 0 1px 0 #E8E5F0, 0 6px 16px rgba(23,21,31,.05);';
+    const base = 'all: unset; cursor: pointer; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; background: #FFFFFF; min-width: 0; transition: transform .2s, box-shadow .2s; ';
+    const liveCards = live.map((c, i) => {
+      const key = 'live-' + i;
+      return {
+        name: c[0], sub: c[1], viewers: c[2],
+        pick: () => this.setState({ focus: key }),
+        cardStyle: base + 'gap: 6px; padding: 18px 12px 16px; border-radius: 20px; ' + ring(this.state.focus === key),
+        avatar: 'width: 84px; height: 84px; border-radius: 42px; margin-bottom: 6px; background: ' + colors[i % 6] + '; box-shadow: 0 0 0 3px #FFFFFF, 0 0 0 6px #E91916;'
+      };
     });
-    const tabs = [['В эфире · ' + live.length, 0], ['Офлайн · ' + off.length, 1]].map(([label, i]) => ({
-      label, on: this.state.tab === i ? 'true' : 'false',
-      pick: () => this.setState({ tab: i, focus: 0 }),
-      style: 'height: 42px; padding: 0 20px; border-radius: 13px; border: none; font-size: 14px; font-weight: 800; cursor: pointer; ' +
-        (this.state.tab === i ? 'background: #17151F; color: #FFFFFF;' : 'background: transparent; color: #5F5A6E;')
-    }));
-    return { channels, tabs, yes: true, no: false };
+    const offCards = off.map((c, i) => {
+      const key = 'off-' + i;
+      return {
+        name: c[0], sub: c[1],
+        pick: () => this.setState({ focus: key }),
+        cardStyle: base + 'gap: 4px; padding: 14px 8px 12px; border-radius: 16px; ' + ring(this.state.focus === key),
+        avatar: 'width: 60px; height: 60px; border-radius: 30px; margin-bottom: 4px; background: ' + colors[(i + 2) % 6] + '; filter: grayscale(.7); opacity: .7;'
+      };
+    });
+    return {
+      live: liveCards, off: offCards,
+      liveCount: String(live.length), offCount: String(off.length),
+      summary: (live.length + off.length) + ' каналов',
+      yes: true, no: false
+    };
   }
 }
 </script>

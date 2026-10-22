@@ -24,13 +24,14 @@ import app.twicast.tv.core.designsystem.theme.TwiTheme
 import app.twicast.tv.feature.player.PlaybackStatus
 import app.twicast.tv.feature.player.PlayerUiState
 
-/** Bottom panel (mockup "Плеер · панель управления"): channel info and Пауза / Качество / Чат. */
+/** Bottom panel (mockup "Плеер · панель управления"): channel info and Пауза / Качество / Чат / Канал. */
 @Composable
 fun PlayerControls(
     state: PlayerUiState,
     onTogglePause: () -> Unit,
     onOpenQuality: () -> Unit,
     onToggleChat: () -> Unit,
+    onOpenChannel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -74,5 +75,6 @@ fun PlayerControls(
                 onClick = onToggleChat,
             )
         }
+        TwiSecondaryButton(text = stringResource(R.string.player_channel), icon = TwiIcons.Profile, onClick = onOpenChannel)
     }
 }

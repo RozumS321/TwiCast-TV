@@ -22,6 +22,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import app.twicast.tv.R
 import app.twicast.tv.core.designsystem.component.SidebarItem
 import app.twicast.tv.core.designsystem.component.SidebarLayout
@@ -148,7 +149,9 @@ private fun SignedInShell(user: User) {
                     onClipClick = { channel, clip -> navController.navigate(channel.playerDestination(clipSlug = clip.id)) },
                 )
             }
-            composable<PlayerDestination> { PlayerRoute(onClose = navController::popBackStack) }
+            composable<PlayerDestination> {
+                PlayerRoute(onClose = navController::popBackStack, onOpenChannel = navController::openChannel)
+            }
         }
     }
 }
@@ -167,6 +170,16 @@ private fun ChannelPage.playerDestination(videoId: String? = null, clipSlug: Str
     videoId = videoId,
     clipSlug = clipSlug,
 )
+
+/** From the player: back to the channel page if the stream was opened from it, so Back does not loop. */
+private fun NavHostController.openChannel(login: String) {
+    val previous = previousBackStackEntry
+    if (previous?.destination?.hasRoute(ChannelDestination::class) == true && previous.toRoute<ChannelDestination>().channelLogin == login) {
+        popBackStack()
+    } else {
+        navigate(ChannelDestination(login))
+    }
+}
 
 private fun NavHostController.openCategory(category: Category) {
     navigate(CategoryStreamsDestination(category.id, category.name, category.boxArtTemplate))

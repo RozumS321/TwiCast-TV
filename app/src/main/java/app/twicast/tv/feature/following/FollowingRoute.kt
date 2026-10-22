@@ -16,7 +16,6 @@ fun FollowingRoute(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     FollowingScreen(
         state = state,
-        onTabSelected = viewModel::onTabSelected,
         onStreamClick = onStreamClick,
         onChannelClick = onChannelClick,
         onRetry = viewModel::onRetry,

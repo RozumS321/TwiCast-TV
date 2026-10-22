@@ -44,19 +44,16 @@ class FollowingViewModelTest {
         follows.result = AppResult.Success(Follows(3, listOf(channel("1"), channel("2"), channel("3"))))
 
         val content = viewModel().uiState.value as FollowingUiState.Content
-        assertEquals(FollowingTab.Live, content.tab)
         assertEquals(listOf("user-1"), content.live.map { it.userId })
         assertEquals(listOf("user-2", "user-3"), content.offline.map { it.id })
     }
 
     @Test
-    fun `nobody live opens on the offline tab`() = runTest(mainRule.dispatcher) {
+    fun `nobody live still shows the offline block`() = runTest(mainRule.dispatcher) {
         follows.result = AppResult.Success(Follows(1, listOf(channel("2"))))
-        val viewModel = viewModel()
-        assertEquals(FollowingTab.Offline, (viewModel.uiState.value as FollowingUiState.Content).tab)
-
-        viewModel.onTabSelected(FollowingTab.Live)
-        assertEquals(FollowingTab.Live, (viewModel.uiState.value as FollowingUiState.Content).tab)
+        val content = viewModel().uiState.value as FollowingUiState.Content
+        assertEquals(emptyList<String>(), content.live.map { it.userId })
+        assertEquals(listOf("user-2"), content.offline.map { it.id })
     }
 
     @Test
