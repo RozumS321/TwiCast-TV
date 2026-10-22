@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -82,15 +83,19 @@ fun PlayerScreen(
             .focusable(),
     ) {
         if (state.canPlay && state.settingsLoaded) {
-            TwitchEmbedView(
-                channelLogin = state.channel.channelLogin,
-                videoId = state.channel.videoId,
-                clipSlug = state.channel.clipSlug,
-                preferredQualityId = state.preferredQualityId,
-                controller = controller,
-                listener = listener,
-                modifier = Modifier.fillMaxSize(),
-            )
+            // A new attempt after a renderer crash: a fresh WebView (a dead one cannot be reused).
+            key(state.embedAttempt) {
+                TwitchEmbedView(
+                    channelLogin = state.channel.channelLogin,
+                    videoId = state.channel.videoId,
+                    clipSlug = state.channel.clipSlug,
+                    preferredQualityId = state.preferredQualityId,
+                    maxVideoHeight = state.maxVideoHeight,
+                    controller = controller,
+                    listener = listener,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
         }
         if (state.status != PlaybackStatus.Playing) {
             StatusPlate(state, Modifier.align(Alignment.TopStart).padding(TwiDimens.PlayerOverlayPadding))

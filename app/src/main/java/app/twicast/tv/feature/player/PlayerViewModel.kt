@@ -4,10 +4,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import app.twicast.tv.core.device.DeviceProfile
 import app.twicast.tv.data.repository.PlayerSettingsRepository
 import app.twicast.tv.feature.player.components.EmbedState
 import app.twicast.tv.feature.player.components.VideoQuality
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -40,6 +42,12 @@ data class PlayerDestination(
 /** Controls hide after this long without remote input (mockup note: "через 4 с"). */
 const val ControlsAutoHideMillis = 4_000L
 
+/** Renderer crashes survived by rebuilding the embed; one more is shown as an error. */
+const val MaxEmbedRestarts = 2
+
+/** Quality ceiling on low-memory TVs and after a renderer crash: 1080p is what runs weak boxes out of memory. */
+const val RecoveryMaxVideoHeight = 720
+
 /**
  * Player screen state. Playback state and the quality list come from the embed page; overlays, chat
  * and the preferred quality are decided here. The screen forwards commands to the embed itself.
@@ -48,14 +56,18 @@ const val ControlsAutoHideMillis = 4_000L
 class PlayerViewModel internal constructor(
     destination: PlayerDestination,
     private val settings: PlayerSettingsRepository,
+    device: DeviceProfile,
 ) : ViewModel() {
 
     // Hilt entry: the route comes from navigation. Tests use the primary constructor (no Android in JVM tests).
     @Inject
-    constructor(savedStateHandle: SavedStateHandle, settings: PlayerSettingsRepository) :
-        this(savedStateHandle.toRoute<PlayerDestination>(), settings)
+    constructor(savedStateHandle: SavedStateHandle, settings: PlayerSettingsRepository, device: DeviceProfile) :
+        this(savedStateHandle.toRoute<PlayerDestination>(), settings, device)
 
-    private val _uiState = MutableStateFlow(PlayerUiState(channel = destination))
+    // Weak TVs start below 1080p right away instead of waiting for the renderer to crash.
+    private val _uiState = MutableStateFlow(
+        PlayerUiState(channel = destination, maxVideoHeight = RecoveryMaxVideoHeight.takeIf { device.isLowMemory }),
+    )
     val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
 
     private var autoHideJob: Job? = null
@@ -79,6 +91,25 @@ class PlayerViewModel internal constructor(
                     EmbedState.Error -> PlaybackStatus.Error
                 },
             )
+        }
+    }
+
+    /** The WebView renderer died (usually out of memory): rebuild the embed with a lower quality ceiling. */
+    fun onRendererGone() {
+        _uiState.update {
+            if (it.embedAttempt >= MaxEmbedRestarts) {
+                it.copy(status = PlaybackStatus.Error)
+            } else {
+                it.copy(
+                    embedAttempt = it.embedAttempt + 1,
+                    maxVideoHeight = RecoveryMaxVideoHeight,
+                    status = PlaybackStatus.Loading,
+                    qualities = persistentListOf(),
+                    currentQualityId = null,
+                    // The new page starts without the chat; the viewer reopens it.
+                    chatVisible = false,
+                )
+            }
         }
     }
 

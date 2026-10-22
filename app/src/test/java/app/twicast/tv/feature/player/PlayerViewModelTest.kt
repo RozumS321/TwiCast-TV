@@ -1,6 +1,8 @@
 package app.twicast.tv.feature.player
 
+import app.twicast.tv.core.device.DeviceProfile
 import app.twicast.tv.data.repository.PlayerSettingsRepository
+import app.twicast.tv.feature.player.components.EmbedState
 import app.twicast.tv.feature.player.components.VideoQuality
 import app.twicast.tv.testing.MainDispatcherRule
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -27,10 +29,11 @@ class PlayerViewModelTest {
     val mainRule = MainDispatcherRule(StandardTestDispatcher())
 
     private val settings = FakePlayerSettings()
+    private val device = object : DeviceProfile { override var isLowMemory = false }
     private val destination = PlayerDestination("sasavot", "sasavot", "Just Chatting", 15_300, null)
 
     private fun TestScope.viewModel(): PlayerViewModel =
-        PlayerViewModel(destination, settings).also { runCurrent() }
+        PlayerViewModel(destination, settings, device).also { runCurrent() }
 
     @Test
     fun `preferred quality is loaded before the embed may be created`() = runTest(mainRule.dispatcher) {
@@ -95,8 +98,31 @@ class PlayerViewModelTest {
     }
 
     @Test
+    fun `renderer crash rebuilds the embed at 720p, then gives up`() = runTest(mainRule.dispatcher) {
+        val viewModel = viewModel()
+        viewModel.onEmbedStateChanged(EmbedState.Playing)
+
+        viewModel.onRendererGone()
+        with(viewModel.uiState.value) {
+            assertEquals(1, embedAttempt)
+            assertEquals(RecoveryMaxVideoHeight, maxVideoHeight)
+            assertEquals(PlaybackStatus.Loading, status)
+        }
+
+        repeat(MaxEmbedRestarts) { viewModel.onRendererGone() }
+        assertEquals(MaxEmbedRestarts, viewModel.uiState.value.embedAttempt)
+        assertEquals(PlaybackStatus.Error, viewModel.uiState.value.status)
+    }
+
+    @Test
+    fun `low-memory TVs start capped at 720p`() = runTest(mainRule.dispatcher) {
+        device.isLowMemory = true
+        assertEquals(RecoveryMaxVideoHeight, viewModel().uiState.value.maxVideoHeight)
+    }
+
+    @Test
     fun `malformed login never reaches the embed`() = runTest(mainRule.dispatcher) {
-        val viewModel = PlayerViewModel(destination.copy(channelLogin = "a&b=c"), settings)
+        val viewModel = PlayerViewModel(destination.copy(channelLogin = "a&b=c"), settings, device)
         assertFalse(viewModel.uiState.value.canPlay)
     }
 }

@@ -21,6 +21,10 @@ data class PlayerUiState(
     /** Read from settings before the embed is created: it goes into the embed URL. */
     val preferredQualityId: String? = null,
     val settingsLoaded: Boolean = false,
+    /** Bumped when the WebView renderer died: the embed is rebuilt from scratch. */
+    val embedAttempt: Int = 0,
+    /** Set after a renderer crash (out of memory on weak TV boxes): the embed keeps quality at or below it. */
+    val maxVideoHeight: Int? = null,
 ) {
     /** False for a malformed login: the embed is not created at all. */
     val canPlay: Boolean get() = channel.channelLogin.matches(ChannelLoginPattern)

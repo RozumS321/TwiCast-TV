@@ -1,5 +1,7 @@
 package app.twicast.tv.core.di
 
+import app.twicast.tv.core.device.AndroidDeviceProfile
+import app.twicast.tv.core.device.DeviceProfile
 import app.twicast.tv.data.repository.AuthRepository
 import app.twicast.tv.data.repository.CategoriesRepository
 import app.twicast.tv.data.repository.ChannelRepository
@@ -45,6 +47,9 @@ abstract class DataModule {
 
     @Binds
     abstract fun bindPlayerSettingsRepository(impl: DataStorePlayerSettingsRepository): PlayerSettingsRepository
+
+    @Binds
+    abstract fun bindDeviceProfile(impl: AndroidDeviceProfile): DeviceProfile
 
     companion object {
         /** Device locale: picks the "popular in your region" language. */

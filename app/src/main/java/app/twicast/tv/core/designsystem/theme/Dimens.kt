@@ -172,6 +172,7 @@ object TwiDimens {
     val ChannelTagHeight = 40.dp
 
     val UpdatePanelWidth = 880.dp
+    val UpdatePanelScreenMargin = 32.dp
     val UpdatePanelHorizontalPadding = 48.dp
     val UpdatePanelVerticalPadding = 40.dp
     val UpdatePanelSpacing = 22.dp

@@ -39,8 +39,13 @@
   // Instead of the live stream: a past broadcast (?video=<id>) or a clip (?clip=<slug>).
   var video = params.get('video');
   var clip = params.get('clip');
+  // Quality ceiling after a renderer crash (?maxHeight=720): decoding 1080p runs weak TV boxes out of memory.
+  var maxHeight = parseInt(params.get("maxHeight"), 10) || 0;
+  if (maxHeight) preferredQuality = null;
 
-  function report(state) { if (bridge) bridge.onStateChanged(state); }
+  function mark(label) { if (bridge && bridge.mark) bridge.mark(label, Math.round(performance.now())); }
+  function report(state) { mark(state); if (bridge) bridge.onStateChanged(state); }
+  mark(window.Twitch ? "embed script ready" : "embed script missing");
 
   /** Clips have their own embed without a JS API: no pause, quality or events beyond "loaded". */
   function playClip() {
@@ -52,6 +57,18 @@
     frame.onload = function () { report('playing'); };
     document.getElementById('player').appendChild(frame);
     window.twicast = { togglePause: function () {}, setQuality: function () {}, setChatVisible: function () {} };
+  }
+
+  function heightOf(q) { return parseInt(typeof q === "string" ? q : (q.name || q.group), 10) || 0; }
+
+  /** Keeps the stream at or below maxHeight: the best quality that fits, never "auto" (it would climb back). */
+  function capQuality(player) {
+    var list = player.getQualities() || [];
+    var current = list.filter(function (q) { return (q.group || q.name || q) === player.getQuality(); })[0];
+    if (current && heightOf(current) > 0 && heightOf(current) <= maxHeight) return;
+    var fitting = list.filter(function (q) { var h = heightOf(q); return h > 0 && h <= maxHeight; })
+      .sort(function (a, b) { return heightOf(b) - heightOf(a); })[0];
+    if (fitting) { player.setQuality(fitting.group || fitting.name || fitting); mark("quality capped"); }
   }
 
   /** Twitch returns objects ({name, group, ...}); `group` is what setQuality() takes. */
@@ -81,6 +98,7 @@
       // The quality list exists only once the stream plays, and Twitch resets it to "auto" after every ad break:
       // re-apply the viewer's choice each time.
       if (preferredQuality && player.getQuality() !== preferredQuality) player.setQuality(preferredQuality);
+      if (maxHeight) capQuality(player);
       reportQualities(player);
     });
     player.addEventListener(Twitch.Player.PAUSE, function () { report('paused'); });
@@ -90,7 +108,8 @@
 
     window.twicast = {
       togglePause: function () { if (player.isPaused()) player.play(); else player.pause(); },
-      setQuality: function (id) { preferredQuality = id; player.setQuality(id); reportQualities(player); },
+      // The viewer's own choice lifts the crash ceiling.
+      setQuality: function (id) { maxHeight = 0; preferredQuality = id; player.setQuality(id); reportQualities(player); },
       setChatVisible: function (visible, title, hint) {
         var frameBox = document.getElementById('chat-frame');
         if (visible && !frameBox.querySelector('iframe')) {

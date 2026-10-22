@@ -2,13 +2,17 @@ package app.twicast.tv.feature.player.components
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
+import android.util.Log
 import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -28,6 +32,11 @@ import org.json.JSONObject
 private const val AssetHost = WebViewAssetLoader.DEFAULT_DOMAIN
 private const val PlayerPageUrl = "https://$AssetHost/assets/player/player.html"
 private const val BridgeName = "TwiCast"
+
+/** Player start timings in logcat (`adb logcat -s TwiCastPerf`): WebView creation, page load, Twitch events. */
+internal const val PerfTag = "TwiCastPerf"
+
+private const val RendererGoneTag = "renderer-gone"
 
 /** Events reported by the embed page (see assets/player/player.html). */
 enum class EmbedState { Ready, Playing, Paused, Offline, Error }
@@ -62,6 +71,9 @@ class TwitchEmbedController internal constructor() {
 interface TwitchEmbedListener {
     fun onStateChanged(state: EmbedState)
     fun onQualities(qualities: List<VideoQuality>, currentId: String)
+
+    /** The page's renderer process died (out of memory on weak boxes); this WebView is dead and gets replaced. */
+    fun onRendererGone()
 }
 
 /**
@@ -75,6 +87,7 @@ fun TwitchEmbedView(
     videoId: String?,
     clipSlug: String?,
     preferredQualityId: String?,
+    maxVideoHeight: Int?,
     controller: TwitchEmbedController,
     listener: TwitchEmbedListener,
     modifier: Modifier = Modifier,
@@ -87,28 +100,41 @@ fun TwitchEmbedView(
                 override fun onStateChanged(state: EmbedState) = currentListener.value.onStateChanged(state)
                 override fun onQualities(qualities: List<VideoQuality>, currentId: String) =
                     currentListener.value.onQualities(qualities, currentId)
+                override fun onRendererGone() = currentListener.value.onRendererGone()
             }
+            val startedAt = SystemClock.elapsedRealtime()
             createEmbedWebView(context, forwarding).also { webView ->
+                Log.i(PerfTag, "webview created in ${SystemClock.elapsedRealtime() - startedAt} ms")
                 controller.webView = webView
-                webView.loadUrl(playerUrl(channelLogin, videoId, clipSlug, preferredQualityId))
+                webView.loadUrl(playerUrl(channelLogin, videoId, clipSlug, preferredQualityId, maxVideoHeight))
             }
         },
         onRelease = { webView ->
             controller.webView = null
-            webView.stopLoading()
-            webView.loadUrl("about:blank")
+            // A WebView whose renderer died accepts nothing but destroy().
+            if (webView.tag != RendererGoneTag) {
+                webView.stopLoading()
+                webView.loadUrl("about:blank")
+            }
             webView.removeJavascriptInterface(BridgeName)
             webView.destroy()
         },
     )
 }
 
-private fun playerUrl(channelLogin: String, videoId: String?, clipSlug: String?, preferredQualityId: String?): String =
+private fun playerUrl(
+    channelLogin: String,
+    videoId: String?,
+    clipSlug: String?,
+    preferredQualityId: String?,
+    maxVideoHeight: Int?,
+): String =
     Uri.parse(PlayerPageUrl).buildUpon()
         .appendQueryParameter("channel", channelLogin)
         .apply { if (videoId != null) appendQueryParameter("video", videoId) }
         .apply { if (clipSlug != null) appendQueryParameter("clip", clipSlug) }
         .apply { if (preferredQualityId != null) appendQueryParameter("quality", preferredQualityId) }
+        .apply { if (maxVideoHeight != null) appendQueryParameter("maxHeight", maxVideoHeight.toString()) }
         .build()
         .toString()
 
@@ -152,6 +178,12 @@ private class EmbedBridge(private val listener: TwitchEmbedListener) {
         mainHandler.post { listener.onStateChanged(embedState) }
     }
 
+    /** Timing marks from the page (ms since its navigation start). */
+    @JavascriptInterface
+    fun mark(label: String, atMillis: Int) {
+        Log.i(PerfTag, "page +$atMillis ms: $label")
+    }
+
     @JavascriptInterface
     fun onQualities(qualitiesJson: String, currentId: String) {
         val qualities = try {
@@ -175,6 +207,22 @@ private class EmbedWebViewClient(
     /** The top-level page never leaves our wrapper (links inside the player must not open the Twitch site here). */
     override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
         request.isForMainFrame && request.url.host != AssetHost
+
+    override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
+        if (url != "about:blank") Log.i(PerfTag, "page started")
+    }
+
+    override fun onPageFinished(view: WebView, url: String) {
+        if (url != "about:blank") Log.i(PerfTag, "page finished")
+    }
+
+    /** Without this the whole app is killed along with the renderer. */
+    override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+        Log.w(PerfTag, "renderer gone, crashed=${detail.didCrash()}")
+        view.tag = RendererGoneTag
+        listener.onRendererGone()
+        return true
+    }
 
     override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
         if (request.isForMainFrame) listener.onStateChanged(EmbedState.Error)

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -20,6 +21,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -52,6 +55,10 @@ interface UpdateActions {
     fun onDismiss()
 }
 
+/** Long releases: a few lines per section, the rest summed up as "и ещё N". */
+private const val MaxNotesPerSection = 4
+private const val MaxNoteLines = 2
+
 /**
  * Modal panel over the whole app (mockups "Обновление · …"). Focus stays inside it; Back dismisses
  * (or cancels the download).
@@ -64,7 +71,8 @@ fun UpdateOverlay(state: UpdateUiState, actions: UpdateActions, modifier: Modifi
         contentAlignment = Alignment.Center,
         modifier = modifier
             .fillMaxSize()
-            .background(TwiTheme.colors.scrim),
+            .background(TwiTheme.colors.scrim)
+            .padding(vertical = TwiDimens.UpdatePanelScreenMargin),
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(TwiDimens.UpdatePanelSpacing),
@@ -81,7 +89,8 @@ fun UpdateOverlay(state: UpdateUiState, actions: UpdateActions, modifier: Modifi
                 .padding(horizontal = TwiDimens.UpdatePanelHorizontalPadding, vertical = TwiDimens.UpdatePanelVerticalPadding),
         ) {
             UpdateHeader(state)
-            state.release()?.let { NotesCards(it) }
+            // Notes take only the room left: the buttons below always stay on screen, however long the release.
+            state.release()?.let { NotesCards(it, Modifier.weight(1f, fill = false)) }
             if (state is UpdateUiState.Downloading) DownloadProgress(state)
             UpdateButtons(state, actions)
         }
@@ -145,7 +154,7 @@ private fun InstalledBadge() {
 
 /** "Новое / Исправлено / Улучшено" side by side; empty sections are left out. */
 @Composable
-private fun NotesCards(release: AppRelease) {
+private fun NotesCards(release: AppRelease, modifier: Modifier) {
     val colors = TwiTheme.colors
     val sections = listOf(
         NotesSection(stringResource(R.string.update_section_added), TwiIcons.Plus, colors.primary, release.notes.added),
@@ -153,7 +162,11 @@ private fun NotesCards(release: AppRelease) {
         NotesSection(stringResource(R.string.update_section_improved), TwiIcons.ArrowUp, colors.info, release.notes.improved),
     ).filter { it.items.isNotEmpty() }
     if (sections.isEmpty()) return
-    Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.NotesCardSpacing), modifier = Modifier.fillMaxWidth()) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(TwiDimens.NotesCardSpacing),
+        // Cards as tall as the tallest one, not as tall as the space allowed.
+        modifier = modifier.fillMaxWidth().height(IntrinsicSize.Min),
+    ) {
         sections.forEach { section -> NotesCard(section, Modifier.weight(1f).fillMaxHeight()) }
     }
 }
@@ -177,8 +190,22 @@ private fun NotesCard(section: NotesSection, modifier: Modifier) {
             }
             Text(section.title, style = TwiTheme.typography.listTitle, color = TwiTheme.colors.onSurface)
         }
-        section.items.forEach { item ->
-            Text(item, style = TwiTheme.typography.bodySmall, color = TwiTheme.colors.onSurfaceSecondary)
+        section.items.take(MaxNotesPerSection).forEach { item ->
+            Text(
+                item,
+                style = TwiTheme.typography.bodySmall,
+                color = TwiTheme.colors.onSurfaceSecondary,
+                maxLines = MaxNoteLines,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        val hidden = section.items.size - MaxNotesPerSection
+        if (hidden > 0) {
+            Text(
+                pluralStringResource(R.plurals.update_more_items, hidden, hidden),
+                style = TwiTheme.typography.bodySmall,
+                color = TwiTheme.colors.onSurfaceVariant,
+            )
         }
     }
 }
