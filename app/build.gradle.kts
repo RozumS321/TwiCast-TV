@@ -45,6 +45,11 @@ val releaseSigning: Map<String, String>? = run {
     }
 }
 
+// A CI release signed with the debug key could never be updated over: fail instead of publishing it.
+if (ciVersionCode != null && releaseSigning == null) {
+    throw GradleException("CI release build without the release key: check the RELEASE_KEYSTORE_* secrets")
+}
+
 android {
     namespace = "app.twicast.tv"
     compileSdk = 37
