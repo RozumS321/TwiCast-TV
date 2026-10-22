@@ -9,12 +9,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -81,13 +83,10 @@ private fun AuthGate(authState: AuthState) {
 private fun SignedInShell(user: User) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = when {
-        // Streams of a category belong to the Categories section.
-        backStackEntry?.destination?.hasRoute(CategoryStreamsDestination::class) == true -> TopLevelDestination.Categories
-        else -> TopLevelDestination.entries.firstOrNull { destination ->
-            backStackEntry?.destination?.hasRoute(destination.route::class) == true
-        } ?: TopLevelDestination.Home
-    }
+    val backStack by navController.currentBackStack.collectAsState()
+    // The section is the last top-level screen in the stack: a category, a channel or the player opened from
+    // "Подписки" still belong to "Подписки".
+    val currentDestination = backStack.sectionOf() ?: TopLevelDestination.Home
     val isPlayer = backStackEntry?.destination?.hasRoute(PlayerDestination::class) == true
 
     val labels = TopLevelDestination.entries.map { destination ->
@@ -105,7 +104,15 @@ private fun SignedInShell(user: User) {
         items = mainItems,
         bottomItem = profileItem,
         selectedKey = currentDestination.name,
-        onItemClick = { item -> navController.navigateToTopLevel(TopLevelDestination.valueOf(item.key)) },
+        onItemClick = { item ->
+            val destination = TopLevelDestination.valueOf(item.key)
+            // The current section again: back to its root (e.g. from a channel page to the follow list).
+            if (destination == currentDestination) {
+                navController.popBackStack(destination.route, inclusive = false)
+            } else {
+                navController.navigateToTopLevel(destination)
+            }
+        },
         showSidebar = !isPlayer,
     ) {
         NavHost(
@@ -154,6 +161,10 @@ private fun SignedInShell(user: User) {
             }
         }
     }
+}
+
+private fun List<NavBackStackEntry>.sectionOf(): TopLevelDestination? = asReversed().firstNotNullOfOrNull { entry ->
+    TopLevelDestination.entries.firstOrNull { entry.destination.hasRoute(it.route::class) }
 }
 
 private fun NavHostController.openStream(stream: Stream) {

@@ -14,11 +14,14 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.Text
@@ -42,6 +45,7 @@ import app.twicast.tv.data.model.Video
 import app.twicast.tv.feature.channel.components.ChannelBanner
 import app.twicast.tv.feature.common.appErrorMessage
 import java.text.NumberFormat
+import kotlinx.coroutines.launch
 
 private const val SkeletonCards = 5
 private const val SecondsInMinute = 60
@@ -86,8 +90,11 @@ private fun ChannelContent(
         lastVideo != null -> { { onVideoClick(channel, lastVideo) } }
         else -> null
     }
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
     KeepFocusedVisibleScroll {
         LazyColumn(
+            state = listState,
             verticalArrangement = Arrangement.spacedBy(TwiDimens.ChannelSectionSpacing - TwiDimens.FocusOverflowPadding),
             contentPadding = PaddingValues(top = TwiDimens.ScreenTopPadding, bottom = TwiDimens.ScreenTopPadding),
             modifier = modifier.fillMaxSize(),
@@ -96,7 +103,10 @@ private fun ChannelContent(
                 ChannelBanner(
                     channel = channel,
                     onWatch = onWatch,
-                    modifier = Modifier.padding(start = TwiDimens.ContentStartPadding, end = TwiDimens.ContentEndPadding),
+                    modifier = Modifier
+                        .padding(start = TwiDimens.ContentStartPadding, end = TwiDimens.ContentEndPadding)
+                        // The focused button sits low in the banner: bring the whole banner back, not just the button.
+                        .onFocusChanged { if (it.hasFocus) scope.launch { listState.animateScrollToItem(0) } },
                 )
             }
             if (channel.description.isNotBlank() || channel.followerCount != null) {
