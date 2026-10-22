@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Главная — гость</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#772CE8}a:hover{color:#5C16C5}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 720px; overflow: hidden; background: #F6F5FA; color: #17151F; font-family: 'Plus Jakarta Sans', system-ui, sans-serif">
+
+  <main style="position: absolute; left: 88px; right: 0; top: 0; bottom: 0; padding: 30px 0 0 40px; display: flex; flex-direction: column; gap: 26px">
+
+    <section aria-label="В центре внимания" style="display: flex; gap: 32px; align-items: stretch; padding-right: 40px">
+      <button onClick="{{hero.pick}}" aria-label="Смотреть {{hero.channel}}" style="{{hero.cardStyle}}">
+        <span style="{{hero.art1}}"></span>
+        <span style="{{hero.art2}}"></span>
+        <span style="position: absolute; left: 16px; top: 16px; padding: 4px 9px; border-radius: 8px; background: #E91916; color: #FFFFFF; font-size: 12px; font-weight: 800; letter-spacing: .04em">LIVE</span>
+        <span style="position: absolute; left: 16px; bottom: 16px; padding: 4px 10px; border-radius: 8px; background: rgba(15,14,20,.72); color: #FFFFFF; font-size: 13px; font-weight: 700">{{hero.viewers}} зрителей</span>
+      </button>
+      <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 14px">
+        <div style="font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #772CE8">В центре внимания</div>
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span style="width: 44px; height: 44px; border-radius: 22px; background: #FF9F4A; border: 3px solid #FFFFFF; box-shadow: 0 0 0 2px #9146FF"></span>
+          <div style="display: flex; flex-direction: column">
+            <span style="font-size: 18px; font-weight: 800">pixelmira</span>
+            <span style="font-size: 14px; color: #5F5A6E">Just Chatting</span>
+          </div>
+        </div>
+        <div style="font-size: 26px; font-weight: 800; line-height: 1.2; letter-spacing: -0.01em">Утренний кофе и разбор ваших сетапов — заходите</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap">
+          <span style="padding: 5px 11px; border-radius: 999px; background: #EFEDF5; font-size: 13px; font-weight: 600; color: #3E3A4A">Русский</span>
+          <span style="padding: 5px 11px; border-radius: 999px; background: #EFEDF5; font-size: 13px; font-weight: 600; color: #3E3A4A">Общение</span>
+          <span style="padding: 5px 11px; border-radius: 999px; background: #EFEDF5; font-size: 13px; font-weight: 600; color: #3E3A4A">3 ч в эфире</span>
+        </div>
+        <div style="display: flex; gap: 12px; margin-top: 6px">
+          <button style="height: 52px; padding: 0 26px; border-radius: 16px; border: none; background: #9146FF; color: #FFFFFF; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 24px rgba(145,70,255,.32)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#FFFFFF" aria-hidden="true"><path d="M7 4v16l13-8z"></path></svg>
+            Смотреть
+          </button>
+          <button style="height: 52px; padding: 0 22px; border-radius: 16px; border: 1px solid #E2DFEA; background: #FFFFFF; color: #17151F; font-size: 16px; font-weight: 700">Канал</button>
+        </div>
+      </div>
+    </section>
+
+    <section aria-label="Популярное в регионе" style="display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; align-items: baseline; gap: 12px">
+        <h2 style="margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.01em">Популярное в регионе</h2>
+        <span style="font-size: 14px; color: #5F5A6E">Украина · русский</span>
+      </div>
+      <div style="display: flex; gap: 24px; padding: 8px 0 8px 4px">
+        <sc-for list="{{row}}" as="s" hint-placeholder-count="5">
+          <button onClick="{{s.pick}}" aria-label="{{s.channel}}: {{s.title}}" style="{{s.cardStyle}}">
+            <span style="{{s.thumb}}">
+              <span style="{{s.art1}}"></span>
+              <span style="{{s.art2}}"></span>
+              <span style="position: absolute; left: 10px; top: 10px; padding: 3px 7px; border-radius: 6px; background: #E91916; color: #FFFFFF; font-size: 10px; font-weight: 800; letter-spacing: .04em">LIVE</span>
+              <span style="position: absolute; left: 10px; bottom: 10px; padding: 3px 8px; border-radius: 6px; background: rgba(15,14,20,.72); color: #FFFFFF; font-size: 11px; font-weight: 700">{{s.viewers}}</span>
+            </span>
+            <span style="display: flex; gap: 10px; align-items: flex-start; padding: 0 4px">
+              <span style="{{s.avatar}}"></span>
+              <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+                <span style="font-size: 14px; font-weight: 700; color: #17151F; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{s.title}}</span>
+                <span style="font-size: 13px; color: #5F5A6E; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{s.channel}} · {{s.category}}</span>
+              </span>
+            </span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+
+    <section aria-label="Топ категорий" style="display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.01em">Топ категорий</h2>
+    </section>
+  </main>
+
+  <div style="{{scrimStyle}}"></div>
+  <div style="position: absolute; left: 0; top: 0; bottom: 0">
+    <dc-import name="Rail" expanded="{{navOpen}}" active="home" auth="{{auth}}" on-toggle="{{toggleNav}}" hint-size="88px,720px"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"navOpen":{"editor":"boolean","default":false},"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { focus: 'r1', nav: null }; }
+  renderVals() {
+    const A = '#9146FF';
+    const navOpen = this.state.nav ?? (this.props.navOpen ?? false);
+    const ring = 'transform: scale(1.06); box-shadow: 0 0 0 3px ' + A + ', 0 18px 36px rgba(145,70,255,.28); z-index: 2;';
+    const tones = [['#2B1E4A', '#FF8A5B'], ['#123A3A', '#64E0C6'], ['#3A1E2E', '#FFC857'], ['#1C2A48', '#7FB2FF'], ['#30261A', '#FF6B9A']];
+    const art = (i, big) => ({
+      art1: 'position: absolute; inset: 0; background: ' + tones[i % 5][0] + ';',
+      art2: 'position: absolute; width: ' + (big ? 46 : 54) + '%; aspect-ratio: 1; border-radius: 50%; right: ' + (8 + (i * 11) % 30) + '%; top: ' + (10 + (i * 7) % 26) + '%; background: ' + tones[i % 5][1] + '; opacity: .9;'
+    });
+    const focusHero = this.state.focus === 'hero';
+    const hero = Object.assign({
+      channel: 'pixelmira', viewers: '18,2 тыс',
+      pick: () => this.setState({ focus: 'hero' }),
+      cardStyle: 'all: unset; cursor: pointer; position: relative; overflow: hidden; flex-shrink: 0; width: 560px; height: 315px; border-radius: 20px; transition: transform .2s, box-shadow .2s; ' + (focusHero ? 'box-shadow: 0 0 0 3px ' + A + ', 0 20px 40px rgba(145,70,255,.28);' : 'box-shadow: 0 10px 30px rgba(23,21,31,.12);')
+    }, art(0, true));
+    const data = [
+      ['Ранкед до утра, держим планку', 'nightowl_plays', 'Counter-Strike', '9,8 тыс'],
+      ['Пишем движок на Kotlin с нуля', 'devstream_ua', 'Программирование', '2,1 тыс'],
+      ['Выживание: день 47, строим базу', 'kotofey', 'Minecraft', '6,4 тыс'],
+      ['Лоу-фай под учёбу и работу', 'lofi_room', 'Музыка', '3,3 тыс'],
+      ['Патч вышел — смотрим изменения', 'mid_or_feed', 'Dota 2', '12,7 тыс']
+    ];
+    const row = data.map((d, i) => {
+      const f = this.state.focus === 'r' + i;
+      return Object.assign({
+        title: d[0], channel: d[1], category: d[2], viewers: d[3],
+        pick: () => this.setState({ focus: 'r' + i }),
+        cardStyle: 'all: unset; cursor: pointer; flex-shrink: 0; width: 240px; display: flex; flex-direction: column; gap: 10px; border-radius: 16px; transition: transform .2s, box-shadow .2s; ' + (f ? ring + ' background: #FFFFFF; padding-bottom: 10px;' : 'padding-bottom: 10px;'),
+        thumb: 'position: relative; overflow: hidden; width: 240px; height: 135px; border-radius: 14px; display: block;',
+        avatar: 'width: 32px; height: 32px; flex-shrink: 0; border-radius: 16px; background: ' + tones[(i + 2) % 5][1] + ';'
+      }, art(i + 1, false));
+    });
+    return {
+      hero, row, navOpen, auth: false,
+      toggleNav: () => this.setState({ nav: !navOpen }),
+      scrimStyle: 'position: absolute; inset: 0; background: rgba(23,21,31,' + (navOpen ? '.32' : '0') + '); pointer-events: none; transition: background .25s;'
+    };
+  }
+}
+</script>
+</body>
+</html>

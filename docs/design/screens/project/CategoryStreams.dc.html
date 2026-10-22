@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Стримы категории</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#772CE8}a:hover{color:#5C16C5}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 720px; overflow: hidden; background: #F6F5FA; color: #17151F; font-family: 'Plus Jakarta Sans', system-ui, sans-serif">
+  <main style="position: absolute; left: 88px; right: 0; top: 0; bottom: 0; padding: 30px 40px 0 40px; display: flex; flex-direction: column; gap: 22px">
+    <header style="display: flex; align-items: center; gap: 22px">
+      <button aria-label="Назад к категориям" style="width: 48px; height: 48px; flex-shrink: 0; border-radius: 16px; border: 1px solid #E2DFEA; background: #FFFFFF; display: flex; align-items: center; justify-content: center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17151F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+      </button>
+      <div style="position: relative; overflow: hidden; width: 72px; height: 96px; flex-shrink: 0; border-radius: 12px; background: #123A3A; box-shadow: 0 6px 18px rgba(23,21,31,.12)">
+        <div style="position: absolute; width: 50px; height: 50px; border-radius: 12px; left: 11px; top: 20px; background: #64E0C6; transform: rotate(-12deg)"></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; flex-grow: 1; min-width: 0">
+        <h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.02em">Counter-Strike</h1>
+        <div style="display: flex; gap: 8px; align-items: center">
+          <span style="font-size: 14px; color: #5F5A6E"><b style="color: #17151F">204 тыс</b> зрителей · <b style="color: #17151F">3 812</b> каналов</span>
+          <span style="padding: 4px 10px; border-radius: 999px; background: #EFEDF5; font-size: 12px; font-weight: 600; color: #3E3A4A">Шутер</span>
+          <span style="padding: 4px 10px; border-radius: 999px; background: #EFEDF5; font-size: 12px; font-weight: 600; color: #3E3A4A">Тактика</span>
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px">
+        <sc-for list="{{langs}}" as="c" hint-placeholder-count="4">
+          <button onClick="{{c.pick}}" style="{{c.style}}">{{c.label}}</button>
+        </sc-for>
+      </div>
+    </header>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px 24px; padding: 6px 4px 0">
+      <sc-for list="{{streams}}" as="s" hint-placeholder-count="8">
+        <button onClick="{{s.pick}}" aria-label="{{s.channel}}: {{s.title}}" style="{{s.cardStyle}}">
+          <span style="{{s.thumb}}">
+            <span style="{{s.art}}"></span>
+            <span style="position: absolute; left: 10px; top: 10px; padding: 3px 7px; border-radius: 6px; background: #E91916; color: #FFFFFF; font-size: 10px; font-weight: 800; letter-spacing: .04em">LIVE</span>
+            <span style="position: absolute; left: 10px; bottom: 10px; padding: 3px 8px; border-radius: 6px; background: rgba(15,14,20,.72); color: #FFFFFF; font-size: 11px; font-weight: 700">{{s.viewers}}</span>
+          </span>
+          <span style="display: flex; gap: 10px; align-items: flex-start; padding: 0 4px">
+            <span style="{{s.avatar}}"></span>
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0; text-align: left">
+              <span style="font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{s.title}}</span>
+              <span style="font-size: 13px; color: #5F5A6E">{{s.channel}}</span>
+            </span>
+          </span>
+        </button>
+      </sc-for>
+    </div>
+  </main>
+  <div style="position: absolute; left: 0; top: 0; bottom: 0">
+    <dc-import name="Rail" expanded="{{no}}" active="categories" hint-size="88px,720px"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { focus: 0, lang: 1 }; }
+  renderVals() {
+    const A = '#9146FF';
+    const tones = [['#123A3A', '#64E0C6'], ['#1C2A48', '#7FB2FF'], ['#2B1E4A', '#FF8A5B'], ['#30261A', '#FFC857']];
+    const data = [
+      ['FACEIT 3000+ эло, без мата', 'nightowl_plays', '9,8 тыс'], ['Турнир сообщества — финал', 'arena_ua', '7,1 тыс'],
+      ['Учу раскидки на новой карте', 'smoke_lab', '2,4 тыс'], ['Дуо с подписчиками', 'kira_aim', '1,9 тыс'],
+      ['Разбор демок про-сцены', 'tactic_room', '1,6 тыс'], ['Чилл-премьер после работы', 'vaskaa', '980'],
+      ['Ночной марафон до 10 побед', 'owl_squad', '870'], ['Первый раз в соревновательном', 'newbie_dima', '410']
+    ];
+    const streams = data.map((d, i) => {
+      const f = this.state.focus === i;
+      return {
+        title: d[0], channel: d[1], viewers: d[2],
+        pick: () => this.setState({ focus: i }),
+        cardStyle: 'all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 10px; min-width: 0; padding-bottom: 10px; border-radius: 16px; transition: transform .2s, box-shadow .2s; ' +
+          (f ? 'transform: scale(1.06); background: #FFFFFF; box-shadow: 0 0 0 3px ' + A + ', 0 18px 36px rgba(145,70,255,.28); z-index: 2;' : ''),
+        thumb: 'position: relative; overflow: hidden; display: block; aspect-ratio: 16 / 9; border-radius: 14px; background: ' + tones[i % 4][0] + ';',
+        art: 'position: absolute; width: 46%; aspect-ratio: 1; border-radius: 50%; right: ' + (6 + (i * 9) % 30) + '%; top: ' + (8 + (i * 13) % 30) + '%; background: ' + tones[i % 4][1] + '; opacity: .9;',
+        avatar: 'width: 32px; height: 32px; flex-shrink: 0; border-radius: 16px; background: ' + tones[(i + 1) % 4][1] + ';'
+      };
+    });
+    const langs = ['Все языки', 'Русский', 'Українська', 'English'].map((label, i) => ({
+      label, pick: () => this.setState({ lang: i }),
+      style: 'height: 40px; padding: 0 16px; border-radius: 20px; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; ' +
+        (i === this.state.lang ? 'border: none; background: #17151F; color: #FFFFFF;' : 'border: 1px solid #E2DFEA; background: #FFFFFF; color: #3E3A4A;')
+    }));
+    return { streams, langs, no: false };
+  }
+}
+</script>
+</body>
+</html>

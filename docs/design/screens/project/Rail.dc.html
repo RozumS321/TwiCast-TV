@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Сайдбар</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#772CE8}a:hover{color:#5C16C5}
+</style>
+</helmet>
+<nav aria-label="Главное меню" style="{{panelStyle}}">
+  <sc-for list="{{items}}" as="it" hint-placeholder-count="5">
+    <sc-if value="{{it.spacer}}" hint-placeholder-val="{{ false }}">
+      <div style="flex-grow: 1"></div>
+    </sc-if>
+    <button onClick="{{it.pick}}" aria-label="{{it.label}}" style="{{it.rowStyle}}">
+      <span style="{{it.bar}}"></span>
+      <span style="{{it.iconWrap}}">
+        <sc-if value="{{it.isAvatar}}" hint-placeholder-val="{{ false }}">
+          <span style="width: 30px; height: 30px; border-radius: 15px; background: #9146FF; color: #FFFFFF; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center">{{it.initials}}</span>
+        </sc-if>
+        <sc-if value="{{it.isIcon}}" hint-placeholder-val="{{ true }}">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{it.iconColor}}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{it.d}}"></path></svg>
+        </sc-if>
+      </span>
+      <sc-if value="{{expanded}}" hint-placeholder-val="{{ true }}">
+        <span style="{{it.labelStyle}}">{{it.label}}</span>
+      </sc-if>
+    </button>
+  </sc-for>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"expanded":{"editor":"boolean","default":true},"active":{"editor":"enum","options":["search","home","categories","following","profile"],"default":"home"},"auth":{"editor":"boolean","default":false},"focus":{"editor":"int","default":-1},"onToggle":{"editor":null},"$preview":{"width":264,"height":720}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { focus: null }; }
+  renderVals() {
+    const A = '#9146FF';
+    const expanded = this.props.expanded ?? true;
+    const active = this.props.active ?? 'home';
+    const auth = this.props.auth ?? false;
+    const focus = this.state.focus ?? (this.props.focus ?? -1);
+    const icons = {
+      search: 'M11 4a7 7 0 1 1 0 14a7 7 0 0 1 0-14zM20 20l-3.6-3.6',
+      home: 'M3.5 11L12 4l8.5 7M5.5 9.5V20h4.5v-6h4v6h4.5V9.5',
+      categories: 'M4.5 3h4A1.5 1.5 0 0 1 10 4.5v4A1.5 1.5 0 0 1 8.5 10h-4A1.5 1.5 0 0 1 3 8.5v-4A1.5 1.5 0 0 1 4.5 3zM15.5 3h4A1.5 1.5 0 0 1 21 4.5v4a1.5 1.5 0 0 1-1.5 1.5h-4A1.5 1.5 0 0 1 14 8.5v-4A1.5 1.5 0 0 1 15.5 3zM4.5 14h4a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 8.5 21h-4A1.5 1.5 0 0 1 3 19.5v-4A1.5 1.5 0 0 1 4.5 14zM15.5 14h4a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a1.5 1.5 0 0 1-1.5-1.5v-4a1.5 1.5 0 0 1 1.5-1.5z',
+      following: 'M12 20s-7-4.3-9.2-8.4C1.2 8.4 3.1 4.8 6.6 4.8c2 0 3.6 1.1 5.4 3c1.8-1.9 3.4-3 5.4-3c3.5 0 5.4 3.6 3.8 6.8C19 15.7 12 20 12 20z',
+      profile: 'M12 12a4 4 0 1 0 0-8a4 4 0 0 0 0 8zM4 21c1.5-4 4.4-6 8-6s6.5 2 8 6'
+    };
+    const list = [
+      ['search', 'Поиск'], ['home', 'Главная'], ['categories', 'Категории'], ['following', 'Подписки'],
+      ['profile', auth ? 'nightowl' : 'Войти']
+    ];
+    const rowW = expanded ? 224 : 52;
+    const items = list.map(([key, label], i) => {
+      const isActive = key === active, focused = i === focus;
+      const isAvatar = key === 'profile' && auth;
+      return {
+        label, d: icons[key], isAvatar, isIcon: !isAvatar, initials: 'NO', spacer: key === 'profile',
+        pick: () => { this.setState({ focus: i }); if (this.props.onToggle) this.props.onToggle(); },
+        iconColor: focused ? '#FFFFFF' : (isActive ? A : '#5F5A6E'),
+        rowStyle: 'all: unset; cursor: pointer; position: relative; box-sizing: border-box; display: flex; align-items: center; gap: 12px; height: 52px; margin-bottom: 6px; border-radius: 16px; width: ' + rowW + 'px; transition: background .2s, width .25s; ' +
+          (focused ? 'background: ' + A + '; box-shadow: 0 10px 24px rgba(145,70,255,.32);' : (isActive ? 'background: #F1EAFF;' : 'background: transparent;')),
+        bar: isActive && !focused ? 'position: absolute; left: -14px; top: 14px; bottom: 14px; width: 4px; border-radius: 0 4px 4px 0; background: ' + A + ';' : 'display: none;',
+        iconWrap: 'width: 52px; height: 52px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;',
+        labelStyle: 'font-size: 16px; font-weight: ' + (isActive || focused ? 700 : 600) + '; color: ' + (focused ? '#FFFFFF' : (isActive ? '#5C16C5' : '#17151F')) + '; white-space: nowrap;'
+      };
+    });
+    return {
+      expanded, items,
+      panelStyle: 'box-sizing: border-box; width: ' + (expanded ? 264 : 88) + 'px; height: 720px; padding: 28px 18px 24px; display: flex; flex-direction: column; font-family: "Plus Jakarta Sans", system-ui, sans-serif; background: #FFFFFF; border-right: 1px solid #E8E5F0; transition: width .25s; ' +
+        (expanded ? 'box-shadow: 24px 0 60px rgba(23,21,31,.14);' : '')
+    };
+  }
+}
+</script>
+</body>
+</html>

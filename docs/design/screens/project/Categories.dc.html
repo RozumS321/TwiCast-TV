@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Категории</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#772CE8}a:hover{color:#5C16C5}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 720px; overflow: hidden; background: #F6F5FA; color: #17151F; font-family: 'Plus Jakarta Sans', system-ui, sans-serif">
+  <main style="position: absolute; left: 88px; right: 0; top: 0; bottom: 0; padding: 30px 40px 0 40px; display: flex; flex-direction: column; gap: 20px">
+    <header style="display: flex; align-items: center; justify-content: space-between">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.02em">Категории</h1>
+        <span style="font-size: 14px; color: #5F5A6E">По числу зрителей сейчас</span>
+      </div>
+      <div style="display: flex; gap: 10px">
+        <sc-for list="{{chips}}" as="c" hint-placeholder-count="5">
+          <button onClick="{{c.pick}}" style="{{c.style}}">{{c.label}}</button>
+        </sc-for>
+      </div>
+    </header>
+    <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 22px 20px; padding: 6px 4px 0">
+      <sc-for list="{{games}}" as="g" hint-placeholder-count="12">
+        <button onClick="{{g.pick}}" aria-label="{{g.name}}" style="{{g.cardStyle}}">
+          <span style="{{g.cover}}">
+            <span style="{{g.shape}}"></span>
+            <span style="{{g.rankStyle}}">{{g.rank}}</span>
+          </span>
+          <span style="display: flex; flex-direction: column; gap: 2px; padding: 0 2px; text-align: left">
+            <span style="font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{g.name}}</span>
+            <span style="font-size: 13px; color: #5F5A6E">{{g.viewers}} зрителей</span>
+          </span>
+        </button>
+      </sc-for>
+    </div>
+  </main>
+  <div style="position: absolute; left: 0; top: 0; bottom: 0">
+    <dc-import name="Rail" expanded="{{no}}" active="categories" hint-size="88px,720px"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { focus: 1, chip: 0 }; }
+  renderVals() {
+    const A = '#9146FF';
+    const list = [
+      ['Just Chatting', '312 тыс'], ['Counter-Strike', '204 тыс'], ['Dota 2', '168 тыс'], ['Minecraft', '97 тыс'],
+      ['Музыка', '61 тыс'], ['Программирование', '18 тыс'], ['League of Legends', '143 тыс'], ['Valorant', '121 тыс'],
+      ['Fortnite', '88 тыс'], ['GTA V', '82 тыс'], ['Шахматы', '27 тыс'], ['Искусство', '22 тыс']
+    ];
+    const tones = [['#2B1E4A', '#FF8A5B'], ['#123A3A', '#64E0C6'], ['#3A1E2E', '#FFC857'], ['#1C2A48', '#7FB2FF'], ['#30261A', '#FF6B9A'], ['#232044', '#B79CFF']];
+    const games = list.map((g, i) => {
+      const f = this.state.focus === i;
+      return {
+        name: g[0], viewers: g[1], rank: '#' + (i + 1),
+        pick: () => this.setState({ focus: i }),
+        cardStyle: 'all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 10px; min-width: 0; border-radius: 16px; transition: transform .2s; ' + (f ? 'transform: scale(1.06); z-index: 2;' : ''),
+        cover: 'position: relative; overflow: hidden; display: block; aspect-ratio: 3 / 4; border-radius: 14px; background: ' + tones[i % 6][0] + '; ' +
+          (f ? 'box-shadow: 0 0 0 3px ' + A + ', 0 18px 36px rgba(145,70,255,.3);' : 'box-shadow: 0 6px 18px rgba(23,21,31,.10);'),
+        shape: 'position: absolute; width: 70%; aspect-ratio: 1; border-radius: ' + (i % 2 ? '50%' : '24%') + '; left: 15%; top: ' + (18 + (i * 5) % 20) + '%; background: ' + tones[i % 6][1] + '; opacity: .9; transform: rotate(' + (i * 17 % 40 - 20) + 'deg);',
+        rankStyle: 'position: absolute; left: 8px; top: 8px; padding: 2px 7px; border-radius: 6px; background: rgba(255,255,255,.92); color: #17151F; font-size: 11px; font-weight: 800;'
+      };
+    });
+    const chipLabels = ['Все', 'Игры', 'IRL', 'Музыка', 'Творчество'];
+    const chips = chipLabels.map((label, i) => ({
+      label, pick: () => this.setState({ chip: i }),
+      style: 'height: 40px; padding: 0 18px; border-radius: 20px; font-size: 14px; font-weight: 700; cursor: pointer; ' +
+        (i === this.state.chip ? 'border: none; background: #17151F; color: #FFFFFF;' : 'border: 1px solid #E2DFEA; background: #FFFFFF; color: #3E3A4A;')
+    }));
+    return { games, chips, no: false };
+  }
+}
+</script>
+</body>
+</html>

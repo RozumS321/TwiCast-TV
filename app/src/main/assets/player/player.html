@@ -1,0 +1,91 @@
+<!doctype html>
+<!--
+  Wrapper around the official Twitch embeds (https://dev.twitch.tv/docs/embed/):
+  the video player and, on demand, the read-only chat to its right — one WebView for both.
+  Served by WebViewAssetLoader from https://appassets.androidplatform.net, which is the `parent` Twitch checks.
+  Query: ?channel= (validated in Kotlin) and optional ?quality= (preferred quality group, e.g. 720p60).
+  Kotlin → JS: window.twicast.*; JS → Kotlin: window.TwiCast.* (Android bridge).
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
+    body { display: flex; }
+    #player { flex: 1; min-width: 0; height: 100%; }
+    #chat { display: none; width: 30%; height: 100%; flex-direction: column; background: #fff;
+      border-left: 1px solid #E8E5F0; font-family: system-ui, sans-serif; }
+    #chat header { display: flex; align-items: baseline; justify-content: space-between; padding: 20px 20px 12px; }
+    #chat h2 { margin: 0; font-size: 20px; font-weight: 800; color: #17151F; }
+    #chat span { font-size: 13px; color: #5F5A6E; }
+    /* The chat embed brings its own header and message box (useless without a twitch.tv login in the WebView):
+       the frame is clipped so only the message list shows. Offsets follow Twitch's current layout. */
+    #chat .frame { flex: 1; position: relative; overflow: hidden; }
+    #chat iframe { position: absolute; left: 0; width: 100%; border: 0;
+      top: -50px; height: calc(100% + 50px + 250px); }
+    body.with-chat #chat { display: flex; }
+  </style>
+  <script src="https://player.twitch.tv/js/embed/v1.js"></script>
+</head>
+<body>
+<div id="player"></div>
+<aside id="chat"><header><h2 id="chat-title"></h2><span id="chat-hint"></span></header><div class="frame" id="chat-frame"></div></aside>
+<script>
+  var bridge = window.TwiCast;
+  var params = new URLSearchParams(location.search);
+  var channel = params.get('channel');
+  var preferredQuality = params.get('quality');
+
+  function report(state) { if (bridge) bridge.onStateChanged(state); }
+
+  /** Twitch returns objects ({name, group, ...}); `group` is what setQuality() takes. */
+  function reportQualities(player) {
+    if (!bridge) return;
+    var list = (player.getQualities() || []).map(function (q) {
+      return typeof q === 'string' ? { id: q, label: q } : { id: q.group || q.name, label: q.name || q.group };
+    });
+    bridge.onQualities(JSON.stringify(list), player.getQuality() || '');
+  }
+
+  if (!window.Twitch || !channel) {
+    report('error');
+  } else {
+    var player = new Twitch.Player('player', {
+      channel: channel, parent: [location.hostname],
+      width: '100%', height: '100%', autoplay: true, muted: false,
+      // Our own controls replace Twitch's overlay (follow / sub buttons are not usable with a remote anyway).
+      controls: false
+    });
+    player.addEventListener(Twitch.Player.READY, function () { report('ready'); });
+    player.addEventListener(Twitch.Player.PLAYING, function () {
+      report('playing');
+      // The quality list exists only once the stream plays, and Twitch resets it to "auto" after every ad break:
+      // re-apply the viewer's choice each time.
+      if (preferredQuality && player.getQuality() !== preferredQuality) player.setQuality(preferredQuality);
+      reportQualities(player);
+    });
+    player.addEventListener(Twitch.Player.PAUSE, function () { report('paused'); });
+    player.addEventListener(Twitch.Player.OFFLINE, function () { report('offline'); });
+    player.addEventListener(Twitch.Player.ENDED, function () { report('offline'); });
+
+    window.twicast = {
+      togglePause: function () { if (player.isPaused()) player.play(); else player.pause(); },
+      setQuality: function (id) { preferredQuality = id; player.setQuality(id); reportQualities(player); },
+      setChatVisible: function (visible, title, hint) {
+        var frameBox = document.getElementById('chat-frame');
+        if (visible && !frameBox.querySelector('iframe')) {
+          // Created on first show: no chat traffic for viewers who never open it.
+          var frame = document.createElement('iframe');
+          frame.src = 'https://www.twitch.tv/embed/' + encodeURIComponent(channel) + '/chat?parent=' + location.hostname;
+          frameBox.appendChild(frame);
+        }
+        document.getElementById('chat-title').textContent = title || '';
+        document.getElementById('chat-hint').textContent = hint || '';
+        document.body.classList.toggle('with-chat', visible);
+      }
+    };
+  }
+</script>
+</body>
+</html>

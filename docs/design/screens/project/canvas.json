@@ -1,0 +1,208 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Brand.dc.html": {
+      "h": 720,
+      "title": "Логотип и баннер · финал",
+      "w": 1280,
+      "x": 0,
+      "y": 3480
+    },
+    "Categories.dc.html": {
+      "h": 720,
+      "is_interactive": true,
+      "title": "Категории",
+      "w": 1280,
+      "x": 0,
+      "y": 849
+    },
+    "CategoryStreams.dc.html": {
+      "h": 720,
+      "is_interactive": true,
+      "title": "Стримы категории",
+      "w": 1280,
+      "x": 1360,
+      "y": 840
+    },
+    "Following.dc.html": {
+      "h": 720,
+      "is_interactive": true,
+      "title": "Подписки",
+      "w": 1280,
+      "x": 2720,
+      "y": 1680
+    },
+    "HomeAuth.dc.html": {
+      "h": 720,
+      "is_interactive": true,
+      "title": "Главная · авторизован",
+      "w": 1280,
+      "x": 1360,
+      "y": 1680
+    },
+    "Login.dc.html": {
+      "h": 720,
+      "title": "Вход · Device Flow",
+      "w": 1280,
+      "x": 0,
+      "y": 1680
+    },
+    "Logo.dc.html": {
+      "h": 720,
+      "is_interactive": true,
+      "title": "Логотип · варианты 1–6",
+      "w": 1280,
+      "x": 1704,
+      "y": 2520
+    },
+    "Logo2.dc.html": {
+      "h": 720,
+      "is_interactive": true,
+      "title": "Логотип · варианты 7–12",
+      "w": 1280,
+      "x": 3064,
+      "y": 2520
+    },
+    "Main.dc.html": {
+      "h": 720,
+      "is_interactive": true,
+      "title": "Главная · гость",
+      "w": 1280,
+      "x": 0,
+      "y": 0
+    },
+    "MainNavOpen.dc.html": {
+      "h": 720,
+      "is_interactive": true,
+      "title": "Главная · меню раскрыто",
+      "w": 1280,
+      "x": 1360,
+      "y": 0
+    },
+    "Player.dc.html": {
+      "h": 720,
+      "is_interactive": true,
+      "title": "Плеер · панель управления",
+      "w": 1280,
+      "x": 0,
+      "y": 4560
+    },
+    "PlayerChat.dc.html": {
+      "h": 720,
+      "title": "Плеер · чат",
+      "w": 1280,
+      "x": 2720,
+      "y": 4560
+    },
+    "PlayerQuality.dc.html": {
+      "h": 720,
+      "title": "Плеер · качество",
+      "w": 1280,
+      "x": 1360,
+      "y": 4560
+    },
+    "Profile.dc.html": {
+      "h": 720,
+      "title": "Профиль",
+      "w": 1280,
+      "x": 4080,
+      "y": 1680
+    },
+    "Rail.dc.html": {
+      "h": 720,
+      "is_interactive": true,
+      "title": "Компонент · сайдбар",
+      "w": 264,
+      "x": 1360,
+      "y": 2520
+    },
+    "Search.dc.html": {
+      "h": 720,
+      "is_interactive": true,
+      "title": "Поиск",
+      "w": 1280,
+      "x": 2720,
+      "y": 840
+    },
+    "Tokens.dc.html": {
+      "h": 720,
+      "is_interactive": true,
+      "title": "Палитра и компоненты",
+      "w": 1280,
+      "x": 0,
+      "y": 2520
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-22T14:45:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "auth": {
+      "kind": "title1",
+      "maxW": 5360,
+      "text": "Вход и авторизованный режим",
+      "w": 240,
+      "x": 0,
+      "y": 1440
+    },
+    "brand": {
+      "kind": "title1",
+      "maxW": 1280,
+      "text": "Бренд",
+      "w": 240,
+      "x": 0,
+      "y": 3240
+    },
+    "guest": {
+      "kind": "title1",
+      "maxW": 2640,
+      "text": "Гостевой режим",
+      "w": 240,
+      "x": 0,
+      "y": -240
+    },
+    "player": {
+      "kind": "title1",
+      "maxW": 4000,
+      "text": "Плеер",
+      "w": 240,
+      "x": 0,
+      "y": 4320
+    },
+    "system": {
+      "kind": "title1",
+      "maxW": 4344,
+      "text": "Дизайн-система",
+      "w": 240,
+      "x": 0,
+      "y": 2280
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "MainNavOpen.dc.html",
+    "Categories.dc.html",
+    "CategoryStreams.dc.html",
+    "Search.dc.html",
+    "Login.dc.html",
+    "HomeAuth.dc.html",
+    "Following.dc.html",
+    "Profile.dc.html",
+    "Tokens.dc.html",
+    "Rail.dc.html",
+    "Logo.dc.html",
+    "Logo2.dc.html",
+    "Brand.dc.html",
+    "Player.dc.html",
+    "PlayerQuality.dc.html",
+    "PlayerChat.dc.html"
+  ],
+  "pages": [],
+  "title": "TwiCast TV — дизайн"
+}

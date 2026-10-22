@@ -1,0 +1,55 @@
+package app.twicast.tv.data.remote
+
+import app.twicast.tv.data.remote.dto.GameDto
+import app.twicast.tv.data.remote.dto.HelixPage
+import app.twicast.tv.data.remote.dto.SearchChannelDto
+import app.twicast.tv.data.remote.dto.StreamDto
+import app.twicast.tv.data.remote.dto.UserDto
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.Query
+
+/** Twitch Helix (https://api.twitch.tv/helix). Client-Id and Authorization are added by interceptors. */
+interface HelixApi {
+
+    @GET("streams")
+    suspend fun getStreams(
+        @Query("first") first: Int,
+        @Query("language") language: String? = null,
+        @Query("game_id") gameIds: List<String>? = null,
+        @Query("after") after: String? = null,
+    ): HelixPage<StreamDto>
+
+    @GET("streams/followed")
+    suspend fun getFollowedStreams(
+        @Query("user_id") userId: String,
+        @Query("first") first: Int,
+        @Query("after") after: String? = null,
+    ): HelixPage<StreamDto>
+
+    @GET("games/top")
+    suspend fun getTopGames(
+        @Query("first") first: Int,
+        @Query("after") after: String? = null,
+    ): HelixPage<GameDto>
+
+    @GET("search/channels")
+    suspend fun searchChannels(
+        @Query("query") query: String,
+        @Query("first") first: Int,
+    ): HelixPage<SearchChannelDto>
+
+    @GET("search/categories")
+    suspend fun searchCategories(
+        @Query("query") query: String,
+        @Query("first") first: Int,
+    ): HelixPage<GameDto>
+
+    /** Current user. The token is passed explicitly: this runs during sign-in, before the session is saved. */
+    @GET("users")
+    suspend fun getCurrentUser(@Header("Authorization") authorization: String): HelixPage<UserDto>
+
+    /** Up to 100 ids per call. */
+    @GET("users")
+    suspend fun getUsers(@Query("id") ids: List<String>): HelixPage<UserDto>
+}

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Палитра и компоненты</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#772CE8}a:hover{color:#5C16C5}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 1280px; height: 720px; box-sizing: border-box; padding: 36px 44px; overflow: hidden; background: #F6F5FA; color: #17151F; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px">
+
+  <section style="display: flex; flex-direction: column; gap: 16px">
+    <h2 style="margin: 0; font-size: 20px; font-weight: 800">Цвета · светлая тема</h2>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+      <sc-for list="{{swatches}}" as="s" hint-placeholder-count="12">
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="{{s.box}}"></div>
+          <div style="font-size: 13px; font-weight: 700">{{s.name}}</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #5F5A6E">{{s.token}} · {{s.hex}}</div>
+        </div>
+      </sc-for>
+    </div>
+    <h2 style="margin: 6px 0 0; font-size: 20px; font-weight: 800">Типографика · Plus Jakarta Sans</h2>
+    <div style="display: flex; flex-direction: column; gap: 4px; padding: 14px 18px; border-radius: 16px; background: #FFFFFF; box-shadow: 0 0 0 1px #E8E5F0">
+      <div style="font-size: 32px; font-weight: 800; letter-spacing: -0.02em">Заголовок экрана 32</div>
+      <div style="font-size: 22px; font-weight: 800">Ряд 22 · Карточка 14 Bold</div>
+      <div style="font-size: 15px; color: #3E3A4A">Текст 15 · подписи 13 вторичным цветом</div>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 16px">
+    <h2 style="margin: 0; font-size: 20px; font-weight: 800">Карточка стрима · покой → фокус</h2>
+    <div style="display: flex; gap: 28px; align-items: flex-start; padding: 8px 4px">
+      <sc-for list="{{cards}}" as="c" hint-placeholder-count="2">
+        <button onClick="{{c.pick}}" style="{{c.cardStyle}}">
+          <span style="position: relative; overflow: hidden; display: block; width: 220px; height: 124px; border-radius: 14px; background: #2B1E4A">
+            <span style="position: absolute; width: 96px; height: 96px; border-radius: 48px; right: 22px; top: 14px; background: #FF8A5B"></span>
+            <span style="position: absolute; left: 9px; top: 9px; padding: 3px 7px; border-radius: 6px; background: #E91916; color: #FFFFFF; font-size: 10px; font-weight: 800">LIVE</span>
+            <span style="position: absolute; left: 9px; bottom: 9px; padding: 3px 8px; border-radius: 6px; background: rgba(15,14,20,.72); color: #FFFFFF; font-size: 11px; font-weight: 700">18,2 тыс</span>
+          </span>
+          <span style="font-size: 14px; font-weight: 700; padding: 0 4px; text-align: left">{{c.label}}</span>
+        </button>
+      </sc-for>
+    </div>
+    <h2 style="margin: 0; font-size: 20px; font-weight: 800">Кнопки и чипы</h2>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center">
+      <button style="height: 52px; padding: 0 24px; border-radius: 16px; border: none; background: #9146FF; color: #FFFFFF; font-size: 16px; font-weight: 800; box-shadow: 0 10px 24px rgba(145,70,255,.32)">Основная</button>
+      <button style="height: 52px; padding: 0 22px; border-radius: 16px; border: 1px solid #E2DFEA; background: #FFFFFF; color: #17151F; font-size: 16px; font-weight: 700">Вторичная</button>
+      <button style="height: 40px; padding: 0 18px; border-radius: 20px; border: none; background: #17151F; color: #FFFFFF; font-size: 14px; font-weight: 700">Чип активный</button>
+      <button style="height: 40px; padding: 0 18px; border-radius: 20px; border: 1px solid #E2DFEA; background: #FFFFFF; color: #3E3A4A; font-size: 14px; font-weight: 700">Чип</button>
+    </div>
+    <h2 style="margin: 4px 0 0; font-size: 20px; font-weight: 800">Анимации</h2>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+      <sc-for list="{{motion}}" as="m" hint-placeholder-count="4">
+        <div style="padding: 12px 14px; border-radius: 14px; background: #FFFFFF; box-shadow: 0 0 0 1px #E8E5F0; display: flex; flex-direction: column; gap: 3px">
+          <span style="font-size: 14px; font-weight: 800">{{m.name}}</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #5F5A6E">{{m.spec}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { focus: 1 }; }
+  renderVals() {
+    const A = '#9146FF';
+    const sw = [
+      ['Фон', 'background', '#F6F5FA'], ['Поверхность', 'surface', '#FFFFFF'], ['Поверхность 2', 'surfaceVariant', '#EFEDF5'],
+      ['Рамка', 'outline', '#E2DFEA'], ['Текст', 'onSurface', '#17151F'], ['Вторичный текст', 'onSurfaceVariant', '#5F5A6E'],
+      ['Акцент', 'primary', '#9146FF'], ['Акцент · текст', 'primaryStrong', '#5C16C5'], ['Акцент · фон', 'primaryContainer', '#F1EAFF'],
+      ['LIVE', 'live', '#E91916'], ['Скрим', 'scrim', '#17151F52'], ['Плашка на превью', 'overlay', '#0F0E14B8']
+    ];
+    const swatches = sw.map(([name, token, hex]) => ({ name, token, hex, box: 'height: 44px; border-radius: 12px; box-shadow: inset 0 0 0 1px rgba(23,21,31,.08); background: ' + hex + ';' }));
+    const cards = [['В покое', 0], ['В фокусе', 1]].map(([label, i]) => {
+      const f = this.state.focus === i;
+      return {
+        label, pick: () => this.setState({ focus: i }),
+        cardStyle: 'all: unset; cursor: pointer; width: 220px; display: flex; flex-direction: column; gap: 8px; padding-bottom: 8px; border-radius: 16px; transition: transform .2s, box-shadow .2s; ' +
+          (f ? 'transform: scale(1.06); background: #FFFFFF; box-shadow: 0 0 0 3px ' + A + ', 0 18px 36px rgba(145,70,255,.28);' : '')
+      };
+    });
+    const motion = [
+      { name: 'Сайдбар', spec: '250ms · FastOutSlowIn · overlay' },
+      { name: 'Подписи сайдбара', spec: 'alpha 0→1 · 150ms, delay 80ms' },
+      { name: 'Фокус карточки', spec: 'scale 1.0→1.06 · 200ms · Decelerate' },
+      { name: 'Рамка и ореол', spec: '3dp primary + shadow 18dp · 200ms' }
+    ];
+    return { swatches, cards, motion };
+  }
+}
+</script>
+</body>
+</html>

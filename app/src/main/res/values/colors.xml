@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mirrors TwiColors.Background: the window shows it before Compose draws, so no white flash. -->
+    <color name="twi_background">#FFF6F5FA</color>
+    <color name="twi_primary">#FF9146FF</color>
+    <color name="twi_on_primary">#FFFFFFFF</color>
+    <!-- Brand: launcher icon background. -->
+    <color name="brand_dark">#FF17151F</color>
+</resources>
