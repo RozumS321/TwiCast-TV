@@ -1,6 +1,5 @@
 package app.twicast.tv.navigation
 
-import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -36,9 +35,11 @@ import app.twicast.tv.data.model.Stream
 import app.twicast.tv.feature.categories.CategoriesRoute
 import app.twicast.tv.feature.categories.CategoryStreamsDestination
 import app.twicast.tv.feature.categories.CategoryStreamsRoute
+import app.twicast.tv.feature.following.FollowingRoute
 import app.twicast.tv.feature.home.HomeRoute
 import app.twicast.tv.feature.player.PlayerDestination
 import app.twicast.tv.feature.player.PlayerRoute
+import app.twicast.tv.feature.profile.ProfileRoute
 import app.twicast.tv.feature.search.SearchRoute
 import app.twicast.tv.feature.update.UpdateRoute
 import kotlinx.collections.immutable.toPersistentList
@@ -48,14 +49,14 @@ import kotlinx.collections.immutable.toPersistentList
 fun TwiCastApp(viewModel: AppViewModel = hiltViewModel()) {
     val authState by viewModel.authState.collectAsStateWithLifecycle()
     Box(Modifier.fillMaxSize()) {
-        AuthGate(authState, onSignOut = viewModel::onSignOut)
+        AuthGate(authState)
         // Self-update panel over everything, sign-in included.
         UpdateRoute()
     }
 }
 
 @Composable
-private fun AuthGate(authState: AuthState, onSignOut: () -> Unit) {
+private fun AuthGate(authState: AuthState) {
     // Animate by state type: the shell is not rebuilt when only the user's fields change.
     AnimatedContent(
         targetState = authState,
@@ -67,13 +68,13 @@ private fun AuthGate(authState: AuthState, onSignOut: () -> Unit) {
         when (state) {
             AuthState.Loading -> Box(Modifier.fillMaxSize())
             AuthState.SignedOut -> LoginRoute()
-            is AuthState.SignedIn -> SignedInShell(state.user, onSignOut = onSignOut)
+            is AuthState.SignedIn -> SignedInShell(state.user)
         }
     }
 }
 
 @Composable
-private fun SignedInShell(user: User, onSignOut: () -> Unit) {
+private fun SignedInShell(user: User) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = when {
@@ -126,15 +127,18 @@ private fun SignedInShell(user: User, onSignOut: () -> Unit) {
             composable<CategoryStreamsDestination> {
                 CategoryStreamsRoute(onBack = navController::popBackStack, onStreamClick = navController::openStream)
             }
-            composable<FollowingDestination> { Placeholder(R.string.nav_following, R.string.placeholder_stage_authorized, navController) }
-            composable<ProfileDestination> {
-                PlaceholderScreen(
-                    titleRes = R.string.nav_profile,
-                    messageRes = R.string.placeholder_stage_authorized,
-                    actionRes = R.string.action_sign_out,
-                    onAction = onSignOut,
+            composable<FollowingDestination> {
+                FollowingRoute(
+                    onStreamClick = navController::openStream,
+                    // Offline channels open the player, which says the channel is not live (channel page comes next).
+                    onChannelClick = { channel ->
+                        navController.navigate(
+                            PlayerDestination(channel.login, channel.displayName, channel.categoryName, viewerCount = null, channel.avatarUrl),
+                        )
+                    },
                 )
             }
+            composable<ProfileDestination> { ProfileRoute() }
             composable<PlayerDestination> { PlayerRoute(onClose = navController::popBackStack) }
         }
     }
@@ -155,14 +159,4 @@ private fun NavHostController.navigateToTopLevel(destination: TopLevelDestinatio
         launchSingleTop = true
         restoreState = true
     }
-}
-
-@Composable
-private fun Placeholder(@StringRes titleRes: Int, @StringRes messageRes: Int, navController: NavHostController) {
-    PlaceholderScreen(
-        titleRes = titleRes,
-        messageRes = messageRes,
-        actionRes = R.string.placeholder_go_home,
-        onAction = { navController.navigateToTopLevel(TopLevelDestination.Home) },
-    )
 }

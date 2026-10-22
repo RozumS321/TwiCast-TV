@@ -7,6 +7,8 @@ import kotlinx.serialization.Serializable
 data class HelixPage<T>(
     val data: List<T>,
     val pagination: HelixPagination? = null,
+    /** Only some endpoints (e.g. channels/followed) send it. */
+    val total: Int? = null,
 )
 
 @Serializable
@@ -72,4 +74,17 @@ data class SearchChannelDto(
     @SerialName("is_live") val isLive: Boolean = false,
     val title: String = "",
     @SerialName("thumbnail_url") val avatarUrl: String = "",
+)
+
+@Serializable
+data class FollowedChannelDto(
+    @SerialName("broadcaster_id") val id: String,
+    @SerialName("broadcaster_login") val login: String,
+    @SerialName("broadcaster_name") val name: String,
+)
+
+@Serializable
+data class ChannelInfoDto(
+    @SerialName("broadcaster_id") val id: String,
+    @SerialName("game_name") val gameName: String = "",
 )

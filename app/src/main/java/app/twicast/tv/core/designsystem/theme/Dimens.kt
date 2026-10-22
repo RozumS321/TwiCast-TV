@@ -130,6 +130,28 @@ object TwiDimens {
     val SearchCategorySpacing = 18.dp
     val SearchSectionSpacing = 26.dp
 
+    val SegmentedPadding = 6.dp
+    val SegmentedTabHeight = 42.dp
+    val SegmentedTabPadding = 20.dp
+    val ChannelCardTopPadding = 18.dp
+    val ChannelCardSidePadding = 12.dp
+    val ChannelCardBottomPadding = 16.dp
+    val ChannelCardSpacing = 6.dp
+    val ChannelAvatarSize = 84.dp
+    val ChannelAvatarRing = 3.dp
+    val ChannelGridSpacing = 20.dp
+    val LiveDotSize = 8.dp
+    val ProfilePanelWidth = 560.dp
+    val ProfilePanelTopPadding = 44.dp
+    val ProfilePanelBottomPadding = 40.dp
+    val ProfileSpacing = 18.dp
+    val ProfileAvatarSize = 128.dp
+    val ProfileAvatarHalo = 6.dp
+    val ProfileStatPadding = 14.dp
+    val ProfileStatSidePadding = 16.dp
+    val ProfileButtonHeight = 56.dp
+    val ProfileFooterSpacing = 28.dp
+
     val UpdatePanelWidth = 880.dp
     val UpdatePanelHorizontalPadding = 48.dp
     val UpdatePanelVerticalPadding = 40.dp
@@ -195,6 +217,9 @@ object TwiShapes {
     val QueryField = RoundedCornerShape(18.dp)
     val Key = RoundedCornerShape(12.dp)
     val NotesCard = RoundedCornerShape(18.dp)
+    val Segmented = RoundedCornerShape(18.dp)
+    val SegmentedTab = RoundedCornerShape(13.dp)
+    val ChannelCard = RoundedCornerShape(20.dp)
 }
 
 /** Focus scales. Card scale 1.06 (not 1.08): at 1.08 neighbours in a row overlap. */

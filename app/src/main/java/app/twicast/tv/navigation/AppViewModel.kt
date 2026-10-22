@@ -25,8 +25,4 @@ class AppViewModel @Inject constructor(
     init {
         viewModelScope.launch { authRepository.validateSession() }
     }
-
-    fun onSignOut() {
-        viewModelScope.launch { authRepository.signOut() }
-    }
 }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="following_tab_live">В эфире · %d</string>
+    <string name="following_tab_offline">Офлайн · %d</string>
+    <string name="following_empty">Вы пока ни на кого не подписаны. Подписаться можно на twitch.tv — подписки появятся здесь.</string>
+    <string name="following_nobody_live">Сейчас никто из подписок не в эфире.</string>
+    <string name="following_all_live">Все ваши подписки сейчас в эфире.</string>
+
+    <string name="profile_signed_in_with">Вход выполнен через Twitch</string>
+    <string name="profile_follows">подписок</string>
+    <string name="profile_live_now">сейчас в эфире</string>
+    <string name="profile_version">TwiCast TV · версия %s</string>
+</resources>

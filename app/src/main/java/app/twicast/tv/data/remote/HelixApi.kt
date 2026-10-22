@@ -1,5 +1,7 @@
 package app.twicast.tv.data.remote
 
+import app.twicast.tv.data.remote.dto.ChannelInfoDto
+import app.twicast.tv.data.remote.dto.FollowedChannelDto
 import app.twicast.tv.data.remote.dto.GameDto
 import app.twicast.tv.data.remote.dto.HelixPage
 import app.twicast.tv.data.remote.dto.SearchChannelDto
@@ -26,6 +28,18 @@ interface HelixApi {
         @Query("first") first: Int,
         @Query("after") after: String? = null,
     ): HelixPage<StreamDto>
+
+    /** All channels the user follows (scope user:read:follows), up to 100 per page. */
+    @GET("channels/followed")
+    suspend fun getFollowedChannels(
+        @Query("user_id") userId: String,
+        @Query("first") first: Int,
+        @Query("after") after: String? = null,
+    ): HelixPage<FollowedChannelDto>
+
+    /** Channel info (current or last category), up to 100 ids. */
+    @GET("channels")
+    suspend fun getChannels(@Query("broadcaster_id") ids: List<String>): HelixPage<ChannelInfoDto>
 
     @GET("games/top")
     suspend fun getTopGames(

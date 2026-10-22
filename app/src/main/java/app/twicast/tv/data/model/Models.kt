@@ -63,3 +63,18 @@ data class ChannelSearchResult(
     val categoryName: String,
     val title: String,
 )
+
+/** A channel the user follows; [categoryName] is the current or last one. */
+data class FollowedChannel(
+    val id: String,
+    val login: String,
+    val displayName: String,
+    val avatarUrl: String?,
+    val categoryName: String,
+)
+
+/** All follows: [total] as Twitch counts them, [channels] as loaded (capped for huge follow lists). */
+data class Follows(
+    val total: Int,
+    val channels: List<FollowedChannel>,
+)

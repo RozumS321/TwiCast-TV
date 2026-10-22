@@ -31,6 +31,4 @@
     <string name="home_row_recommended_hint">по вашим категориям</string>
     <string name="home_row_regional">Популярное в регионе</string>
 
-    <string name="placeholder_stage_authorized">Раздел появится на этапе 5 — авторизованный режим.</string>
-    <string name="placeholder_go_home">На главную</string>
 </resources>
