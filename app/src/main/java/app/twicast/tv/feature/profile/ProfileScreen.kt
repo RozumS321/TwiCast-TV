@@ -47,7 +47,6 @@ private const val NoValue = "—"
 fun ProfileScreen(
     state: ProfileUiState,
     versionName: String,
-    onOpenSettings: () -> Unit,
     onSignOut: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -82,10 +81,14 @@ fun ProfileScreen(
                 Stat(state.followsCount, stringResource(R.string.profile_follows), Modifier.weight(1f))
                 Stat(state.liveCount, stringResource(R.string.profile_live_now), Modifier.weight(1f))
             }
-            Column(verticalArrangement = Arrangement.spacedBy(TwiDimens.KeySpacing), modifier = Modifier.padding(top = TwiDimens.KeySpacing)) {
-                ProfileButton(stringResource(R.string.profile_settings), TwiIcons.Settings, dark = false, onClick = onOpenSettings, initialFocus = true)
-                ProfileButton(stringResource(R.string.action_sign_out), TwiIcons.SignOut, dark = true, onClick = onSignOut)
-            }
+            ProfileButton(
+                stringResource(R.string.action_sign_out),
+                TwiIcons.SignOut,
+                dark = true,
+                onClick = onSignOut,
+                initialFocus = true,
+                modifier = Modifier.padding(top = TwiDimens.KeySpacing),
+            )
         }
         Text(
             text = stringResource(R.string.profile_version, versionName),
@@ -132,9 +135,16 @@ private fun Stat(value: Int?, label: String, modifier: Modifier) {
     }
 }
 
-/** Full-width panel button: light for "Настройки", dark for sign-out (mockup "Профиль"). */
+/** Full-width panel button: dark for sign-out, light for future actions (mockup "Профиль"). */
 @Composable
-private fun ProfileButton(text: String, icon: ImageVector, dark: Boolean, onClick: () -> Unit, initialFocus: Boolean = false) {
+private fun ProfileButton(
+    text: String,
+    icon: ImageVector,
+    dark: Boolean,
+    onClick: () -> Unit,
+    initialFocus: Boolean = false,
+    modifier: Modifier = Modifier,
+) {
     val colors = TwiTheme.colors
     val background = if (dark) colors.inverseSurface else colors.surface
     val content = if (dark) colors.inverseOnSurface else colors.onSurface
@@ -143,7 +153,7 @@ private fun ProfileButton(text: String, icon: ImageVector, dark: Boolean, onClic
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(TwiDimens.ButtonIconGap, Alignment.CenterHorizontally),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(TwiDimens.ProfileButtonHeight)
             .then(if (initialFocus) Modifier.requestInitialFocus() else Modifier)

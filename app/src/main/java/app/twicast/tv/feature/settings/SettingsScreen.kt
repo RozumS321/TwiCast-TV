@@ -59,20 +59,7 @@ fun SettingsScreen(selected: PlayerEngine?, onPlayerSelected: (PlayerEngine) -> 
             .fillMaxSize()
             .padding(start = TwiDimens.ContentStartPadding, end = TwiDimens.ContentEndPadding, top = TwiDimens.ScreenTopPadding),
     ) {
-        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(TwiDimens.RowHintSpacing)) {
-            Text(
-                stringResource(R.string.settings_title),
-                style = TwiTheme.typography.screenTitle,
-                color = TwiTheme.colors.onSurface,
-                modifier = Modifier.alignByBaseline(),
-            )
-            Text(
-                stringResource(R.string.settings_back_hint),
-                style = TwiTheme.typography.body,
-                color = TwiTheme.colors.onSurfaceVariant,
-                modifier = Modifier.alignByBaseline(),
-            )
-        }
+        Text(stringResource(R.string.settings_title), style = TwiTheme.typography.screenTitle, color = TwiTheme.colors.onSurface)
         Column(verticalArrangement = Arrangement.spacedBy(TwiDimens.HomeRowTitleSpacing)) {
             Text(stringResource(R.string.settings_player), style = TwiTheme.typography.rowTitleDense, color = TwiTheme.colors.onSurface)
             if (selected != null) {

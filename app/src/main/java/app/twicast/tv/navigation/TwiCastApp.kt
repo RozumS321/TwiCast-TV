@@ -150,7 +150,7 @@ private fun SignedInShell(user: User) {
                     onChannelClick = { channel -> navController.navigate(ChannelDestination(channel.login)) },
                 )
             }
-            composable<ProfileDestination> { ProfileRoute(onOpenSettings = { navController.navigate(SettingsDestination) }) }
+            composable<ProfileDestination> { ProfileRoute() }
             composable<SettingsDestination> { SettingsRoute() }
             composable<ChannelDestination> {
                 ChannelRoute(

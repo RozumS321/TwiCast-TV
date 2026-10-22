@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="profile_settings">Настройки</string>
     <string name="settings_title">Настройки</string>
-    <string name="settings_back_hint">Назад — в профиль</string>
     <string name="settings_player">Плеер</string>
     <string name="settings_player_twicast">TwiCast player</string>
     <string name="settings_player_twicast_tag">Рекомендуем</string>
