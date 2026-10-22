@@ -1,0 +1,99 @@
+# Every push to main: tests, a signed release APK and a GitHub Release v0.1.<run number>.
+# The source repo is private, so the release (APK + notes only) is published to the public
+# RozumS321/TwiCast-TV-releases; the app checks its releases/latest on start (see feature/update).
+# The same tag is pushed here too: the next release notes are the commits since it.
+#
+# Repository secrets:
+#   TWITCH_CLIENT_ID            Twitch Client ID (public client)
+#   RELEASE_KEYSTORE_BASE64     base64 of the release keystore (.jks)
+#   RELEASE_KEYSTORE_PASSWORD   keystore password
+#   RELEASE_KEY_ALIAS           key alias
+#   RELEASE_KEY_PASSWORD        key password
+#   RELEASES_TOKEN              fine-grained token: Contents read/write on RozumS321/TwiCast-TV-releases
+name: Release APK
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      VERSION_CODE: ${{ github.run_number }}
+      VERSION_NAME: 0.1.${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # release notes need the history since the previous tag
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Twitch Client ID and release key
+        env:
+          TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          echo "twitch.clientId=$TWITCH_CLIENT_ID" > local.properties
+          echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+
+      - name: Test and build
+        env:
+          TWICAST_KEYSTORE_FILE: ${{ runner.temp }}/release.jks
+          TWICAST_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          TWICAST_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          TWICAST_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: ./gradlew testDebugUnitTest assembleRelease -PversionCode=$VERSION_CODE -PversionName=$VERSION_NAME
+
+      # Conventional commits since the previous release become the "what's new" the app shows:
+      # feat → Новое, fix → Исправлено, perf/refactor → Улучшено. The app parses these "## " sections.
+      - name: Release notes
+        run: |
+          PREVIOUS=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || true)
+          RANGE=${PREVIOUS:+$PREVIOUS..}HEAD
+          section() {
+            local items
+            items=$(git log "$RANGE" --no-merges --pretty=format:%s \
+              | grep -E "^($1)(\([^)]*\))?!?: " \
+              | sed -E "s/^($1)(\([^)]*\))?!?: */- /" || true)
+            if [ -n "$items" ]; then printf '## %s\n%s\n\n' "$2" "$items"; fi
+          }
+          {
+            section 'feat' 'Новое'
+            section 'fix' 'Исправлено'
+            section 'perf|refactor' 'Улучшено'
+          } > notes.md
+          if [ ! -s notes.md ]; then printf '## Улучшено\n- Небольшие исправления и улучшения\n' > notes.md; fi
+          cat notes.md
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+        run: |
+          APK="twicast-tv-$VERSION_NAME.apk"
+          cp app/build/outputs/apk/release/app-release.apk "$APK"
+          gh release create "v$VERSION_NAME" "$APK" \
+            --repo RozumS321/TwiCast-TV-releases \
+            --title "TwiCast TV $VERSION_NAME" \
+            --notes-file notes.md
+
+      - name: Tag the source
+        run: |
+          git tag "v$VERSION_NAME" "$GITHUB_SHA"
+          git push origin "v$VERSION_NAME"

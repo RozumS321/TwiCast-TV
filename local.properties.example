@@ -3,3 +3,6 @@ sdk.dir=E\:\\Android\\Sdk
 
 # https://dev.twitch.tv/console/apps
 twitch.clientId=
+
+# Optional: release signing, a properties file outside the repo with storeFile, storePassword, keyAlias, keyPassword
+# release.keystoreProperties=C\:\path\to\keystore.properties

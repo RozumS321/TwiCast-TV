@@ -2,6 +2,8 @@ package app.twicast.tv.feature.search.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -19,10 +21,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.tv.material3.Text
@@ -47,6 +51,7 @@ import app.twicast.tv.data.model.Category
 import app.twicast.tv.data.model.ChannelSearchResult
 import app.twicast.tv.feature.common.appErrorMessage
 import app.twicast.tv.feature.search.SearchResultsState
+import kotlinx.coroutines.launch
 
 private const val OfflineAvatarAlpha = 0.6f
 
@@ -67,7 +72,7 @@ fun SearchResults(
         is SearchResultsState.Error -> ErrorState(appErrorMessage(state.error), onRetry, modifier)
         is SearchResultsState.Content -> LazyColumn(
             verticalArrangement = Arrangement.spacedBy(TwiDimens.ChannelRowSpacing),
-            contentPadding = PaddingValues(top = TwiDimens.FocusBorderWidth, bottom = TwiDimens.FocusOverflowPadding),
+            contentPadding = PaddingValues(top = TwiDimens.FocusBorderWidth, bottom = TwiDimens.ScreenTopPadding),
             modifier = modifier.fillMaxSize(),
         ) {
             if (state.channels.isNotEmpty()) {
@@ -146,7 +151,15 @@ private fun ChannelAvatar(channel: ChannelSearchResult) {
 
 @Composable
 private fun CategoriesRow(state: SearchResultsState.Content, onCategoryClick: (Category) -> Unit) {
-    Column(Modifier.padding(top = TwiDimens.SearchSectionSpacing - TwiDimens.ChannelRowSpacing)) {
+    // Focusing a cover shows the whole block (title, covers, names): the card alone left its name under the edge.
+    val bringIntoView = remember { BringIntoViewRequester() }
+    val scope = rememberCoroutineScope()
+    Column(
+        Modifier
+            .bringIntoViewRequester(bringIntoView)
+            .onFocusChanged { if (it.hasFocus) scope.launch { bringIntoView.bringIntoView() } }
+            .padding(top = TwiDimens.SearchSectionSpacing - TwiDimens.ChannelRowSpacing),
+    ) {
         SectionTitle(stringResource(R.string.search_categories))
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(TwiDimens.SearchCategorySpacing),
@@ -154,7 +167,7 @@ private fun CategoriesRow(state: SearchResultsState.Content, onCategoryClick: (C
                 start = TwiDimens.GridFocusInset,
                 end = TwiDimens.GridFocusInset,
                 top = TwiDimens.SectionTitleSpacing,
-                bottom = TwiDimens.GridFocusInset,
+                bottom = TwiDimens.FocusOverflowPadding,
             ),
             modifier = Modifier.focusRestorer(),
         ) {

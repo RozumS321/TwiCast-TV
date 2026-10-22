@@ -129,6 +129,22 @@ object TwiDimens {
     val SearchCategoryWidth = 110.dp
     val SearchCategorySpacing = 18.dp
     val SearchSectionSpacing = 26.dp
+
+    val UpdatePanelWidth = 880.dp
+    val UpdatePanelHorizontalPadding = 48.dp
+    val UpdatePanelVerticalPadding = 40.dp
+    val UpdatePanelSpacing = 22.dp
+    val UpdateHeaderSpacing = 18.dp
+    val UpdateLogoSize = 56.dp
+    val NotesCardSpacing = 18.dp
+    val NotesCardHorizontalPadding = 20.dp
+    val NotesCardVerticalPadding = 18.dp
+    val NotesItemSpacing = 10.dp
+    val NotesBadgeSize = 26.dp
+    val NotesBadgeIconSize = 16.dp
+    val ProgressHeight = 10.dp
+    val BadgePillHorizontalPadding = 14.dp
+    val BadgePillVerticalPadding = 8.dp
     val SkeletonTitleHeight = 22.dp
     val SkeletonGreetingWidth = 420.dp
     val SkeletonRowTitleWidth = 220.dp
@@ -178,6 +194,7 @@ object TwiShapes {
     val Qr = RoundedCornerShape(22.dp)
     val QueryField = RoundedCornerShape(18.dp)
     val Key = RoundedCornerShape(12.dp)
+    val NotesCard = RoundedCornerShape(18.dp)
 }
 
 /** Focus scales. Card scale 1.06 (not 1.08): at 1.08 neighbours in a row overlap. */

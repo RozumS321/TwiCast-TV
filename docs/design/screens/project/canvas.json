@@ -132,6 +132,28 @@
       "w": 1280,
       "x": 0,
       "y": 2520
+    },
+    "Update.dc.html": {
+      "h": 720,
+      "is_interactive": true,
+      "title": "Обновление · доступно",
+      "w": 1280,
+      "x": 0,
+      "y": 5640
+    },
+    "UpdateDownloading.dc.html": {
+      "h": 720,
+      "title": "Обновление · загрузка",
+      "w": 1280,
+      "x": 1360,
+      "y": 5640
+    },
+    "WhatsNew.dc.html": {
+      "h": 720,
+      "title": "Обновление · что нового",
+      "w": 1280,
+      "x": 2720,
+      "y": 5640
     }
   },
   "createdOnFiles": {
@@ -175,6 +197,14 @@
       "x": 0,
       "y": 4320
     },
+    "update": {
+      "kind": "title1",
+      "maxW": 4000,
+      "text": "Обновление",
+      "w": 240,
+      "x": 0,
+      "y": 5400
+    },
     "system": {
       "kind": "title1",
       "maxW": 4344,
@@ -201,7 +231,10 @@
     "Brand.dc.html",
     "Player.dc.html",
     "PlayerQuality.dc.html",
-    "PlayerChat.dc.html"
+    "PlayerChat.dc.html",
+    "Update.dc.html",
+    "UpdateDownloading.dc.html",
+    "WhatsNew.dc.html"
   ],
   "pages": [],
   "title": "TwiCast TV — дизайн"

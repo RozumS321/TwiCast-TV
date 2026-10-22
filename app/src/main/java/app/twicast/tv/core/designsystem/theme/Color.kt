@@ -28,6 +28,9 @@ object TwiColors {
     val Black = Color(0xFF000000)
     /** Secondary text on the dark player panel (#CFCBD9). */
     val OnOverlayVariant = Color(0xFFCFCBD9)
+    /** Release notes: "Исправлено" and "Улучшено" badges (mockup "Обновление"). */
+    val Success = Color(0xFF1D9E75)
+    val Info = Color(0xFF378ADD)
     val White = Color(0xFFFFFFFF)
 }
 
@@ -58,6 +61,8 @@ data class TwiColorScheme(
     val onOverlayVariant: Color,
     val scrim: Color,
     val playerBackground: Color,
+    val success: Color,
+    val info: Color,
     /** Selected chip: inverted surface. */
     val inverseSurface: Color,
     val inverseOnSurface: Color,
@@ -85,6 +90,8 @@ val LightTwiColorScheme = TwiColorScheme(
     onOverlayVariant = TwiColors.OnOverlayVariant,
     scrim = TwiColors.Scrim,
     playerBackground = TwiColors.Black,
+    success = TwiColors.Success,
+    info = TwiColors.Info,
     inverseSurface = TwiColors.OnSurface,
     inverseOnSurface = TwiColors.White,
 )

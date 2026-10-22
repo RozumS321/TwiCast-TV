@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="update_overline_available">Доступно обновление</string>
+    <string name="update_overline_downloading">Обновление</string>
+    <string name="update_overline_whats_new">Что нового</string>
+    <string name="update_title">TwiCast TV %s</string>
+    <string name="update_title_installed">Вы обновились до %s</string>
+    <string name="update_subtitle">Сейчас установлена %1$s · %2$s</string>
+    <string name="update_subtitle_installed">Вот что изменилось с прошлой версии</string>
+    <string name="update_installed_badge">Установлено</string>
+
+    <string name="update_section_added">Новое</string>
+    <string name="update_section_fixed">Исправлено</string>
+    <string name="update_section_improved">Улучшено</string>
+
+    <string name="update_action_update">Обновить</string>
+    <string name="update_action_later">Позже</string>
+    <string name="update_action_cancel">Отменить</string>
+    <string name="update_action_ok">Отлично</string>
+    <string name="update_action_retry">Повторить</string>
+    <string name="update_action_allow">Разрешить установку</string>
+
+    <string name="update_footnote_available">Установка займёт около минуты</string>
+    <string name="update_footnote_downloading">Не выключайте телевизор, пока идёт загрузка</string>
+    <string name="update_footnote_installed">Полный список — на странице релиза в GitHub</string>
+    <string name="update_footnote_failed">Не удалось скачать обновление. Проверьте сеть.</string>
+    <string name="update_footnote_permission">Разрешите TwiCast TV устанавливать приложения, затем вернитесь сюда</string>
+
+    <string name="update_downloading">Скачиваем обновление…</string>
+    <string name="update_progress">%1$s из %2$s · %3$d%%</string>
+    <string name="update_megabytes">%s МБ</string>
+</resources>

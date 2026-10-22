@@ -17,6 +17,34 @@ val localProperties = Properties().apply {
 
 fun localProperty(name: String): String = localProperties.getProperty(name, "")
 
+// CI passes -PversionCode=<run number> -PversionName=0.1.<run number>; local builds stay 1 / 0.1.0.
+val ciVersionCode = providers.gradleProperty("versionCode").orNull?.toInt()
+val ciVersionName = providers.gradleProperty("versionName").orNull
+
+/**
+ * Release signing: env vars in CI (keystore decoded from a GitHub secret), or a keystore.properties file kept
+ * outside the repo (path in local.properties: release.keystoreProperties). Updates install over the previous
+ * version only when every release is signed with this same key.
+ */
+val releaseSigning: Map<String, String>? = run {
+    val fromEnv = listOf("TWICAST_KEYSTORE_FILE", "TWICAST_KEYSTORE_PASSWORD", "TWICAST_KEY_ALIAS", "TWICAST_KEY_PASSWORD")
+        .associateWith { System.getenv(it).orEmpty() }
+    if (fromEnv.values.all { it.isNotEmpty() }) {
+        mapOf(
+            "storeFile" to fromEnv.getValue("TWICAST_KEYSTORE_FILE"),
+            "storePassword" to fromEnv.getValue("TWICAST_KEYSTORE_PASSWORD"),
+            "keyAlias" to fromEnv.getValue("TWICAST_KEY_ALIAS"),
+            "keyPassword" to fromEnv.getValue("TWICAST_KEY_PASSWORD"),
+        )
+    } else {
+        localProperty("release.keystoreProperties").takeIf { it.isNotEmpty() }?.let { path ->
+            Properties().apply { file(path).inputStream().use(::load) }.let { props ->
+                props.stringPropertyNames().associateWith { props.getProperty(it) }
+            }
+        }
+    }
+}
+
 android {
     namespace = "app.twicast.tv"
     compileSdk = 37
@@ -25,10 +53,25 @@ android {
         applicationId = "app.twicast.tv"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = ciVersionCode ?: 1
+        versionName = ciVersionName ?: "0.1.0"
 
         buildConfigField("String", "TWITCH_CLIENT_ID", "\"${localProperty("twitch.clientId")}\"")
+        // Releases (APK + notes only) go to a public repo, the source stays private; the app checks them on start.
+        buildConfigField("String", "UPDATE_REPOSITORY", "\"RozumS321/TwiCast-TV-releases\"")
+        // Only CI builds have a real version to compare; a local build would always "find" an update.
+        buildConfigField("boolean", "UPDATES_ENABLED", "${ciVersionCode != null}")
+    }
+
+    signingConfigs {
+        if (releaseSigning != null) {
+            create("release") {
+                storeFile = file(releaseSigning.getValue("storeFile"))
+                storePassword = releaseSigning.getValue("storePassword")
+                keyAlias = releaseSigning.getValue("keyAlias")
+                keyPassword = releaseSigning.getValue("keyPassword")
+            }
+        }
     }
 
     buildTypes {
@@ -36,8 +79,8 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // Until a release keystore exists, sign with the debug key so the build installs on the TV.
-            signingConfig = signingConfigs.getByName("debug")
+            // Without the release key (e.g. a fresh clone) the build still installs, signed with the debug key.
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
     }
 

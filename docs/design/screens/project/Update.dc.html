@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Обновление</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#772CE8}a:hover{color:#5C16C5}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 720px; overflow: hidden; background: #F6F5FA; color: #17151F; font-family: 'Plus Jakarta Sans', system-ui, sans-serif">
+
+  <div aria-hidden="true" style="position: absolute; left: 128px; top: 30px; right: 40px; display: flex; flex-direction: column; gap: 22px">
+    <span style="width: 420px; height: 34px; border-radius: 10px; background: #E2DFEA"></span>
+    <div style="display: flex; gap: 22px">
+      <span style="width: 212px; height: 119px; border-radius: 14px; background: #2B1E4A"></span>
+      <span style="width: 212px; height: 119px; border-radius: 14px; background: #123A3A"></span>
+      <span style="width: 212px; height: 119px; border-radius: 14px; background: #3A1E2E"></span>
+      <span style="width: 212px; height: 119px; border-radius: 14px; background: #1C2A48"></span>
+    </div>
+    <div style="display: flex; gap: 22px">
+      <span style="width: 212px; height: 119px; border-radius: 14px; background: #30261A"></span>
+      <span style="width: 212px; height: 119px; border-radius: 14px; background: #232044"></span>
+      <span style="width: 212px; height: 119px; border-radius: 14px; background: #2B1E4A"></span>
+      <span style="width: 212px; height: 119px; border-radius: 14px; background: #123A3A"></span>
+    </div>
+  </div>
+  <div aria-hidden="true" style="position: absolute; left: 0; top: 0; bottom: 0; width: 88px; background: #FFFFFF; border-right: 1px solid #E8E5F0"></div>
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(23,21,31,.32)"></div>
+
+  <section aria-label="Обновление приложения" style="position: absolute; left: 50%; top: 50%; width: 880px; transform: translate(-50%, -50%); box-sizing: border-box; padding: 40px 48px; border-radius: 28px; background: #FFFFFF; box-shadow: 0 24px 60px rgba(23,21,31,.18); display: flex; flex-direction: column; gap: 22px">
+
+    <header style="display: flex; align-items: center; gap: 18px">
+      <svg width="56" height="56" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="14" fill="#17151F"></rect><circle cx="19" cy="24" r="9.5" fill="#9146FF"></circle><circle cx="29" cy="24" r="9.5" fill="#FFFFFF" opacity=".92"></circle><path d="M26.5 20v8l6.5-4z" fill="#17151F"></path></svg>
+      <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1">
+        <span style="font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #5C16C5">{{overline}}</span>
+        <h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.02em">{{title}}</h1>
+        <span style="font-size: 14px; color: #5F5A6E">{{subtitle}}</span>
+      </div>
+      <sc-if value="{{isDone}}" hint-placeholder-val="{{ false }}">
+        <span style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: #F1EAFF; color: #5C16C5; font-size: 14px; font-weight: 800">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5C16C5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L19 7"></path></svg>
+          Установлено
+        </span>
+      </sc-if>
+    </header>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px">
+      <sc-for list="{{sections}}" as="s" hint-placeholder-count="3">
+        <div style="display: flex; flex-direction: column; gap: 10px; padding: 18px 20px; border-radius: 18px; background: #F6F5FA">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <span style="{{s.badgeStyle}}">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{s.icon}}"></path></svg>
+            </span>
+            <span style="font-size: 16px; font-weight: 800">{{s.title}}</span>
+          </div>
+          <sc-for list="{{s.items}}" as="it" hint-placeholder-count="3">
+            <span style="font-size: 14px; line-height: 1.45; color: #3E3A4A">{{it}}</span>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{isDownloading}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="height: 10px; border-radius: 5px; background: #EFEDF5; overflow: hidden">
+          <div style="width: 49%; height: 100%; border-radius: 5px; background: #9146FF"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 14px; color: #5F5A6E">
+          <span>Скачиваем обновление…</span>
+          <span><b style="color: #17151F">6,1</b> из 12,4 МБ · 49%</span>
+        </div>
+      </div>
+    </sc-if>
+
+    <div style="display: flex; gap: 12px; align-items: center">
+      <sc-for list="{{buttons}}" as="b" hint-placeholder-count="2">
+        <button style="{{b.style}}">{{b.label}}</button>
+      </sc-for>
+      <span style="flex-grow: 1"></span>
+      <span style="font-size: 13px; color: #5F5A6E">{{footnote}}</span>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["available","downloading","installed"],"default":"available"},"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const A = '#9146FF';
+    const mode = this.props.state ?? 'available';
+    const primary = 'height: 52px; padding: 0 28px; border-radius: 16px; border: none; background: ' + A + '; color: #FFFFFF; font-size: 16px; font-weight: 800; box-shadow: 0 0 0 3px #FFFFFF, 0 0 0 6px #5C16C5, 0 10px 24px rgba(145,70,255,.32); transform: scale(1.05);';
+    const secondary = 'height: 52px; padding: 0 22px; border-radius: 16px; border: 1px solid #E2DFEA; background: #FFFFFF; color: #17151F; font-size: 16px; font-weight: 700;';
+    const sections = [
+      ['Новое', 'M12 5v14M5 12h14', A, ['Подписки: в эфире и офлайн', 'Чат справа от видео', 'Голосовой поиск']],
+      ['Исправлено', 'M5 12l5 5L19 7', '#1D9E75', ['Качество сбрасывалось после рекламы', 'Фокус терялся при возврате из плеера']],
+      ['Улучшено', 'M12 19V5M5 12l7-7 7 7', '#378ADD', ['Главная грузится быстрее', 'Меньше памяти на слабых приставках']]
+    ].map(([title, icon, color, items]) => ({
+      title, icon, items,
+      badgeStyle: 'width: 26px; height: 26px; border-radius: 13px; display: flex; align-items: center; justify-content: center; background: ' + color + ';'
+    }));
+    const byMode = {
+      available: {
+        overline: 'Доступно обновление', title: 'TwiCast TV 0.1.42', subtitle: 'Сейчас установлена 0.1.37 · 12,4 МБ',
+        buttons: [{ label: 'Обновить', style: primary }, { label: 'Позже', style: secondary }],
+        footnote: 'Установка займёт около минуты'
+      },
+      downloading: {
+        overline: 'Обновление', title: 'TwiCast TV 0.1.42', subtitle: 'Сейчас установлена 0.1.37 · 12,4 МБ',
+        buttons: [{ label: 'Отменить', style: secondary + ' box-shadow: 0 0 0 3px ' + A + '; transform: scale(1.05);' }],
+        footnote: 'Можно продолжать смотреть — установим, когда скачается'
+      },
+      installed: {
+        overline: 'Что нового', title: 'Вы обновились до 0.1.42', subtitle: 'Вот что изменилось с прошлой версии',
+        buttons: [{ label: 'Отлично', style: primary }],
+        footnote: 'Полный список — на странице релиза в GitHub'
+      }
+    };
+    return Object.assign({ sections, isDownloading: mode === 'downloading', isDone: mode === 'installed' }, byMode[mode]);
+  }
+}
+</script>
+</body>
+</html>

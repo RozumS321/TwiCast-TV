@@ -40,12 +40,22 @@ import app.twicast.tv.feature.home.HomeRoute
 import app.twicast.tv.feature.player.PlayerDestination
 import app.twicast.tv.feature.player.PlayerRoute
 import app.twicast.tv.feature.search.SearchRoute
+import app.twicast.tv.feature.update.UpdateRoute
 import kotlinx.collections.immutable.toPersistentList
 
 /** Root: sign-in until a session exists (mandatory in the MVP), then the shell with the sidebar. */
 @Composable
 fun TwiCastApp(viewModel: AppViewModel = hiltViewModel()) {
     val authState by viewModel.authState.collectAsStateWithLifecycle()
+    Box(Modifier.fillMaxSize()) {
+        AuthGate(authState, onSignOut = viewModel::onSignOut)
+        // Self-update panel over everything, sign-in included.
+        UpdateRoute()
+    }
+}
+
+@Composable
+private fun AuthGate(authState: AuthState, onSignOut: () -> Unit) {
     // Animate by state type: the shell is not rebuilt when only the user's fields change.
     AnimatedContent(
         targetState = authState,
@@ -57,7 +67,7 @@ fun TwiCastApp(viewModel: AppViewModel = hiltViewModel()) {
         when (state) {
             AuthState.Loading -> Box(Modifier.fillMaxSize())
             AuthState.SignedOut -> LoginRoute()
-            is AuthState.SignedIn -> SignedInShell(state.user, onSignOut = viewModel::onSignOut)
+            is AuthState.SignedIn -> SignedInShell(state.user, onSignOut = onSignOut)
         }
     }
 }
