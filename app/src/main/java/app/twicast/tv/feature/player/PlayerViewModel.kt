@@ -28,7 +28,14 @@ data class PlayerDestination(
     /** Null when opened from search (an offline channel has no count). */
     val viewerCount: Int?,
     val avatarUrl: String?,
-)
+    /** Past broadcast to play instead of the live stream. */
+    val videoId: String? = null,
+    /** Clip slug to play instead of the live stream. */
+    val clipSlug: String? = null,
+) {
+    /** Live stream (not a recording): only then the chat makes sense. */
+    val isLive: Boolean get() = videoId == null && clipSlug == null
+}
 
 /** Controls hide after this long without remote input (mockup note: "через 4 с"). */
 const val ControlsAutoHideMillis = 4_000L

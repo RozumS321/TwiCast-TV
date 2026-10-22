@@ -72,6 +72,8 @@ interface TwitchEmbedListener {
 @Composable
 fun TwitchEmbedView(
     channelLogin: String,
+    videoId: String?,
+    clipSlug: String?,
     preferredQualityId: String?,
     controller: TwitchEmbedController,
     listener: TwitchEmbedListener,
@@ -88,7 +90,7 @@ fun TwitchEmbedView(
             }
             createEmbedWebView(context, forwarding).also { webView ->
                 controller.webView = webView
-                webView.loadUrl(playerUrl(channelLogin, preferredQualityId))
+                webView.loadUrl(playerUrl(channelLogin, videoId, clipSlug, preferredQualityId))
             }
         },
         onRelease = { webView ->
@@ -101,9 +103,11 @@ fun TwitchEmbedView(
     )
 }
 
-private fun playerUrl(channelLogin: String, preferredQualityId: String?): String =
+private fun playerUrl(channelLogin: String, videoId: String?, clipSlug: String?, preferredQualityId: String?): String =
     Uri.parse(PlayerPageUrl).buildUpon()
         .appendQueryParameter("channel", channelLogin)
+        .apply { if (videoId != null) appendQueryParameter("video", videoId) }
+        .apply { if (clipSlug != null) appendQueryParameter("clip", clipSlug) }
         .apply { if (preferredQualityId != null) appendQueryParameter("quality", preferredQualityId) }
         .build()
         .toString()

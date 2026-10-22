@@ -80,7 +80,7 @@ class HelixStreamsRepository @Inject constructor(
     }
 }
 
-private fun StreamDto.toModel(avatarUrl: String?) = Stream(
+internal fun StreamDto.toModel(avatarUrl: String?) = Stream(
     id = id,
     userId = userId,
     userLogin = userLogin,

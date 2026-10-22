@@ -31,10 +31,13 @@ import app.twicast.tv.data.model.AuthState
 import app.twicast.tv.data.model.User
 import app.twicast.tv.feature.auth.LoginRoute
 import app.twicast.tv.data.model.Category
+import app.twicast.tv.data.model.ChannelPage
 import app.twicast.tv.data.model.Stream
 import app.twicast.tv.feature.categories.CategoriesRoute
 import app.twicast.tv.feature.categories.CategoryStreamsDestination
 import app.twicast.tv.feature.categories.CategoryStreamsRoute
+import app.twicast.tv.feature.channel.ChannelDestination
+import app.twicast.tv.feature.channel.ChannelRoute
 import app.twicast.tv.feature.following.FollowingRoute
 import app.twicast.tv.feature.home.HomeRoute
 import app.twicast.tv.feature.player.PlayerDestination
@@ -115,10 +118,14 @@ private fun SignedInShell(user: User) {
             composable<SearchDestination> {
                 SearchRoute(
                     onChannelClick = { channel ->
-                        // Offline channels open too: the player itself says the channel is not live.
-                        navController.navigate(
-                            PlayerDestination(channel.login, channel.displayName, channel.categoryName, viewerCount = null, channel.avatarUrl),
-                        )
+                        // Live: straight to the stream; offline: the channel page with its recordings.
+                        if (channel.isLive) {
+                            navController.navigate(
+                                PlayerDestination(channel.login, channel.displayName, channel.categoryName, viewerCount = null, channel.avatarUrl),
+                            )
+                        } else {
+                            navController.navigate(ChannelDestination(channel.login))
+                        }
                     },
                     onCategoryClick = navController::openCategory,
                 )
@@ -130,15 +137,17 @@ private fun SignedInShell(user: User) {
             composable<FollowingDestination> {
                 FollowingRoute(
                     onStreamClick = navController::openStream,
-                    // Offline channels open the player, which says the channel is not live (channel page comes next).
-                    onChannelClick = { channel ->
-                        navController.navigate(
-                            PlayerDestination(channel.login, channel.displayName, channel.categoryName, viewerCount = null, channel.avatarUrl),
-                        )
-                    },
+                    onChannelClick = { channel -> navController.navigate(ChannelDestination(channel.login)) },
                 )
             }
             composable<ProfileDestination> { ProfileRoute() }
+            composable<ChannelDestination> {
+                ChannelRoute(
+                    onWatchLive = { channel -> channel.stream?.let(navController::openStream) },
+                    onVideoClick = { channel, video -> navController.navigate(channel.playerDestination(videoId = video.id)) },
+                    onClipClick = { channel, clip -> navController.navigate(channel.playerDestination(clipSlug = clip.id)) },
+                )
+            }
             composable<PlayerDestination> { PlayerRoute(onClose = navController::popBackStack) }
         }
     }
@@ -147,6 +156,17 @@ private fun SignedInShell(user: User) {
 private fun NavHostController.openStream(stream: Stream) {
     navigate(PlayerDestination(stream.userLogin, stream.channelName, stream.categoryName, stream.viewerCount, stream.avatarUrl))
 }
+
+/** A recording or clip of [this] channel. */
+private fun ChannelPage.playerDestination(videoId: String? = null, clipSlug: String? = null) = PlayerDestination(
+    channelLogin = login,
+    channelName = displayName,
+    categoryName = stream?.categoryName.orEmpty(),
+    viewerCount = null,
+    avatarUrl = avatarUrl,
+    videoId = videoId,
+    clipSlug = clipSlug,
+)
 
 private fun NavHostController.openCategory(category: Category) {
     navigate(CategoryStreamsDestination(category.id, category.name, category.boxArtTemplate))

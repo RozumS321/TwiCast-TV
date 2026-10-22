@@ -78,3 +78,37 @@ data class Follows(
     val total: Int,
     val channels: List<FollowedChannel>,
 )
+
+/** Past broadcast (VOD). [thumbnailTemplate] is empty while Twitch still processes it. */
+data class Video(
+    val id: String,
+    val title: String,
+    val createdAtMillis: Long?,
+    val durationSeconds: Long,
+    val viewCount: Int,
+    val thumbnailTemplate: String,
+)
+
+/** Clip; [id] is the slug the clip embed takes. */
+data class Clip(
+    val id: String,
+    val title: String,
+    val viewCount: Int,
+    val durationSeconds: Long,
+    val thumbnailUrl: String,
+)
+
+/** Everything the channel page shows. [stream] is null while the channel is offline. */
+data class ChannelPage(
+    val id: String,
+    val login: String,
+    val displayName: String,
+    val description: String,
+    val avatarUrl: String?,
+    val bannerUrl: String?,
+    val followerCount: Int?,
+    val isFollowedByViewer: Boolean,
+    val stream: Stream?,
+    val videos: List<Video>,
+    val clips: List<Clip>,
+)

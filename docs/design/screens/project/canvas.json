@@ -154,6 +154,21 @@
       "w": 1280,
       "x": 2720,
       "y": 5640
+    },
+    "Channel.dc.html": {
+      "h": 720,
+      "is_interactive": true,
+      "title": "Канал · в эфире",
+      "w": 1280,
+      "x": 0,
+      "y": 6840
+    },
+    "ChannelOffline.dc.html": {
+      "h": 720,
+      "title": "Канал · офлайн",
+      "w": 1280,
+      "x": 1360,
+      "y": 6840
     }
   },
   "createdOnFiles": {
@@ -197,6 +212,14 @@
       "x": 0,
       "y": 4320
     },
+    "channel": {
+      "kind": "title1",
+      "maxW": 2640,
+      "text": "Канал стримера",
+      "w": 240,
+      "x": 0,
+      "y": 6600
+    },
     "update": {
       "kind": "title1",
       "maxW": 4000,
@@ -234,7 +257,9 @@
     "PlayerChat.dc.html",
     "Update.dc.html",
     "UpdateDownloading.dc.html",
-    "WhatsNew.dc.html"
+    "WhatsNew.dc.html",
+    "Channel.dc.html",
+    "ChannelOffline.dc.html"
   ],
   "pages": [],
   "title": "TwiCast TV — дизайн"

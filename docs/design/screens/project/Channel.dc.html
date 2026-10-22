@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Канал стримера</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#772CE8}a:hover{color:#5C16C5}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 720px; overflow: hidden; background: #F6F5FA; color: #17151F; font-family: 'Plus Jakarta Sans', system-ui, sans-serif">
+  <main style="position: absolute; left: 88px; right: 0; top: 0; bottom: 0; padding: 30px 40px 0 40px; display: flex; flex-direction: column; gap: 22px">
+
+    <section aria-label="Канал" style="{{bannerStyle}}">
+      <span aria-hidden="true" style="position: absolute; width: 360px; height: 360px; border-radius: 50%; right: -60px; top: -150px; background: #9146FF; opacity: .35"></span>
+      <span aria-hidden="true" style="position: absolute; width: 220px; height: 220px; border-radius: 50%; right: 260px; bottom: -140px; background: #FF8A5B; opacity: .3"></span>
+      <span aria-hidden="true" style="position: absolute; inset: 0; background: rgba(15,14,20,.45)"></span>
+
+      <div style="position: relative; display: flex; align-items: flex-end; gap: 22px; width: 100%">
+        <span style="{{avatarStyle}}"></span>
+        <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; padding-bottom: 4px">
+          <div style="display: flex; align-items: center; gap: 12px">
+            <h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.02em; color: #FFFFFF">sasavot</h1>
+            <sc-if value="{{live}}" hint-placeholder-val="{{ true }}">
+              <span style="padding: 4px 9px; border-radius: 8px; background: #E91916; color: #FFFFFF; font-size: 12px; font-weight: 800; letter-spacing: .04em">LIVE</span>
+            </sc-if>
+          </div>
+          <span style="font-size: 15px; color: #CFCBD9">{{statusLine}}</span>
+          <span style="font-size: 14px; color: #CFCBD9; max-width: 560px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Играю в CS2 и болтаю с чатом. Эфиры каждый день с 18:00 МСК.</span>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center; padding-bottom: 4px">
+          <button style="height: 52px; padding: 0 26px; border-radius: 16px; border: none; background: #9146FF; color: #FFFFFF; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 10px; box-shadow: 0 0 0 3px #FFFFFF, 0 0 0 6px #5C16C5; transform: scale(1.05)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#FFFFFF" aria-hidden="true"><path d="M7 4v16l13-8z"></path></svg>
+            {{watchLabel}}
+          </button>
+          <span style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 20px; background: rgba(255,255,255,.16); color: #FFFFFF; font-size: 14px; font-weight: 700">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L19 7"></path></svg>
+            В подписках
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <sc-for list="{{rows}}" as="row" hint-placeholder-count="2">
+      <section style="display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: baseline; gap: 10px">
+          <h2 style="margin: 0; font-size: 20px; font-weight: 800">{{row.title}}</h2>
+          <span style="font-size: 13px; color: #5F5A6E">{{row.hint}}</span>
+        </div>
+        <div style="display: flex; gap: 22px; padding: 6px 0 6px 4px">
+          <sc-for list="{{row.items}}" as="v" hint-placeholder-count="5">
+            <div style="flex-shrink: 0; width: 212px; display: flex; flex-direction: column; gap: 8px">
+              <span style="{{v.thumb}}">
+                <span style="{{v.art}}"></span>
+                <span style="position: absolute; left: 9px; bottom: 9px; padding: 3px 8px; border-radius: 6px; background: rgba(15,14,20,.72); color: #FFFFFF; font-size: 11px; font-weight: 700">{{v.badge}}</span>
+              </span>
+              <span style="display: flex; flex-direction: column; gap: 2px; padding: 0 4px">
+                <span style="font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{v.title}}</span>
+                <span style="font-size: 12px; color: #5F5A6E">{{v.sub}}</span>
+              </span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+    </sc-for>
+  </main>
+  <div style="position: absolute; left: 0; top: 0; bottom: 0">
+    <dc-import name="Rail" expanded="{{no}}" active="following" auth="{{yes}}" hint-size="88px,720px"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"live":{"editor":"boolean","default":true},"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const live = this.props.live ?? true;
+    const tones = [['#123A3A', '#64E0C6'], ['#1C2A48', '#7FB2FF'], ['#2B1E4A', '#FF8A5B'], ['#30261A', '#FFC857'], ['#3A1E2E', '#FF6B9A']];
+    const card = (i, title, sub, badge) => ({
+      title, sub, badge,
+      thumb: 'position: relative; overflow: hidden; display: block; width: 212px; height: 119px; border-radius: 14px; background: ' + tones[i % 5][0] + ';',
+      art: 'position: absolute; width: 48%; aspect-ratio: 1; border-radius: 50%; right: ' + (8 + (i * 11) % 28) + '%; top: ' + (8 + (i * 9) % 26) + '%; background: ' + tones[i % 5][1] + '; opacity: .9;'
+    });
+    const vods = [
+      ['Ранкед до утра, держим планку', 'вчера · 48 тыс просмотров', '7:42:10'],
+      ['Турнир с подписчиками', '2 дня назад · 31 тыс', '5:10:44'],
+      ['Разбор демок про-сцены', '3 дня назад · 22 тыс', '3:05:12'],
+      ['Чилл-премьер после работы', '5 дней назад · 19 тыс', '4:18:30'],
+      ['Новый сезон — первые матчи', 'неделю назад · 40 тыс', '6:01:02']
+    ].map((v, i) => card(i, v[0], v[1], v[2]));
+    const clips = [
+      ['Эйс с пистолета', '1,2 млн просмотров', '0:28'],
+      ['Чат не верит', '840 тыс', '0:41'],
+      ['Самый длинный раунд', '512 тыс', '0:59'],
+      ['Минус 5 за 10 секунд', '430 тыс', '0:22'],
+      ['Тиммейт уснул', '390 тыс', '0:35']
+    ].map((v, i) => card(i + 2, v[0], v[1], v[2]));
+    return {
+      live, yes: true, no: false,
+      statusLine: live ? 'Counter-Strike · 16,9 тыс зрителей · 348 тыс подписчиков' : 'Офлайн · был в эфире вчера · 348 тыс подписчиков',
+      watchLabel: live ? 'Смотреть эфир' : 'Последняя трансляция',
+      bannerStyle: 'position: relative; overflow: hidden; height: 220px; flex-shrink: 0; box-sizing: border-box; padding: 0 32px 26px; border-radius: 22px; display: flex; align-items: flex-end; background: ' + (live ? '#2B1E4A' : '#2C2A35') + ';',
+      avatarStyle: 'width: 112px; height: 112px; flex-shrink: 0; border-radius: 56px; background: #FF9F4A; ' +
+        (live ? 'box-shadow: 0 0 0 4px #2B1E4A, 0 0 0 8px #E91916;' : 'box-shadow: 0 0 0 4px #2C2A35, 0 0 0 8px rgba(255,255,255,.25); filter: grayscale(.6);'),
+      rows: [
+        { title: 'Последние трансляции', hint: 'записи эфиров', items: vods },
+        { title: 'Популярные клипы', hint: 'за 30 дней', items: clips }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

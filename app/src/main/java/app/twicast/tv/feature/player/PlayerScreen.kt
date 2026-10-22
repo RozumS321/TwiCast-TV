@@ -83,6 +83,8 @@ fun PlayerScreen(
         if (state.canPlay && state.settingsLoaded) {
             TwitchEmbedView(
                 channelLogin = state.channel.channelLogin,
+                videoId = state.channel.videoId,
+                clipSlug = state.channel.clipSlug,
                 preferredQualityId = state.preferredQualityId,
                 controller = controller,
                 listener = listener,

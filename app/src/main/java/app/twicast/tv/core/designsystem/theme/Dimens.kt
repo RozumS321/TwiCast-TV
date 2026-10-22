@@ -152,6 +152,19 @@ object TwiDimens {
     val ProfileButtonHeight = 56.dp
     val ProfileFooterSpacing = 28.dp
 
+    val ChannelBannerHeight = 220.dp
+    val ChannelBannerHorizontalPadding = 32.dp
+    val ChannelBannerBottomPadding = 26.dp
+    val ChannelHeaderSpacing = 22.dp
+    val ChannelInfoSpacing = 6.dp
+    val ChannelLargeAvatarSize = 112.dp
+    val ChannelLargeAvatarRing = 4.dp
+    val ChannelAboutMaxWidth = 900.dp
+    val ChannelAboutPadding = 24.dp
+    val ChannelAboutSpacing = 8.dp
+    val ChannelSectionSpacing = 22.dp
+    val ChannelTagHeight = 40.dp
+
     val UpdatePanelWidth = 880.dp
     val UpdatePanelHorizontalPadding = 48.dp
     val UpdatePanelVerticalPadding = 40.dp
@@ -220,6 +233,7 @@ object TwiShapes {
     val Segmented = RoundedCornerShape(18.dp)
     val SegmentedTab = RoundedCornerShape(13.dp)
     val ChannelCard = RoundedCornerShape(20.dp)
+    val Banner = RoundedCornerShape(22.dp)
 }
 
 /** Focus scales. Card scale 1.06 (not 1.08): at 1.08 neighbours in a row overlap. */

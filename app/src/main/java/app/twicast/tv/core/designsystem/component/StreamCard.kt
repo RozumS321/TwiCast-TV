@@ -49,6 +49,9 @@ fun StreamCard(
     dense: Boolean = false,
     width: Dp = if (dense) TwiDimens.StreamCardDenseWidth else TwiDimens.StreamCardWidth,
     avatarRing: Boolean = false,
+    /** Recordings and clips: no LIVE badge, and [viewerCountText] carries the duration. */
+    live: Boolean = true,
+    showAvatar: Boolean = true,
 ) {
     val focusProgress = rememberFocusProgress()
     val interactionSource = remember { MutableInteractionSource() }
@@ -72,13 +75,13 @@ fun StreamCard(
             .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
             .padding(bottom = spacing),
     ) {
-        StreamThumbnail(thumbnailUrl, viewerCountText)
-        StreamCardInfo(title, subtitle, avatarUrl, dense, avatarRing)
+        StreamThumbnail(thumbnailUrl, viewerCountText, live)
+        StreamCardInfo(title, subtitle, avatarUrl.takeIf { showAvatar }, dense, avatarRing, showAvatar)
     }
 }
 
 @Composable
-private fun StreamThumbnail(thumbnailUrl: String?, viewerCountText: String) {
+private fun StreamThumbnail(thumbnailUrl: String?, viewerCountText: String, live: Boolean) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -94,19 +97,28 @@ private fun StreamThumbnail(thumbnailUrl: String?, viewerCountText: String) {
                 modifier = Modifier.fillMaxSize(),
             )
         }
-        LiveBadge(Modifier.align(Alignment.TopStart).padding(TwiDimens.BadgeInset))
+        if (live) LiveBadge(Modifier.align(Alignment.TopStart).padding(TwiDimens.BadgeInset))
         ViewerCountBadge(viewerCountText, Modifier.align(Alignment.BottomStart).padding(TwiDimens.BadgeInset))
     }
 }
 
 @Composable
-private fun StreamCardInfo(title: String, subtitle: String, avatarUrl: String?, dense: Boolean, avatarRing: Boolean) {
+private fun StreamCardInfo(
+    title: String,
+    subtitle: String,
+    avatarUrl: String?,
+    dense: Boolean,
+    avatarRing: Boolean,
+    showAvatar: Boolean,
+) {
     val avatarSize = if (dense) TwiDimens.AvatarSmallDense else TwiDimens.AvatarSmall
     Row(
         horizontalArrangement = Arrangement.spacedBy(TwiDimens.CardContentSpacing),
         modifier = Modifier.padding(horizontal = TwiDimens.CardTextHorizontalPadding),
     ) {
-        if (avatarRing) RingedAvatar(avatarUrl, avatarSize) else Avatar(avatarUrl, avatarSize)
+        if (showAvatar) {
+            if (avatarRing) RingedAvatar(avatarUrl, avatarSize) else Avatar(avatarUrl, avatarSize)
+        }
         Column(verticalArrangement = Arrangement.spacedBy(TwiDimens.CardTextSpacing)) {
             Text(
                 text = title,

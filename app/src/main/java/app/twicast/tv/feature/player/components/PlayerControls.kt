@@ -67,10 +67,12 @@ fun PlayerControls(
             icon = TwiIcons.Quality,
             onClick = onOpenQuality,
         )
-        TwiSecondaryButton(
-            text = stringResource(if (state.chatVisible) R.string.player_chat_hide else R.string.player_chat_show),
-            icon = TwiIcons.Chat,
-            onClick = onToggleChat,
-        )
+        if (state.channel.isLive) {
+            TwiSecondaryButton(
+                text = stringResource(if (state.chatVisible) R.string.player_chat_hide else R.string.player_chat_show),
+                icon = TwiIcons.Chat,
+                onClick = onToggleChat,
+            )
+        }
     }
 }

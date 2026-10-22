@@ -2,9 +2,11 @@ package app.twicast.tv.core.di
 
 import app.twicast.tv.data.repository.AuthRepository
 import app.twicast.tv.data.repository.CategoriesRepository
+import app.twicast.tv.data.repository.ChannelRepository
 import app.twicast.tv.data.repository.DataStorePlayerSettingsRepository
 import app.twicast.tv.data.repository.FollowsRepository
 import app.twicast.tv.data.repository.HelixCategoriesRepository
+import app.twicast.tv.data.repository.HelixChannelRepository
 import app.twicast.tv.data.repository.HelixFollowsRepository
 import app.twicast.tv.data.repository.HelixSearchRepository
 import app.twicast.tv.data.repository.HelixStreamsRepository
@@ -31,6 +33,9 @@ abstract class DataModule {
 
     @Binds
     abstract fun bindAuthRepository(impl: TwitchAuthRepository): AuthRepository
+
+    @Binds
+    abstract fun bindChannelRepository(impl: HelixChannelRepository): ChannelRepository
 
     @Binds
     abstract fun bindFollowsRepository(impl: HelixFollowsRepository): FollowsRepository

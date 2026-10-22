@@ -43,6 +43,8 @@ data class UserDto(
     val login: String,
     @SerialName("display_name") val displayName: String,
     @SerialName("profile_image_url") val profileImageUrl: String,
+    val description: String = "",
+    @SerialName("offline_image_url") val offlineImageUrl: String = "",
 )
 
 @Serializable
@@ -87,4 +89,30 @@ data class FollowedChannelDto(
 data class ChannelInfoDto(
     @SerialName("broadcaster_id") val id: String,
     @SerialName("game_name") val gameName: String = "",
+)
+
+@Serializable
+data class FollowerDto(@SerialName("user_id") val userId: String = "")
+
+@Serializable
+data class VideoDto(
+    val id: String,
+    val title: String,
+    @SerialName("created_at") val createdAt: String,
+    /** "3h42m10s". */
+    val duration: String,
+    @SerialName("view_count") val viewCount: Int,
+    /** Template with %{width}x%{height}; empty while the video is still processing. */
+    @SerialName("thumbnail_url") val thumbnailUrl: String,
+)
+
+@Serializable
+data class ClipDto(
+    /** Clip slug, used by the clip embed. */
+    val id: String,
+    val title: String,
+    @SerialName("view_count") val viewCount: Int,
+    /** Seconds. */
+    val duration: Double,
+    @SerialName("thumbnail_url") val thumbnailUrl: String,
 )
