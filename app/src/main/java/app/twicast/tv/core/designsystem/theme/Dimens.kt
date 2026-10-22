@@ -191,6 +191,7 @@ object TwiDimens {
     val SkeletonRowTitleWidth = 220.dp
 
     val HomeSectionSpacing = 22.dp
+    val ScrollEdgeMargin = 140.dp
     val HomeRowTitleSpacing = 12.dp
     val HomeCardSpacing = 22.dp
     val HomeHeaderSpacing = 14.dp
