@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="player_loading">Загружаем стрим…</string>
-    <string name="player_paused">Пауза · OK — продолжить</string>
-    <string name="player_offline">Канал сейчас не в эфире</string>
-    <string name="player_error">Не удалось загрузить плеер Twitch</string>
-    <string name="player_ad_break">Реклама на Twitch · стрим продолжится сам</string>
+    <string name="player_loading">Loading the stream…</string>
+    <string name="player_paused">Paused · OK to resume</string>
+    <string name="player_offline">The channel is offline</string>
+    <string name="player_error">Couldn\'t load the Twitch player</string>
+    <string name="player_ad_break">Twitch ad break · the stream will resume by itself</string>
 
-    <string name="player_pause">Пауза</string>
-    <string name="player_resume">Продолжить</string>
-    <string name="player_quality_button">Качество · %s</string>
-    <string name="player_quality_auto">Авто</string>
-    <string name="player_chat_show">Чат</string>
-    <string name="player_chat_hide">Скрыть чат</string>
-    <string name="player_channel">Канал</string>
+    <string name="player_pause">Pause</string>
+    <string name="player_resume">Resume</string>
+    <string name="player_quality_button">Quality · %s</string>
+    <string name="player_quality_auto">Auto</string>
+    <string name="player_chat_show">Chat</string>
+    <string name="player_chat_hide">Hide chat</string>
+    <string name="player_channel">Channel</string>
 
-    <string name="player_quality_title">Качество</string>
-    <string name="player_quality_hint">Запомним для следующих стримов</string>
-    <string name="player_quality_unavailable">Список появится, когда стрим начнёт играть</string>
-    <string name="player_quality_selected">выбрано</string>
+    <string name="player_quality_title">Quality</string>
+    <string name="player_quality_hint">Remembered for the next streams</string>
+    <string name="player_quality_unavailable">The list appears once the stream starts playing</string>
+    <string name="player_quality_selected">selected</string>
 
-    <string name="player_chat_title">Чат</string>
-    <string name="player_chat_read_only">только чтение</string>
-    <string name="player_chat_connecting">Подключаемся к чату…</string>
+    <string name="player_chat_title">Chat</string>
+    <string name="player_chat_read_only">read only</string>
+    <string name="player_chat_connecting">Connecting to chat…</string>
 </resources>

@@ -1,38 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="update_overline_available">Доступно обновление</string>
-    <string name="update_overline_downloading">Обновление</string>
-    <string name="update_overline_whats_new">Что нового</string>
+    <string name="update_overline_available">Update available</string>
+    <string name="update_overline_downloading">Update</string>
+    <string name="update_overline_whats_new">What\'s new</string>
     <string name="update_title">TwiCast TV %s</string>
-    <string name="update_title_installed">Вы обновились до %s</string>
-    <string name="update_subtitle">Сейчас установлена %1$s · %2$s</string>
-    <string name="update_subtitle_installed">Вот что изменилось с прошлой версии</string>
-    <string name="update_installed_badge">Установлено</string>
+    <string name="update_title_installed">You\'re now on %s</string>
+    <string name="update_subtitle">Installed now: %1$s · %2$s</string>
+    <string name="update_subtitle_installed">Here\'s what changed since your last version</string>
+    <string name="update_installed_badge">Installed</string>
 
-    <string name="update_section_added">Новое</string>
-    <string name="update_section_fixed">Исправлено</string>
-    <string name="update_section_improved">Улучшено</string>
+    <string name="update_section_added">New</string>
+    <string name="update_section_fixed">Fixed</string>
+    <string name="update_section_improved">Improved</string>
 
-    <string name="update_action_update">Обновить</string>
-    <string name="update_action_later">Позже</string>
-    <string name="update_action_cancel">Отменить</string>
-    <string name="update_action_ok">Отлично</string>
-    <string name="update_action_retry">Повторить</string>
-    <string name="update_action_allow">Разрешить установку</string>
+    <string name="update_action_update">Update</string>
+    <string name="update_action_later">Later</string>
+    <string name="update_action_cancel">Cancel</string>
+    <string name="update_action_ok">Great</string>
+    <string name="update_action_retry">Retry</string>
+    <string name="update_action_allow">Allow installing</string>
 
-    <string name="update_footnote_available">Установка займёт около минуты</string>
-    <string name="update_footnote_downloading">Не выключайте телевизор, пока идёт загрузка</string>
-    <string name="update_footnote_installed">Полный список — на странице релиза в GitHub</string>
-    <string name="update_footnote_failed">Не удалось скачать обновление. Проверьте сеть.</string>
-    <string name="update_footnote_permission">Разрешите TwiCast TV устанавливать приложения, затем вернитесь сюда</string>
+    <string name="update_footnote_available">Installing takes about a minute</string>
+    <string name="update_footnote_downloading">Don\'t turn off the TV while the download is running</string>
+    <string name="update_footnote_installed">Full list on the GitHub release page</string>
+    <string name="update_footnote_failed">Couldn\'t download the update. Check your network.</string>
+    <string name="update_footnote_permission">Allow TwiCast TV to install apps, then come back here</string>
 
-    <string name="update_downloading">Скачиваем обновление…</string>
-    <string name="update_progress">%1$s из %2$s · %3$d%%</string>
-    <string name="update_megabytes">%s МБ</string>
+    <string name="update_downloading">Downloading the update…</string>
+    <string name="update_progress">%1$s of %2$s · %3$d%%</string>
+    <string name="update_megabytes">%s MB</string>
     <plurals name="update_more_items">
-        <item quantity="one">и ещё %d</item>
-        <item quantity="few">и ещё %d</item>
-        <item quantity="many">и ещё %d</item>
-        <item quantity="other">и ещё %d</item>
+        <item quantity="one">and %d more</item>
+        <item quantity="other">and %d more</item>
     </plurals>
 </resources>

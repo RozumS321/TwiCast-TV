@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="player_loading">Завантажуємо стрим…</string>
+    <string name="player_paused">Пауза · OK — продовжити</string>
+    <string name="player_offline">Канал зараз не в ефірі</string>
+    <string name="player_error">Не вдалося завантажити плеєр Twitch</string>
+    <string name="player_ad_break">Реклама на Twitch · стрим продовжиться сам</string>
+
+    <string name="player_pause">Пауза</string>
+    <string name="player_resume">Продовжити</string>
+    <string name="player_quality_button">Якість · %s</string>
+    <string name="player_quality_auto">Авто</string>
+    <string name="player_chat_show">Чат</string>
+    <string name="player_chat_hide">Сховати чат</string>
+    <string name="player_channel">Канал</string>
+
+    <string name="player_quality_title">Якість</string>
+    <string name="player_quality_hint">Запам’ятаємо для наступних стримів</string>
+    <string name="player_quality_unavailable">Список з’явиться, коли стрим почне грати</string>
+    <string name="player_quality_selected">вибрано</string>
+
+    <string name="player_chat_title">Чат</string>
+    <string name="player_chat_read_only">лише читання</string>
+    <string name="player_chat_connecting">Підключаємося до чату…</string>
+</resources>

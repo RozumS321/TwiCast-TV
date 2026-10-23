@@ -118,3 +118,16 @@ enum class PlayerEngine { TwiCast, Twitch }
 
 /** App theme chosen in Settings. [System] follows the TV's dark mode; TVs without one get light. */
 enum class ThemeMode { System, Light, Dark }
+
+/** Interface language chosen in Settings; [tag] is the BCP 47 language of its resources (values-ru, values-uk, values). */
+enum class AppLanguage(val tag: String) {
+    Russian("ru"),
+    Ukrainian("uk"),
+    English("en"),
+    ;
+
+    companion object {
+        /** First launch: the TV's own language when the app speaks it, English otherwise. */
+        fun forSystemLanguage(language: String): AppLanguage = entries.firstOrNull { it.tag == language } ?: English
+    }
+}

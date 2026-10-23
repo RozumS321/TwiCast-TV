@@ -30,6 +30,7 @@ import app.twicast.tv.core.designsystem.theme.TwiDimens
 import app.twicast.tv.core.designsystem.theme.TwiScale
 import app.twicast.tv.core.designsystem.theme.TwiShapes
 import app.twicast.tv.core.designsystem.theme.TwiTheme
+import app.twicast.tv.data.model.AppLanguage
 import app.twicast.tv.data.model.PlayerEngine
 import app.twicast.tv.data.model.ThemeMode
 
@@ -52,6 +53,14 @@ private val PlayerOptions = listOf(
     ),
 )
 
+private class LanguageOption(val language: AppLanguage, val title: Int)
+
+private val LanguageOptions = listOf(
+    LanguageOption(AppLanguage.Russian, R.string.settings_language_russian),
+    LanguageOption(AppLanguage.Ukrainian, R.string.settings_language_ukrainian),
+    LanguageOption(AppLanguage.English, R.string.settings_language_english),
+)
+
 private class ThemeOption(val mode: ThemeMode, val title: Int)
 
 private val ThemeOptions = listOf(
@@ -61,7 +70,7 @@ private val ThemeOptions = listOf(
 )
 
 /**
- * Mockup "Настройки · плеер и оформление": two player cards and three theme chips, OK picks one.
+ * Mockup "Настройки · плеер и оформление": two player cards, theme and language chips, OK picks one.
  * [selected] and [themeMode] are null while the settings load.
  */
 @Composable
@@ -70,6 +79,8 @@ fun SettingsScreen(
     onPlayerSelected: (PlayerEngine) -> Unit,
     themeMode: ThemeMode?,
     onThemeSelected: (ThemeMode) -> Unit,
+    language: AppLanguage,
+    onLanguageSelected: (AppLanguage) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -100,6 +111,19 @@ fun SettingsScreen(
             )
         }
         ThemeSection(themeMode, onThemeSelected)
+        LanguageSection(language, onLanguageSelected)
+    }
+}
+
+@Composable
+private fun LanguageSection(language: AppLanguage, onLanguageSelected: (AppLanguage) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(TwiDimens.HomeRowTitleSpacing)) {
+        Text(stringResource(R.string.settings_language), style = TwiTheme.typography.rowTitleDense, color = TwiTheme.colors.onSurface)
+        Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChipSpacing)) {
+            LanguageOptions.forEach { option ->
+                TwiChip(stringResource(option.title), selected = option.language == language, onClick = { onLanguageSelected(option.language) })
+            }
+        }
     }
 }
 

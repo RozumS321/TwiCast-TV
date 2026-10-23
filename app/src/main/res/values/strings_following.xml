@@ -1,18 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="following_live">В эфире</string>
-    <string name="following_offline">Офлайн</string>
+    <string name="following_live">Live</string>
+    <string name="following_offline">Offline</string>
     <plurals name="following_channels">
-        <item quantity="one">%d канал</item>
-        <item quantity="few">%d канала</item>
-        <item quantity="many">%d каналов</item>
-        <item quantity="other">%d каналов</item>
+        <item quantity="one">%d channel</item>
+        <item quantity="other">%d channels</item>
     </plurals>
-    <string name="following_empty">Вы пока ни на кого не подписаны. Подписаться можно на twitch.tv — подписки появятся здесь.</string>
-    <string name="following_nobody_live">Сейчас никто из подписок не в эфире.</string>
+    <string name="following_empty">You don\'t follow anyone yet. Follow channels on twitch.tv and they will show up here.</string>
+    <string name="following_nobody_live">None of your followed channels is live right now.</string>
 
-    <string name="profile_signed_in_with">Вход выполнен через Twitch</string>
-    <string name="profile_follows">подписок</string>
-    <string name="profile_live_now">сейчас в эфире</string>
-    <string name="profile_version">TwiCast TV · версия %s</string>
+    <string name="profile_signed_in_with">Signed in with Twitch</string>
+    <string name="profile_follows">following</string>
+    <string name="profile_live_now">live now</string>
+    <string name="profile_version">TwiCast TV · version %s</string>
 </resources>

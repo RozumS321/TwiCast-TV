@@ -4,9 +4,11 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.twicast.tv.data.model.AppError
+import app.twicast.tv.data.model.AppLanguage
 import app.twicast.tv.data.model.AppResult
 import app.twicast.tv.data.model.Category
 import app.twicast.tv.data.model.ChannelSearchResult
+import app.twicast.tv.data.repository.LanguageSettingsRepository
 import app.twicast.tv.data.repository.SearchRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
@@ -21,7 +23,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Locale
 import javax.inject.Inject
 
 /** Wait for a pause in typing before calling Helix (rate limit, and the remote types slowly anyway). */
@@ -30,7 +31,7 @@ private const val MinQueryLength = 2
 private const val ChannelLimit = 8
 private const val CategoryLimit = 6
 
-enum class KeyboardLayout { Latin, Cyrillic }
+enum class KeyboardLayout { Latin, Russian, Ukrainian }
 
 sealed interface SearchResultsState {
     /** Query too short: show the hint. */
@@ -50,6 +51,8 @@ sealed interface SearchResultsState {
 data class SearchUiState(
     val query: String = "",
     val layout: KeyboardLayout = KeyboardLayout.Latin,
+    /** The layout key was pressed: the bottom row offers the layouts instead of Пробел / Стереть. */
+    val layoutMenuOpen: Boolean = false,
     val results: SearchResultsState = SearchResultsState.Idle,
 )
 
@@ -58,11 +61,18 @@ data class SearchUiState(
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val repository: SearchRepository,
-    locale: Locale,
+    languages: LanguageSettingsRepository,
 ) : ViewModel() {
 
+    // The keyboard starts in the interface language.
     private val _uiState = MutableStateFlow(
-        SearchUiState(layout = if (locale.language in CyrillicLanguages) KeyboardLayout.Cyrillic else KeyboardLayout.Latin),
+        SearchUiState(
+            layout = when (languages.language()) {
+                AppLanguage.Russian -> KeyboardLayout.Russian
+                AppLanguage.Ukrainian -> KeyboardLayout.Ukrainian
+                AppLanguage.English -> KeyboardLayout.Latin
+            },
+        ),
     )
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
@@ -82,9 +92,11 @@ class SearchViewModel @Inject constructor(
 
     fun onErase() = editQuery { it.dropLast(1) }
 
-    fun onToggleLayout() = _uiState.update {
-        it.copy(layout = if (it.layout == KeyboardLayout.Latin) KeyboardLayout.Cyrillic else KeyboardLayout.Latin)
-    }
+    fun onOpenLayoutMenu() = _uiState.update { it.copy(layoutMenuOpen = true) }
+
+    fun onCloseLayoutMenu() = _uiState.update { it.copy(layoutMenuOpen = false) }
+
+    fun onLayoutSelected(layout: KeyboardLayout) = _uiState.update { it.copy(layout = layout, layoutMenuOpen = false) }
 
     /** Text recognized by the system voice input replaces the query. */
     fun onVoiceResult(text: String) = editQuery { text.trim() }
@@ -117,8 +129,4 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun setResults(results: SearchResultsState) = _uiState.update { it.copy(results = results) }
-
-    private companion object {
-        val CyrillicLanguages = setOf("ru", "uk", "be", "kk")
-    }
 }

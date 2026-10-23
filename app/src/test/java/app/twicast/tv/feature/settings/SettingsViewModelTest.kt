@@ -1,14 +1,18 @@
 package app.twicast.tv.feature.settings
 
+import app.twicast.tv.data.model.AppLanguage
 import app.twicast.tv.data.model.PlayerEngine
 import app.twicast.tv.data.model.ThemeMode
 import app.twicast.tv.data.repository.AppearanceSettingsRepository
+import app.twicast.tv.data.repository.LanguageSettingsRepository
 import app.twicast.tv.data.repository.PlayerSettingsRepository
 import app.twicast.tv.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -28,6 +32,14 @@ private class FakeAppearance : AppearanceSettingsRepository {
     }
 }
 
+private class FakeLanguages : LanguageSettingsRepository {
+    var stored = AppLanguage.Russian
+    override fun language() = stored
+    override fun setLanguage(language: AppLanguage) {
+        stored = language
+    }
+}
+
 class SettingsViewModelTest {
 
     @get:Rule
@@ -36,7 +48,7 @@ class SettingsViewModelTest {
     @Test
     fun `shows the stored player and saves a new choice`() = runTest(mainRule.dispatcher) {
         val settings = FakeSettings()
-        val viewModel = SettingsViewModel(settings, FakeAppearance())
+        val viewModel = SettingsViewModel(settings, FakeAppearance(), FakeLanguages())
         backgroundScope.launch { viewModel.playerEngine.collect {} }
 
         assertEquals(PlayerEngine.TwiCast, viewModel.playerEngine.value)
@@ -48,12 +60,23 @@ class SettingsViewModelTest {
     @Test
     fun `shows the stored theme and saves a new choice`() = runTest(mainRule.dispatcher) {
         val appearance = FakeAppearance()
-        val viewModel = SettingsViewModel(FakeSettings(), appearance)
+        val viewModel = SettingsViewModel(FakeSettings(), appearance, FakeLanguages())
         backgroundScope.launch { viewModel.themeMode.collect {} }
 
         assertEquals(ThemeMode.System, viewModel.themeMode.value)
         viewModel.onThemeSelected(ThemeMode.Dark)
         assertEquals(ThemeMode.Dark, appearance.themeMode.value)
         assertEquals(ThemeMode.Dark, viewModel.themeMode.value)
+    }
+
+    @Test
+    fun `a new language is saved and asks for a redraw, the same one does not`() {
+        val languages = FakeLanguages()
+        val viewModel = SettingsViewModel(FakeSettings(), FakeAppearance(), languages)
+
+        assertFalse(viewModel.onLanguageSelected(AppLanguage.Russian))
+        assertTrue(viewModel.onLanguageSelected(AppLanguage.Ukrainian))
+        assertEquals(AppLanguage.Ukrainian, languages.stored)
+        assertEquals(AppLanguage.Ukrainian, viewModel.language.value)
     }
 }

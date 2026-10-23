@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="categories_subtitle">За кількістю глядачів зараз</string>
+    <string name="categories_filter_all">Усі</string>
+    <string name="categories_filter_games">Ігри</string>
+    <string name="categories_filter_irl">IRL</string>
+    <string name="categories_filter_music">Музика</string>
+    <string name="categories_filter_creative">Творчість</string>
+    <string name="categories_empty_filter">Серед завантажених категорій у цьому розділі нічого немає.</string>
+
+    <string name="category_streams_back">Назад до категорій</string>
+    <string name="category_streams_all_languages">Усі мови</string>
+    <string name="category_streams_empty">У цій категорії зараз ніхто не в ефірі вибраною мовою.</string>
+
+    <string name="search_space">Пробіл</string>
+    <string name="search_erase">Стерти</string>
+    <string name="search_voice">Голосовий пошук</string>
+    <string name="search_voice_prompt">Скажіть назву каналу чи категорії</string>
+    <string name="search_channels">Канали</string>
+    <string name="search_categories">Категорії</string>
+    <string name="search_offline">Офлайн</string>
+    <string name="search_hint">Наберіть назву каналу чи категорії — результати з’являться одразу.</string>
+    <string name="search_no_results">Нічого не знайшлося. Спробуйте інше написання.</string>
+</resources>

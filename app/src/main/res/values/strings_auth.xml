@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="login_overline">Вход через Twitch</string>
-    <string name="login_title">Войдите с телефона — без ввода пароля на пульте</string>
-    <string name="login_step_1">Отсканируйте QR-код или откройте</string>
+    <string name="login_overline">Sign in with Twitch</string>
+    <string name="login_title">Sign in from your phone — no typing passwords with the remote</string>
+    <string name="login_step_1">Scan the QR code or open</string>
     <string name="login_activate_url" translatable="false">twitch.tv/activate</string>
-    <string name="login_step_2">Введите код с экрана</string>
-    <string name="login_step_3">Подтвердите вход — телевизор войдёт сам</string>
-    <string name="login_your_code">Ваш код</string>
-    <string name="login_waiting">Ждём подтверждения…</string>
-    <string name="login_code_valid_for">Код действует ещё %s</string>
-    <string name="login_requesting_code">Получаем код…</string>
-    <string name="login_code_expired">Код истёк — получите новый.</string>
-    <string name="login_new_code">Новый код</string>
-    <string name="login_qr_caption">Наведите камеру телефона</string>
+    <string name="login_step_2">Enter the code from the screen</string>
+    <string name="login_step_3">Confirm — the TV signs in by itself</string>
+    <string name="login_your_code">Your code</string>
+    <string name="login_waiting">Waiting for confirmation…</string>
+    <string name="login_code_valid_for">Code valid for %s more</string>
+    <string name="login_requesting_code">Getting a code…</string>
+    <string name="login_code_expired">The code has expired — get a new one.</string>
+    <string name="login_new_code">New code</string>
+    <string name="login_qr_caption">Point your phone camera here</string>
 </resources>

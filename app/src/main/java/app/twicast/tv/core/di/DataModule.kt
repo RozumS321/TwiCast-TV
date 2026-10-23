@@ -1,5 +1,6 @@
 package app.twicast.tv.core.di
 
+import android.content.res.Resources
 import app.twicast.tv.core.device.AndroidDeviceProfile
 import app.twicast.tv.core.device.DeviceProfile
 import app.twicast.tv.data.repository.AppearanceSettingsRepository
@@ -16,10 +17,12 @@ import app.twicast.tv.data.repository.HelixChannelRepository
 import app.twicast.tv.data.repository.HelixFollowsRepository
 import app.twicast.tv.data.repository.HelixSearchRepository
 import app.twicast.tv.data.repository.HelixStreamsRepository
+import app.twicast.tv.data.repository.LanguageSettingsRepository
 import app.twicast.tv.data.repository.GqlPlaybackRepository
 import app.twicast.tv.data.repository.PlaybackRepository
 import app.twicast.tv.data.repository.PlayerSettingsRepository
 import app.twicast.tv.data.repository.SearchRepository
+import app.twicast.tv.data.repository.SharedPreferencesLanguageSettingsRepository
 import app.twicast.tv.data.repository.StreamsRepository
 import app.twicast.tv.data.repository.TwitchAuthRepository
 import dagger.Binds
@@ -64,11 +67,17 @@ abstract class DataModule {
     abstract fun bindChatRepository(impl: TwitchIrcChatRepository): ChatRepository
 
     @Binds
+    abstract fun bindLanguageSettingsRepository(impl: SharedPreferencesLanguageSettingsRepository): LanguageSettingsRepository
+
+    @Binds
     abstract fun bindDeviceProfile(impl: AndroidDeviceProfile): DeviceProfile
 
     companion object {
-        /** Device locale: picks the "popular in your region" language. */
+        /**
+         * The TV's own locale: picks the "popular in your region" language. Not Locale.getDefault(), which
+         * follows the interface language chosen in Settings.
+         */
         @Provides
-        fun provideLocale(): Locale = Locale.getDefault()
+        fun provideLocale(): Locale = Resources.getSystem().configuration.locales[0]
     }
 }

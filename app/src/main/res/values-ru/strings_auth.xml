@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="login_overline">Вход через Twitch</string>
+    <string name="login_title">Войдите с телефона — без ввода пароля на пульте</string>
+    <string name="login_step_1">Отсканируйте QR-код или откройте</string>
+    <string name="login_step_2">Введите код с экрана</string>
+    <string name="login_step_3">Подтвердите вход — телевизор войдёт сам</string>
+    <string name="login_your_code">Ваш код</string>
+    <string name="login_waiting">Ждём подтверждения…</string>
+    <string name="login_code_valid_for">Код действует ещё %s</string>
+    <string name="login_requesting_code">Получаем код…</string>
+    <string name="login_code_expired">Код истёк — получите новый.</string>
+    <string name="login_new_code">Новый код</string>
+    <string name="login_qr_caption">Наведите камеру телефона</string>
+</resources>

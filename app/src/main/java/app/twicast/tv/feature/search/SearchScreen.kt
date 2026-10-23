@@ -25,7 +25,9 @@ fun SearchScreen(
     onKey: (Char) -> Unit,
     onSpace: () -> Unit,
     onErase: () -> Unit,
-    onToggleLayout: () -> Unit,
+    onOpenLayoutMenu: () -> Unit,
+    onCloseLayoutMenu: () -> Unit,
+    onLayoutSelected: (KeyboardLayout) -> Unit,
     onVoice: () -> Unit,
     onChannelClick: (ChannelSearchResult) -> Unit,
     onCategoryClick: (Category) -> Unit,
@@ -45,11 +47,14 @@ fun SearchScreen(
             QueryField(state.query)
             SearchKeyboard(
                 layout = state.layout,
+                layoutMenuOpen = state.layoutMenuOpen,
                 voiceAvailable = voiceAvailable,
                 onKey = onKey,
                 onSpace = onSpace,
                 onErase = onErase,
-                onToggleLayout = onToggleLayout,
+                onOpenLayoutMenu = onOpenLayoutMenu,
+                onCloseLayoutMenu = onCloseLayoutMenu,
+                onLayoutSelected = onLayoutSelected,
                 onVoice = onVoice,
             )
         }

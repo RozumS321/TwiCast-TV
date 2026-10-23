@@ -1,8 +1,10 @@
 package app.twicast.tv.feature.search
 
 import app.twicast.tv.data.model.AppError
+import app.twicast.tv.data.model.AppLanguage
 import app.twicast.tv.data.model.AppResult
 import app.twicast.tv.data.model.ChannelSearchResult
+import app.twicast.tv.data.repository.LanguageSettingsRepository
 import app.twicast.tv.data.repository.SearchRepository
 import app.twicast.tv.data.repository.SearchResults
 import app.twicast.tv.testing.MainDispatcherRule
@@ -13,7 +15,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import java.util.Locale
 
 private class FakeSearchRepository : SearchRepository {
     val queries = mutableListOf<String>()
@@ -23,6 +24,11 @@ private class FakeSearchRepository : SearchRepository {
         queries += query
         return result
     }
+}
+
+private class FixedLanguage(private val language: AppLanguage) : LanguageSettingsRepository {
+    override fun language() = language
+    override fun setLanguage(language: AppLanguage) = Unit
 }
 
 private fun channel(login: String) = ChannelSearchResult(login, login, login, null, isLive = true, categoryName = "Game", title = "")
@@ -37,7 +43,7 @@ class SearchViewModelTest {
     @Test
     fun `typing searches once after a pause`() = runTest(mainRule.dispatcher) {
         repository.result = AppResult.Success(SearchResults(listOf(channel("kotofey")), emptyList()))
-        val viewModel = SearchViewModel(repository, Locale.ENGLISH).also { runCurrent() }
+        val viewModel = SearchViewModel(repository, FixedLanguage(AppLanguage.English)).also { runCurrent() }
 
         "kot".forEach { viewModel.onKey(it); advanceTimeBy(SearchDebounceMillis / 2) }
         assertEquals("nothing sent while typing", emptyList<String>(), repository.queries)
@@ -49,7 +55,7 @@ class SearchViewModelTest {
 
     @Test
     fun `one character is not searched`() = runTest(mainRule.dispatcher) {
-        val viewModel = SearchViewModel(repository, Locale.ENGLISH).also { runCurrent() }
+        val viewModel = SearchViewModel(repository, FixedLanguage(AppLanguage.English)).also { runCurrent() }
         viewModel.onKey('k')
         advanceTimeBy(SearchDebounceMillis + 1)
         assertEquals(emptyList<String>(), repository.queries)
@@ -58,7 +64,7 @@ class SearchViewModelTest {
 
     @Test
     fun `nothing found and errors are reported`() = runTest(mainRule.dispatcher) {
-        val viewModel = SearchViewModel(repository, Locale.ENGLISH).also { runCurrent() }
+        val viewModel = SearchViewModel(repository, FixedLanguage(AppLanguage.English)).also { runCurrent() }
         viewModel.onVoiceResult("  zzz ")
         advanceTimeBy(SearchDebounceMillis + 1)
         assertEquals(listOf("zzz"), repository.queries)
@@ -72,8 +78,7 @@ class SearchViewModelTest {
 
     @Test
     fun `keyboard edits the query`() = runTest(mainRule.dispatcher) {
-        val viewModel = SearchViewModel(repository, Locale.forLanguageTag("ru-RU"))
-        assertEquals("Russian locale starts on Cyrillic", KeyboardLayout.Cyrillic, viewModel.uiState.value.layout)
+        val viewModel = SearchViewModel(repository, FixedLanguage(AppLanguage.Russian))
 
         viewModel.onSpace()
         viewModel.onKey('a')
@@ -81,9 +86,33 @@ class SearchViewModelTest {
         viewModel.onSpace()
         viewModel.onKey('b')
         viewModel.onErase()
-        viewModel.onToggleLayout()
 
         assertEquals("a ", viewModel.uiState.value.query)
-        assertEquals(KeyboardLayout.Latin, viewModel.uiState.value.layout)
+    }
+
+    @Test
+    fun `keyboard starts in the interface language`() {
+        val layouts = AppLanguage.entries.associateWith { SearchViewModel(repository, FixedLanguage(it)).uiState.value.layout }
+
+        assertEquals(
+            mapOf(
+                AppLanguage.Russian to KeyboardLayout.Russian,
+                AppLanguage.Ukrainian to KeyboardLayout.Ukrainian,
+                AppLanguage.English to KeyboardLayout.Latin,
+            ),
+            layouts,
+        )
+    }
+
+    @Test
+    fun `layout menu picks a layout and closes`() = runTest(mainRule.dispatcher) {
+        val viewModel = SearchViewModel(repository, FixedLanguage(AppLanguage.Russian))
+
+        viewModel.onOpenLayoutMenu()
+        assertEquals(true, viewModel.uiState.value.layoutMenuOpen)
+        viewModel.onLayoutSelected(KeyboardLayout.Ukrainian)
+
+        assertEquals(KeyboardLayout.Ukrainian, viewModel.uiState.value.layout)
+        assertEquals(false, viewModel.uiState.value.layoutMenuOpen)
     }
 }

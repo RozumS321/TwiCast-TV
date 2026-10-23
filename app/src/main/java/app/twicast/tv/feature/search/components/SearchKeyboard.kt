@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.search.components
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,10 +18,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -37,7 +42,23 @@ import app.twicast.tv.feature.search.KeyboardLayout
 
 private const val KeyboardColumns = 7
 private const val LatinKeys = "abcdefghijklmnopqrstuvwxyz0123456789_"
-private const val CyrillicKeys = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя0123456789"
+private const val RussianKeys = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя0123456789"
+private const val UkrainianKeys = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя0123456789"
+
+/** Order of the layout menu; each layout is named the same in every interface language. */
+private val Layouts = listOf(KeyboardLayout.Latin, KeyboardLayout.Russian, KeyboardLayout.Ukrainian)
+
+private fun KeyboardLayout.keys(): String = when (this) {
+    KeyboardLayout.Latin -> LatinKeys
+    KeyboardLayout.Russian -> RussianKeys
+    KeyboardLayout.Ukrainian -> UkrainianKeys
+}
+
+private fun KeyboardLayout.label(): Int = when (this) {
+    KeyboardLayout.Latin -> R.string.search_layout_latin
+    KeyboardLayout.Russian -> R.string.search_layout_russian
+    KeyboardLayout.Ukrainian -> R.string.search_layout_ukrainian
+}
 
 /** Query field (always shows the caret: typing happens on the keyboard below, not in a text field). */
 @Composable
@@ -66,19 +87,33 @@ fun QueryField(query: String, modifier: Modifier = Modifier) {
     }
 }
 
-/** 7-column letter keys plus Пробел / Стереть / РУС-LAT / voice. The first key takes focus when search opens. */
+/**
+ * 7-column letter keys plus Пробел / Стереть / layout / voice. The first key takes focus when search opens.
+ * The layout key names the current layout; OK on it swaps the bottom row for the layouts (LAT / РУС / УКР).
+ */
 @Composable
 fun SearchKeyboard(
     layout: KeyboardLayout,
+    layoutMenuOpen: Boolean,
     voiceAvailable: Boolean,
     onKey: (Char) -> Unit,
     onSpace: () -> Unit,
     onErase: () -> Unit,
-    onToggleLayout: () -> Unit,
+    onOpenLayoutMenu: () -> Unit,
+    onCloseLayoutMenu: () -> Unit,
+    onLayoutSelected: (KeyboardLayout) -> Unit,
     onVoice: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val keys = if (layout == KeyboardLayout.Latin) LatinKeys else CyrillicKeys
+    val keys = layout.keys()
+    val layoutKeyRequester = remember { FocusRequester() }
+    // The menu row leaves composition with the focus in it: hand the focus back to the layout key
+    // (only after the menu was open, not when search first opens).
+    val menuWasOpen = remember { mutableStateOf(false) }
+    LaunchedEffect(layoutMenuOpen) {
+        if (!layoutMenuOpen && menuWasOpen.value) layoutKeyRequester.requestFocus()
+        menuWasOpen.value = layoutMenuOpen
+    }
     Column(verticalArrangement = Arrangement.spacedBy(TwiDimens.KeySpacing), modifier = modifier) {
         keys.chunked(KeyboardColumns).forEachIndexed { rowIndex, row ->
             Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.KeySpacing)) {
@@ -93,6 +128,10 @@ fun SearchKeyboard(
                 repeat(KeyboardColumns - row.length) { Spacer(Modifier.weight(1f)) }
             }
         }
+        if (layoutMenuOpen) {
+            LayoutMenu(layout, onLayoutSelected, onCloseLayoutMenu)
+            return@Column
+        }
         Row(
             horizontalArrangement = Arrangement.spacedBy(TwiDimens.KeySpacing),
             modifier = Modifier.padding(top = TwiDimens.KeySpacing),
@@ -103,15 +142,39 @@ fun SearchKeyboard(
             ActionKey(onClick = onErase, width = TwiDimens.EraseKeyWidth) { color ->
                 Icon(TwiIcons.Erase, stringResource(R.string.search_erase), tint = color, modifier = Modifier.size(TwiDimens.ActionKeyIconSize))
             }
-            ActionKey(onClick = onToggleLayout, width = TwiDimens.LayoutKeyWidth) { color ->
-                // The key names the layout it switches to.
-                val label = if (layout == KeyboardLayout.Latin) R.string.search_layout_cyrillic else R.string.search_layout_latin
-                Text(stringResource(label), style = TwiTheme.typography.actionKey, color = color)
+            ActionKey(
+                onClick = onOpenLayoutMenu,
+                width = TwiDimens.LayoutKeyWidth,
+                modifier = Modifier.focusRequester(layoutKeyRequester),
+            ) { color ->
+                Text(stringResource(layout.label()), style = TwiTheme.typography.actionKey, color = color)
             }
             if (voiceAvailable) {
                 ActionKey(onClick = onVoice, width = TwiDimens.EraseKeyWidth, accent = true) { color ->
                     Icon(TwiIcons.Microphone, stringResource(R.string.search_voice), tint = color, modifier = Modifier.size(TwiDimens.ActionKeyIconSize))
                 }
+            }
+        }
+    }
+}
+
+/** The layouts in place of the bottom row; the current one is filled and takes the focus. Back closes it. */
+@Composable
+private fun LayoutMenu(current: KeyboardLayout, onLayoutSelected: (KeyboardLayout) -> Unit, onClose: () -> Unit) {
+    BackHandler(onBack = onClose)
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(TwiDimens.KeySpacing),
+        modifier = Modifier.padding(top = TwiDimens.KeySpacing),
+    ) {
+        Layouts.forEach { layout ->
+            val isCurrent = layout == current
+            ActionKey(
+                onClick = { onLayoutSelected(layout) },
+                width = null,
+                accent = isCurrent,
+                modifier = if (isCurrent) Modifier.requestInitialFocus() else Modifier,
+            ) { color ->
+                Text(stringResource(layout.label()), style = TwiTheme.typography.actionKey, color = color)
             }
         }
     }
@@ -130,10 +193,11 @@ private fun RowScope.ActionKey(
     onClick: () -> Unit,
     width: Dp?,
     accent: Boolean = false,
+    modifier: Modifier = Modifier,
     content: @Composable (Color) -> Unit,
 ) {
     val size = if (width == null) Modifier.weight(1f) else Modifier.width(width)
-    KeySurface(onClick = onClick, accent = accent, modifier = size.height(TwiDimens.ActionKeyHeight), content = content)
+    KeySurface(onClick = onClick, accent = accent, modifier = modifier.then(size).height(TwiDimens.ActionKeyHeight), content = content)
 }
 
 /** Key look: outlined surface at rest, primary when focused (accent keys are always primary). */

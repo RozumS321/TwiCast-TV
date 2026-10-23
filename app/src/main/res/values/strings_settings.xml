@@ -1,19 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="settings_title">Настройки</string>
-    <string name="settings_player">Плеер</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_player">Player</string>
     <string name="settings_player_twicast">TwiCast player</string>
-    <string name="settings_player_twicast_tag">Рекомендуем</string>
-    <string name="settings_player_twicast_text">Свой плеер: быстро запускается и легко работает даже на слабых телевизорах.</string>
-    <string name="settings_player_twicast_note">Качество, пауза и чат — как обычно</string>
+    <string name="settings_player_twicast_tag">Recommended</string>
+    <string name="settings_player_twicast_text">Our own player: starts fast and runs smoothly even on low-end TVs.</string>
+    <string name="settings_player_twicast_note">Quality, pause and chat work as usual</string>
     <string name="settings_player_twitch">Twitch player</string>
-    <string name="settings_player_twitch_tag">Официальный</string>
-    <string name="settings_player_twitch_text">Официальный плеер Twitch. Медленнее и может не работать на слабых телевизорах.</string>
-    <string name="settings_player_twitch_note">Запасной вариант, если свой плеер не работает</string>
-    <string name="settings_player_footer">Применяется со следующего открытия стрима. Если видео не идёт, переключитесь на другой плеер.</string>
-    <string name="settings_theme">Оформление</string>
-    <string name="settings_theme_hint">«Как в системе» берёт тему телевизора; если её нет — светлая</string>
-    <string name="settings_theme_system">Как в системе</string>
-    <string name="settings_theme_light">Светлая</string>
-    <string name="settings_theme_dark">Тёмная</string>
+    <string name="settings_player_twitch_tag">Official</string>
+    <string name="settings_player_twitch_text">The official Twitch player. Slower and may not work on low-end TVs.</string>
+    <string name="settings_player_twitch_note">A fallback if our player doesn\'t work</string>
+    <string name="settings_player_footer">Applies from the next stream you open. If video doesn\'t play, switch to the other player.</string>
+    <string name="settings_theme">Appearance</string>
+    <string name="settings_theme_hint">"System" follows the TV theme; light if the TV has none</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_language">Language</string>
+    <!-- Each language is named in itself, so it can be found from any interface language. -->
+    <string name="settings_language_russian" translatable="false">Русский</string>
+    <string name="settings_language_ukrainian" translatable="false">Українська</string>
+    <string name="settings_language_english" translatable="false">English</string>
 </resources>

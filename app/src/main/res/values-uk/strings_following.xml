@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="following_live">В ефірі</string>
+    <string name="following_offline">Офлайн</string>
+    <plurals name="following_channels">
+        <item quantity="one">%d канал</item>
+        <item quantity="few">%d канали</item>
+        <item quantity="many">%d каналів</item>
+        <item quantity="other">%d каналу</item>
+    </plurals>
+    <string name="following_empty">Ви поки ні на кого не підписані. Підписатися можна на twitch.tv — підписки з’являться тут.</string>
+    <string name="following_nobody_live">Зараз ніхто з підписок не в ефірі.</string>
+
+    <string name="profile_signed_in_with">Вхід виконано через Twitch</string>
+    <string name="profile_follows">підписок</string>
+    <string name="profile_live_now">зараз в ефірі</string>
+    <string name="profile_version">TwiCast TV · версія %s</string>
+</resources>
