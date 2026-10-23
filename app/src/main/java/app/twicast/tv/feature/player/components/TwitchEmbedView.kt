@@ -62,9 +62,23 @@ class TwitchEmbedController internal constructor() : PlaybackController {
     override fun setChatVisible(visible: Boolean, title: String, hint: String) =
         call("window.twicast && twicast.setChatVisible($visible, ${JSONObject.quote(title)}, ${JSONObject.quote(hint)})")
 
-    private fun call(script: String) {
-        webView?.evaluateJavascript(script, null)
+    /** The app went to the background: pause the video, then let the WebView idle (timers, rendering). */
+    internal fun background() {
+        call("window.twicast && twicast.background && twicast.background()")
+        liveWebView()?.onPause()
     }
+
+    internal fun foreground() {
+        liveWebView()?.onResume()
+        call("window.twicast && twicast.foreground && twicast.foreground()")
+    }
+
+    private fun call(script: String) {
+        liveWebView()?.evaluateJavascript(script, null)
+    }
+
+    // A WebView whose renderer died accepts nothing but destroy() until the screen replaces it.
+    private fun liveWebView(): WebView? = webView?.takeIf { it.tag != RendererGoneTag }
 }
 
 /** Callbacks from the page, delivered on the main thread. */
@@ -96,6 +110,7 @@ fun TwitchEmbedView(
     modifier: Modifier = Modifier,
 ) {
     val currentListener = rememberUpdatedState(listener)
+    BackgroundEffect(key = controller, onBackground = controller::background, onForeground = controller::foreground)
     AndroidView(
         modifier = modifier,
         factory = { context ->

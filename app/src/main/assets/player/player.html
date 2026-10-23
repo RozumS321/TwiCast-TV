@@ -50,13 +50,19 @@
   /** Clips have their own embed without a JS API: no pause, quality or events beyond "loaded". */
   function playClip() {
     var frame = document.createElement('iframe');
-    frame.src = 'https://clips.twitch.tv/embed?clip=' + encodeURIComponent(clip) +
+    var src = 'https://clips.twitch.tv/embed?clip=' + encodeURIComponent(clip) +
       '&parent=' + location.hostname + '&autoplay=true&muted=false';
+    frame.src = src;
     frame.allow = 'autoplay; fullscreen';
     frame.style.cssText = 'width:100%;height:100%;border:0';
     frame.onload = function () { report('playing'); };
     document.getElementById('player').appendChild(frame);
-    window.twicast = { togglePause: function () {}, setQuality: function () {}, setChatVisible: function () {} };
+    window.twicast = {
+      togglePause: function () {}, setQuality: function () {}, setChatVisible: function () {},
+      // No pause in the clip embed: unload it in the background, a short clip just starts over.
+      background: function () { frame.src = 'about:blank'; },
+      foreground: function () { frame.src = src; }
+    };
   }
 
   function heightOf(q) { return parseInt(typeof q === "string" ? q : (q.name || q.group), 10) || 0; }
@@ -106,8 +112,19 @@
     // A recording that ended is just paused at the end; only a live stream goes "offline".
     player.addEventListener(Twitch.Player.ENDED, function () { report(video ? 'paused' : 'offline'); });
 
+    // Set while the app is in the background: only what was playing resumes, a viewer's pause stays.
+    var resumeOnForeground = false;
+
     window.twicast = {
       togglePause: function () { if (player.isPaused()) player.play(); else player.pause(); },
+      background: function () {
+        resumeOnForeground = !player.isPaused();
+        if (resumeOnForeground) player.pause();
+      },
+      foreground: function () {
+        if (resumeOnForeground) player.play();
+        resumeOnForeground = false;
+      },
       // The viewer's own choice lifts the crash ceiling.
       setQuality: function (id) { maxHeight = 0; preferredQuality = id; player.setQuality(id); reportQualities(player); },
       setChatVisible: function (visible, title, hint) {

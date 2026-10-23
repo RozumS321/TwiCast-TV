@@ -200,6 +200,17 @@ fun NativeStreamView(
         }
     }
 
+    // stop() frees the decoder, buffers and network but keeps the item and position: a recording carries on
+    // where it was, a live stream jumps back to the live edge. A pause the viewer made stays a pause.
+    BackgroundEffect(
+        key = player,
+        onBackground = { player.stop() },
+        onForeground = {
+            if (isLive) player.seekToDefaultPosition()
+            player.prepare()
+        },
+    )
+
     AndroidView(
         modifier = modifier,
         factory = { viewContext ->
