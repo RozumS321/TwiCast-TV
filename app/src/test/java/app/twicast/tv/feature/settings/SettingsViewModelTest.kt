@@ -18,10 +18,17 @@ import org.junit.Test
 
 private class FakeSettings : PlayerSettingsRepository {
     override val playerEngine = MutableStateFlow(PlayerEngine.TwiCast)
-    override suspend fun preferredQuality(): String? = null
-    override suspend fun setPreferredQuality(qualityId: String) = Unit
+    override val preferredQualityUpdates = MutableStateFlow<String?>(null)
+    override val openChatWithStream = MutableStateFlow(false)
+    override suspend fun preferredQuality(): String? = preferredQualityUpdates.value
+    override suspend fun setPreferredQuality(qualityId: String) {
+        preferredQualityUpdates.value = qualityId
+    }
     override suspend fun setPlayerEngine(engine: PlayerEngine) {
         playerEngine.value = engine
+    }
+    override suspend fun setOpenChatWithStream(open: Boolean) {
+        openChatWithStream.value = open
     }
 }
 
@@ -46,37 +53,48 @@ class SettingsViewModelTest {
     val mainRule = MainDispatcherRule()
 
     @Test
-    fun `shows the stored player and saves a new choice`() = runTest(mainRule.dispatcher) {
+    fun `shows the stored choices and saves new ones`() = runTest(mainRule.dispatcher) {
         val settings = FakeSettings()
-        val viewModel = SettingsViewModel(settings, FakeAppearance(), FakeLanguages())
-        backgroundScope.launch { viewModel.playerEngine.collect {} }
-
-        assertEquals(PlayerEngine.TwiCast, viewModel.playerEngine.value)
-        viewModel.onPlayerSelected(PlayerEngine.Twitch)
-        assertEquals(PlayerEngine.Twitch, settings.playerEngine.value)
-        assertEquals(PlayerEngine.Twitch, viewModel.playerEngine.value)
-    }
-
-    @Test
-    fun `shows the stored theme and saves a new choice`() = runTest(mainRule.dispatcher) {
         val appearance = FakeAppearance()
-        val viewModel = SettingsViewModel(FakeSettings(), appearance, FakeLanguages())
-        backgroundScope.launch { viewModel.themeMode.collect {} }
+        val viewModel = SettingsViewModel(settings, appearance, FakeLanguages())
+        backgroundScope.launch { viewModel.uiState.collect {} }
 
-        assertEquals(ThemeMode.System, viewModel.themeMode.value)
+        val loaded = viewModel.uiState.value
+        assertTrue(loaded.loaded)
+        assertEquals(PlayerEngine.TwiCast, loaded.playerEngine)
+        assertEquals(DefaultQuality.Auto, loaded.defaultQuality)
+        assertEquals(ThemeMode.System, loaded.themeMode)
+        assertEquals(false, loaded.openChatWithStream)
+
+        viewModel.onPlayerSelected(PlayerEngine.Twitch)
+        viewModel.onDefaultQualitySelected(DefaultQuality.P720)
         viewModel.onThemeSelected(ThemeMode.Dark)
-        assertEquals(ThemeMode.Dark, appearance.themeMode.value)
-        assertEquals(ThemeMode.Dark, viewModel.themeMode.value)
+        viewModel.onOpenChatChanged(true)
+
+        assertEquals("720p", settings.preferredQualityUpdates.value)
+        val saved = viewModel.uiState.value
+        assertEquals(PlayerEngine.Twitch, saved.playerEngine)
+        assertEquals(DefaultQuality.P720, saved.defaultQuality)
+        assertEquals(ThemeMode.Dark, saved.themeMode)
+        assertEquals(true, saved.openChatWithStream)
     }
 
     @Test
-    fun `a new language is saved and asks for a redraw, the same one does not`() {
+    fun `a new language is saved and asks for a redraw focused on the language, the same one does not`() {
         val languages = FakeLanguages()
         val viewModel = SettingsViewModel(FakeSettings(), FakeAppearance(), languages)
 
         assertFalse(viewModel.onLanguageSelected(AppLanguage.Russian))
         assertTrue(viewModel.onLanguageSelected(AppLanguage.Ukrainian))
         assertEquals(AppLanguage.Ukrainian, languages.stored)
-        assertEquals(AppLanguage.Ukrainian, viewModel.language.value)
+    }
+
+    @Test
+    fun `quality chosen in the player lights the chip of its height`() {
+        assertEquals(DefaultQuality.Auto, DefaultQuality.of(null))
+        assertEquals(DefaultQuality.Auto, DefaultQuality.of("auto"))
+        assertEquals(DefaultQuality.P720, DefaultQuality.of("720p60"))
+        assertEquals(DefaultQuality.P480, DefaultQuality.of("480p"))
+        assertEquals(null, DefaultQuality.of("chunked"))
     }
 }

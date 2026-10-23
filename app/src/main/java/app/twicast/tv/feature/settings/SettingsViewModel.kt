@@ -12,7 +12,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -23,7 +23,7 @@ data object SettingsDestination
 
 private const val StopTimeoutMillis = 5_000L
 
-/** Mockup "Настройки · плеер и оформление". Each choice is null until read (nothing is highlighted yet). */
+/** Mockup "Настройки": player, default quality, appearance, language, chat. */
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val settings: PlayerSettingsRepository,
@@ -31,30 +31,55 @@ class SettingsViewModel @Inject constructor(
     private val languages: LanguageSettingsRepository,
 ) : ViewModel() {
 
-    private val _language = MutableStateFlow(languages.language())
+    private class LanguageChoice(val language: AppLanguage, val justChanged: Boolean)
 
-    /** Read synchronously (it is what the screen is drawn in), so never null unlike the other choices. */
-    val language: StateFlow<AppLanguage> = _language.asStateFlow()
+    // Survives the activity being recreated for the new language, so the redrawn screen knows it was a change.
+    private val languageChoice = MutableStateFlow(LanguageChoice(languages.language(), justChanged = false))
 
-    val playerEngine: StateFlow<PlayerEngine?> =
-        settings.playerEngine.stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), null)
-
-    val themeMode: StateFlow<ThemeMode?> =
-        appearance.themeMode.stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), null)
+    val uiState: StateFlow<SettingsUiState> = combine(
+        settings.playerEngine,
+        settings.preferredQualityUpdates,
+        appearance.themeMode,
+        settings.openChatWithStream,
+        languageChoice,
+    ) { engine, quality, theme, openChat, choice ->
+        SettingsUiState(
+            loaded = true,
+            playerEngine = engine,
+            defaultQuality = DefaultQuality.of(quality),
+            themeMode = theme,
+            openChatWithStream = openChat,
+            language = choice.language,
+            focusLanguage = choice.justChanged,
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(StopTimeoutMillis),
+        SettingsUiState(language = languageChoice.value.language),
+    )
 
     fun onPlayerSelected(engine: PlayerEngine) {
         viewModelScope.launch { settings.setPlayerEngine(engine) }
+    }
+
+    /** Same storage as a choice in the player: whichever was made last applies to the next stream. */
+    fun onDefaultQualitySelected(quality: DefaultQuality) {
+        viewModelScope.launch { settings.setPreferredQuality(quality.id) }
     }
 
     fun onThemeSelected(mode: ThemeMode) {
         viewModelScope.launch { appearance.setThemeMode(mode) }
     }
 
+    fun onOpenChatChanged(open: Boolean) {
+        viewModelScope.launch { settings.setOpenChatWithStream(open) }
+    }
+
     /** Saves a new language; true when it changed and the screen must be recreated to speak it. */
-    fun onLanguageSelected(language: AppLanguage): Boolean {
-        if (language == _language.value) return false
-        languages.setLanguage(language)
-        _language.value = language
+    fun onLanguageSelected(selected: AppLanguage): Boolean {
+        if (selected == languageChoice.value.language) return false
+        languages.setLanguage(selected)
+        languageChoice.value = LanguageChoice(selected, justChanged = true)
         return true
     }
 }

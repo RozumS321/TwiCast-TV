@@ -23,6 +23,11 @@ import org.junit.Rule
 import org.junit.Test
 
 private class FakePlayerSettings(var stored: String? = null) : PlayerSettingsRepository {
+    override val openChatWithStream = MutableStateFlow(false)
+    override suspend fun setOpenChatWithStream(open: Boolean) {
+        openChatWithStream.value = open
+    }
+    override val preferredQualityUpdates get() = MutableStateFlow(stored)
     // The embed by default: most tests here are about the shared controls, not the player choice.
     override val playerEngine = MutableStateFlow(PlayerEngine.Twitch)
     override suspend fun setPlayerEngine(engine: PlayerEngine) {
@@ -167,6 +172,30 @@ class PlayerViewModelTest {
         val state = viewModel().uiState.value
         assertEquals(PlayerEngine.TwiCast, state.engine)
         assertEquals(PlaybackStatus.Error, state.status)
+    }
+
+    @Test
+    fun `a ceiling from Settings caps the height instead of naming a quality`() = runTest(mainRule.dispatcher) {
+        settings.stored = "480p"
+        val state = viewModel().uiState.value
+        assertEquals(null, state.preferredQualityId)
+        assertEquals(480, state.maxVideoHeight)
+    }
+
+    @Test
+    fun `the lower of the Settings ceiling and the low-memory cap wins`() = runTest(mainRule.dispatcher) {
+        device.isLowMemory = true
+        settings.stored = "1080p"
+        assertEquals(RecoveryMaxVideoHeight, viewModel().uiState.value.maxVideoHeight)
+    }
+
+    @Test
+    fun `chat opens with a live stream when Settings say so, never with a recording`() = runTest(mainRule.dispatcher) {
+        settings.openChatWithStream.value = true
+        assertTrue(viewModel().uiState.value.chatVisible)
+
+        val recording = PlayerViewModel(destination.copy(videoId = "123"), settings, playback, device).also { runCurrent() }
+        assertFalse(recording.uiState.value.chatVisible)
     }
 
     @Test

@@ -21,4 +21,9 @@
     <string name="settings_language_russian" translatable="false">Русский</string>
     <string name="settings_language_ukrainian" translatable="false">Українська</string>
     <string name="settings_language_english" translatable="false">English</string>
+    <string name="settings_quality">Default quality</string>
+    <string name="settings_quality_hint">your choice in the player is saved here too</string>
+    <string name="settings_chat">Chat</string>
+    <string name="settings_chat_open">Open chat with the stream</string>
+    <string name="settings_chat_open_hint">Live streams only; the Chat button in the player works as usual</string>
 </resources>
