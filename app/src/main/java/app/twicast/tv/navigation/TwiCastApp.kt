@@ -9,14 +9,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -85,10 +88,12 @@ private fun AuthGate(authState: AuthState) {
 private fun SignedInShell(user: User) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val backStack by navController.currentBackStack.collectAsState()
-    // The section is the last top-level screen in the stack: a category, a channel or the player opened from
-    // "Подписки" still belong to "Подписки".
-    val currentDestination = backStack.sectionOf() ?: TopLevelDestination.Home
+    // The section is the last top-level screen reached: a category, a channel or the player opened from
+    // "Подписки" still belong to "Подписки". Followed from the current entry, since the whole back stack
+    // is library-internal API.
+    var currentDestination by rememberSaveable { mutableStateOf(TopLevelDestination.Home) }
+    val entryDestination = backStackEntry?.destination
+    LaunchedEffect(entryDestination) { entryDestination?.topLevel()?.let { currentDestination = it } }
     val isPlayer = backStackEntry?.destination?.hasRoute(PlayerDestination::class) == true
 
     val labels = TopLevelDestination.entries.map { destination ->
@@ -166,9 +171,7 @@ private fun SignedInShell(user: User) {
     }
 }
 
-private fun List<NavBackStackEntry>.sectionOf(): TopLevelDestination? = asReversed().firstNotNullOfOrNull { entry ->
-    TopLevelDestination.entries.firstOrNull { entry.destination.hasRoute(it.route::class) }
-}
+private fun NavDestination.topLevel(): TopLevelDestination? = TopLevelDestination.entries.firstOrNull { hasRoute(it.route::class) }
 
 private fun NavHostController.openStream(stream: Stream) {
     navigate(PlayerDestination(stream.userLogin, stream.channelName, stream.categoryName, stream.viewerCount, stream.avatarUrl))

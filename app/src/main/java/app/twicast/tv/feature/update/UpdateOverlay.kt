@@ -7,13 +7,13 @@ import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -21,14 +21,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import app.twicast.tv.R
@@ -42,7 +43,6 @@ import app.twicast.tv.core.designsystem.theme.TwiTheme
 import app.twicast.tv.data.update.AppRelease
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
-import java.util.Locale
 
 private const val BytesInMegabyte = 1024f * 1024f
 private const val Percent = 100
@@ -298,6 +298,8 @@ private fun UpdateUiState.installedVersion(): String? = when (this) {
 
 @Composable
 private fun megabytes(bytes: Long): String {
-    val value = DecimalFormat("0.#", DecimalFormatSymbols.getInstance(Locale.getDefault())).format(bytes / BytesInMegabyte)
+    // The locale of the screen's resources: it follows the language chosen in Settings.
+    val locale = LocalConfiguration.current.locales[0]
+    val value = DecimalFormat("0.#", DecimalFormatSymbols.getInstance(locale)).format(bytes / BytesInMegabyte)
     return stringResource(R.string.update_megabytes, value)
 }
