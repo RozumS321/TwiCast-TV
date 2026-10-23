@@ -9,10 +9,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRestorer
@@ -91,7 +92,9 @@ private fun CategoriesGrid(
     onCategoryClick: (Category) -> Unit,
     onLoadMore: () -> Unit,
 ) {
-    val gridState = rememberLazyGridState()
+    // A new filter is a new list: start it from the top. With one state for all filters the grid kept its place by
+    // item key, so going back to "Все" landed next to the category last seen in the filtered list.
+    val gridState = rememberSaveable(state.filter, saver = LazyGridState.Saver) { LazyGridState() }
     gridState.LoadMoreWhenNearEnd(LoadMoreThreshold, onLoadMore)
     LazyVerticalGrid(
         columns = GridCells.Fixed(Columns),
