@@ -1,0 +1,265 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="app.twicast.tv.baselineprofile" >
+4
+5    <uses-sdk
+5-->/Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/intermediates/tmp/manifest/benchmarkRelease/tempFile2ProcessTestManifest2026922584420523792.xml:5:5-7:41
+6        android:minSdkVersion="28"
+6-->/Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/intermediates/tmp/manifest/benchmarkRelease/tempFile2ProcessTestManifest2026922584420523792.xml:6:9-35
+7        android:targetSdkVersion="37" />
+7-->/Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/intermediates/tmp/manifest/benchmarkRelease/tempFile2ProcessTestManifest2026922584420523792.xml:7:9-38
+8    <!-- TV boxes have no touchscreen; the test APK must still install there. -->
+9    <uses-feature
+9-->/Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/intermediates/tmp/manifest/benchmarkRelease/tempFile2ProcessTestManifest2026922584420523792.xml:9:5-11:36
+10        android:name="android.hardware.touchscreen"
+10-->/Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/intermediates/tmp/manifest/benchmarkRelease/tempFile2ProcessTestManifest2026922584420523792.xml:10:9-52
+11        android:required="false" />
+11-->/Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/intermediates/tmp/manifest/benchmarkRelease/tempFile2ProcessTestManifest2026922584420523792.xml:11:9-33
+12    <uses-feature
+12-->/Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/intermediates/tmp/manifest/benchmarkRelease/tempFile2ProcessTestManifest2026922584420523792.xml:12:5-14:36
+13        android:name="android.software.leanback"
+13-->/Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/intermediates/tmp/manifest/benchmarkRelease/tempFile2ProcessTestManifest2026922584420523792.xml:13:9-49
+14        android:required="false" />
+14-->/Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/intermediates/tmp/manifest/benchmarkRelease/tempFile2ProcessTestManifest2026922584420523792.xml:14:9-33
+15
+16    <instrumentation
+16-->/Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/intermediates/tmp/manifest/benchmarkRelease/tempFile2ProcessTestManifest2026922584420523792.xml:16:5-21:66
+17        android:name="androidx.test.runner.AndroidJUnitRunner"
+17-->/Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/intermediates/tmp/manifest/benchmarkRelease/tempFile2ProcessTestManifest2026922584420523792.xml:17:9-63
+18        android:functionalTest="false"
+18-->/Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/intermediates/tmp/manifest/benchmarkRelease/tempFile2ProcessTestManifest2026922584420523792.xml:18:9-39
+19        android:handleProfiling="false"
+19-->/Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/intermediates/tmp/manifest/benchmarkRelease/tempFile2ProcessTestManifest2026922584420523792.xml:19:9-40
+20        android:label="Tests for app.twicast.tv.baselineprofile"
+20-->/Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/intermediates/tmp/manifest/benchmarkRelease/tempFile2ProcessTestManifest2026922584420523792.xml:20:9-65
+21        android:targetPackage="app.twicast.tv.baselineprofile" />
+21-->/Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/intermediates/tmp/manifest/benchmarkRelease/tempFile2ProcessTestManifest2026922584420523792.xml:21:9-63
+22
+23    <!--
+24    This is needed to write benchmark report data to an external directory during instrumented
+25    tests to allow the accompanying androidx.benchmark gradle plugin to pull the reports onto host
+26     machine after the tests are done running.
+27    -->
+28    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+28-->[androidx.benchmark:benchmark-common:1.5.0] /Users/serhii/.gradle/caches/9.8.2/transforms/5cbfa722d472d5d3fbab2fd52d49d53c/transformed/benchmark-common-1.5.0/AndroidManifest.xml:27:5-81
+28-->[androidx.benchmark:benchmark-common:1.5.0] /Users/serhii/.gradle/caches/9.8.2/transforms/5cbfa722d472d5d3fbab2fd52d49d53c/transformed/benchmark-common-1.5.0/AndroidManifest.xml:27:22-78
+29    <!--
+30         Internet permission is required for perfetto trace shell processor http server but
+31        it's used to reach localhost only
+32    -->
+33    <uses-permission android:name="android.permission.INTERNET" />
+33-->[androidx.benchmark:benchmark-common:1.5.0] /Users/serhii/.gradle/caches/9.8.2/transforms/5cbfa722d472d5d3fbab2fd52d49d53c/transformed/benchmark-common-1.5.0/AndroidManifest.xml:33:5-67
+33-->[androidx.benchmark:benchmark-common:1.5.0] /Users/serhii/.gradle/caches/9.8.2/transforms/5cbfa722d472d5d3fbab2fd52d49d53c/transformed/benchmark-common-1.5.0/AndroidManifest.xml:33:22-64
+34    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+35    <!--
+36    QUERY_ALL_PACKAGES is used to enable macrobenchmarks to read package information from
+37    potential target packages, e.g. for querying debuggable, profileable, or default launch intent.
+38
+39    This could also be done by making each macrobenchmark specify a <queries/> tag, with the
+40    target package, but this removes the need for documenting that setup step, and detecting
+41    misconfiguration.
+42    -->
+43    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+43-->[androidx.benchmark:benchmark-macro:1.5.0] /Users/serhii/.gradle/caches/9.8.2/transforms/6340cbede4e9d38f8cee904dd2a46750/transformed/benchmark-macro-1.5.0/AndroidManifest.xml:31:5-33:53
+43-->[androidx.benchmark:benchmark-macro:1.5.0] /Users/serhii/.gradle/caches/9.8.2/transforms/6340cbede4e9d38f8cee904dd2a46750/transformed/benchmark-macro-1.5.0/AndroidManifest.xml:32:9-61
+44    <uses-permission android:name="android.permission.REORDER_TASKS" />
+44-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:24:5-72
+44-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:24:22-69
+45
+46    <queries>
+46-->[androidx.test:runner:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/c55417173208bb6a71373f9f45d1357c/transformed/runner-1.7.0/AndroidManifest.xml:24:5-28:15
+47        <package android:name="androidx.test.orchestrator" />
+47-->[androidx.test:runner:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/c55417173208bb6a71373f9f45d1357c/transformed/runner-1.7.0/AndroidManifest.xml:25:9-62
+47-->[androidx.test:runner:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/c55417173208bb6a71373f9f45d1357c/transformed/runner-1.7.0/AndroidManifest.xml:25:18-59
+48        <package android:name="androidx.test.services" />
+48-->[androidx.test:runner:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/c55417173208bb6a71373f9f45d1357c/transformed/runner-1.7.0/AndroidManifest.xml:26:9-58
+48-->[androidx.test:runner:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/c55417173208bb6a71373f9f45d1357c/transformed/runner-1.7.0/AndroidManifest.xml:26:18-55
+49        <package android:name="com.google.android.apps.common.testing.services" />
+49-->[androidx.test:runner:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/c55417173208bb6a71373f9f45d1357c/transformed/runner-1.7.0/AndroidManifest.xml:27:9-83
+49-->[androidx.test:runner:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/c55417173208bb6a71373f9f45d1357c/transformed/runner-1.7.0/AndroidManifest.xml:27:18-80
+50    </queries>
+51
+52    <permission
+52-->[androidx.core:core:1.9.0] /Users/serhii/.gradle/caches/9.8.2/transforms/eccff7023b69e836dc99ba4a0221ef60/transformed/core-1.9.0/AndroidManifest.xml:22:5-24:47
+53        android:name="app.twicast.tv.baselineprofile.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+53-->[androidx.core:core:1.9.0] /Users/serhii/.gradle/caches/9.8.2/transforms/eccff7023b69e836dc99ba4a0221ef60/transformed/core-1.9.0/AndroidManifest.xml:23:9-81
+54        android:protectionLevel="signature" />
+54-->[androidx.core:core:1.9.0] /Users/serhii/.gradle/caches/9.8.2/transforms/eccff7023b69e836dc99ba4a0221ef60/transformed/core-1.9.0/AndroidManifest.xml:24:9-44
+55
+56    <uses-permission android:name="app.twicast.tv.baselineprofile.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+56-->[androidx.core:core:1.9.0] /Users/serhii/.gradle/caches/9.8.2/transforms/eccff7023b69e836dc99ba4a0221ef60/transformed/core-1.9.0/AndroidManifest.xml:26:5-97
+56-->[androidx.core:core:1.9.0] /Users/serhii/.gradle/caches/9.8.2/transforms/eccff7023b69e836dc99ba4a0221ef60/transformed/core-1.9.0/AndroidManifest.xml:26:22-94
+57
+58    <application
+58-->/Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/intermediates/tmp/manifest/benchmarkRelease/tempFile2ProcessTestManifest2026922584420523792.xml:23:5-20
+59        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+59-->[androidx.core:core:1.9.0] /Users/serhii/.gradle/caches/9.8.2/transforms/eccff7023b69e836dc99ba4a0221ef60/transformed/core-1.9.0/AndroidManifest.xml:28:18-86
+60        android:debuggable="true"
+61        android:extractNativeLibs="false"
+61-->INJECTED
+62        android:networkSecurityConfig="@xml/network_security_config" > <!-- Activity used to block background content while benchmarks are running -->
+62-->[androidx.benchmark:benchmark-common:1.5.0] /Users/serhii/.gradle/caches/9.8.2/transforms/5cbfa722d472d5d3fbab2fd52d49d53c/transformed/benchmark-common-1.5.0/AndroidManifest.xml:35:18-78
+63        <activity
+63-->[androidx.benchmark:benchmark-common:1.5.0] /Users/serhii/.gradle/caches/9.8.2/transforms/5cbfa722d472d5d3fbab2fd52d49d53c/transformed/benchmark-common-1.5.0/AndroidManifest.xml:38:9-41:80
+64            android:name="androidx.benchmark.IsolationActivity"
+64-->[androidx.benchmark:benchmark-common:1.5.0] /Users/serhii/.gradle/caches/9.8.2/transforms/5cbfa722d472d5d3fbab2fd52d49d53c/transformed/benchmark-common-1.5.0/AndroidManifest.xml:39:13-64
+65            android:exported="true"
+65-->[androidx.benchmark:benchmark-common:1.5.0] /Users/serhii/.gradle/caches/9.8.2/transforms/5cbfa722d472d5d3fbab2fd52d49d53c/transformed/benchmark-common-1.5.0/AndroidManifest.xml:40:13-36
+66            android:theme="@android:style/Theme.Light.NoTitleBar.Fullscreen" /> <!-- For optional XrExtensions usage in GestureController -->
+66-->[androidx.benchmark:benchmark-common:1.5.0] /Users/serhii/.gradle/caches/9.8.2/transforms/5cbfa722d472d5d3fbab2fd52d49d53c/transformed/benchmark-common-1.5.0/AndroidManifest.xml:41:13-77
+67        <uses-library
+67-->[androidx.test.uiautomator:uiautomator:2.4.0] /Users/serhii/.gradle/caches/9.8.2/transforms/62a4fe20505a4fc362da78bed0550482/transformed/uiautomator-2.4.0/AndroidManifest.xml:25:9-27:40
+68            android:name="com.android.extensions.xr"
+68-->[androidx.test.uiautomator:uiautomator:2.4.0] /Users/serhii/.gradle/caches/9.8.2/transforms/62a4fe20505a4fc362da78bed0550482/transformed/uiautomator-2.4.0/AndroidManifest.xml:26:13-53
+69            android:required="false" />
+69-->[androidx.test.uiautomator:uiautomator:2.4.0] /Users/serhii/.gradle/caches/9.8.2/transforms/62a4fe20505a4fc362da78bed0550482/transformed/uiautomator-2.4.0/AndroidManifest.xml:27:13-37
+70
+71        <activity
+71-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:27:9-34:20
+72            android:name="androidx.test.core.app.InstrumentationActivityInvoker$BootstrapActivity"
+72-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:28:13-99
+73            android:exported="true"
+73-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:29:13-36
+74            android:theme="@style/WhiteBackgroundTheme" >
+74-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:30:13-56
+75            <intent-filter android:priority="-100" >
+75-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:31:13-33:29
+75-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:31:28-51
+76                <category android:name="android.intent.category.LAUNCHER" />
+76-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:32:17-77
+76-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:32:27-74
+77            </intent-filter>
+78        </activity>
+79        <activity
+79-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:35:9-42:20
+80            android:name="androidx.test.core.app.InstrumentationActivityInvoker$EmptyActivity"
+80-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:36:13-95
+81            android:exported="true"
+81-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:37:13-36
+82            android:theme="@style/WhiteBackgroundTheme" >
+82-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:38:13-56
+83            <intent-filter android:priority="-100" >
+83-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:31:13-33:29
+83-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:31:28-51
+84                <category android:name="android.intent.category.LAUNCHER" />
+84-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:32:17-77
+84-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:32:27-74
+85            </intent-filter>
+86        </activity>
+87        <activity
+87-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:43:9-50:20
+88            android:name="androidx.test.core.app.InstrumentationActivityInvoker$EmptyFloatingActivity"
+88-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:44:13-103
+89            android:exported="true"
+89-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:45:13-36
+90            android:theme="@style/WhiteBackgroundDialogTheme" >
+90-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:46:13-62
+91            <intent-filter android:priority="-100" >
+91-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:31:13-33:29
+91-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:31:28-51
+92                <category android:name="android.intent.category.LAUNCHER" />
+92-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:32:17-77
+92-->[androidx.test:core:1.7.0] /Users/serhii/.gradle/caches/9.8.2/transforms/e3dc84480f4504380189690b46e04bb5/transformed/core-1.7.0/AndroidManifest.xml:32:27-74
+93            </intent-filter>
+94        </activity>
+95
+96        <provider
+96-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:24:9-32:20
+97            android:name="androidx.startup.InitializationProvider"
+97-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:25:13-67
+98            android:authorities="app.twicast.tv.baselineprofile.androidx-startup"
+98-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:26:13-68
+99            android:exported="false" >
+99-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:27:13-37
+100            <meta-data
+100-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:29:13-31:52
+101                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+101-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:30:17-85
+102                android:value="androidx.startup" />
+102-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:31:17-49
+103            <meta-data
+103-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:44:13-46:52
+104                android:name="androidx.tracing.perfetto.StartupTracingInitializer"
+104-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:45:17-83
+105                android:value="androidx.startup" />
+105-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:46:17-49
+106        </provider>
+107
+108        <receiver
+108-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:34:9-52:20
+109            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+109-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:35:13-76
+110            android:directBootAware="false"
+110-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:36:13-44
+111            android:enabled="true"
+111-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:37:13-35
+112            android:exported="true"
+112-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:38:13-36
+113            android:permission="android.permission.DUMP" >
+113-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:39:13-57
+114            <intent-filter>
+114-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:40:13-42:29
+115                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+115-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:41:17-91
+115-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:41:25-88
+116            </intent-filter>
+117            <intent-filter>
+117-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:43:13-45:29
+118                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+118-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:44:17-85
+118-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:44:25-82
+119            </intent-filter>
+120            <intent-filter>
+120-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:46:13-48:29
+121                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+121-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:47:17-88
+121-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:47:25-85
+122            </intent-filter>
+123            <intent-filter>
+123-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:49:13-51:29
+124                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+124-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:50:17-95
+124-->[androidx.profileinstaller:profileinstaller:1.4.1] /Users/serhii/.gradle/caches/9.8.2/transforms/fde421a105d43e71379d17f8d6fe873f/transformed/profileinstaller-1.4.1/AndroidManifest.xml:50:25-92
+125            </intent-filter>
+126        </receiver>
+127        <receiver
+127-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:24:9-37:20
+128            android:name="androidx.tracing.perfetto.TracingReceiver"
+128-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:25:13-69
+129            android:directBootAware="false"
+129-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:26:13-44
+130            android:enabled="true"
+130-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:27:13-35
+131            android:exported="true"
+131-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:28:13-36
+132            android:permission="android.permission.DUMP" >
+132-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:29:13-57
+133
+134            <!-- Note: DUMP above highly limits who can call the receiver; Shell has DUMP perm. -->
+135            <intent-filter>
+135-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:32:13-36:29
+136                <action android:name="androidx.tracing.perfetto.action.ENABLE_TRACING" />
+136-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:33:17-90
+136-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:33:25-87
+137                <action android:name="androidx.tracing.perfetto.action.ENABLE_TRACING_COLD_START" />
+137-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:34:17-101
+137-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:34:25-98
+138                <action android:name="androidx.tracing.perfetto.action.DISABLE_TRACING_COLD_START" />
+138-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:35:17-102
+138-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:35:25-99
+139            </intent-filter>
+140        </receiver>
+141        <receiver
+141-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:49:9-55:20
+142            android:name="androidx.tracing.perfetto.StartupTracingConfigStoreIsEnabledGate"
+142-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:50:13-92
+143            android:directBootAware="false"
+143-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:51:13-44
+144            android:enabled="false"
+144-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:52:13-36
+145            android:exported="false" >
+145-->[androidx.tracing:tracing-perfetto:1.0.1] /Users/serhii/.gradle/caches/9.8.2/transforms/738d20c066c4c7f28507883da27bd7d8/transformed/tracing-perfetto-1.0.1/AndroidManifest.xml:53:13-37
+146        </receiver>
+147    </application>
+148
+149</manifest>

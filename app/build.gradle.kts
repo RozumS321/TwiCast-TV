@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.androidx.baselineprofile)
 }
 
 // The Twitch Client ID lives in local.properties (not in git) and reaches the code via BuildConfig.
@@ -100,6 +101,20 @@ android {
     }
 }
 
+// Startup and scroll profile for ART (baselineprofile module). Generated on a TV box by hand, kept in src:
+// ./gradlew :app:generateBaselineProfile, with the box connected over adb (root on Android < 13).
+baselineProfile {
+    automaticGenerationDuringBuild = false
+    saveInSrc = true
+}
+
+// The profiling builds (nonMinifiedRelease, benchmarkRelease) get their own id: installing them must not replace
+// the release a TV runs and is signed in to.
+androidComponents {
+    onVariants(selector().withBuildType("nonMinifiedRelease")) { it.applicationId.set("app.twicast.tv.bench") }
+    onVariants(selector().withBuildType("benchmarkRelease")) { it.applicationId.set("app.twicast.tv.bench") }
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
@@ -107,6 +122,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.profileinstaller)
+    baselineProfile(project(":baselineprofile"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.foundation)
