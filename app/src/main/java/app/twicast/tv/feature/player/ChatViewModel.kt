@@ -8,6 +8,7 @@ import app.twicast.tv.data.repository.ChatMessage
 import app.twicast.tv.data.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.PersistentList
+import kotlinx.collections.immutable.mutate
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,6 +23,9 @@ private const val MaxChatMessages = 150
 private const val RetryBaseMillis = 2_000L
 private const val RetryMaxMillis = 30_000L
 private const val StopTimeoutMillis = 5_000L
+
+/** At most ~4 panel updates a second on a busy chat; a quarter second is not noticeable in a chat. */
+private const val ChatBatchMillis = 250L
 
 /**
  * Chat panel of the player (mockup "Плеер · чат"). Connected only while the panel is on screen,
@@ -39,8 +43,12 @@ class ChatViewModel internal constructor(channelLogin: String, repository: ChatR
             delay((RetryBaseMillis * (attempt + 1)).coerceAtMost(RetryMaxMillis))
             true
         }
-        .runningFold(persistentListOf<ChatMessage>()) { lines, message ->
-            lines.add(0, message).let { if (it.size > MaxChatMessages) it.removeAt(it.lastIndex) else it }
+        .batchedBy(ChatBatchMillis)
+        .runningFold(persistentListOf<ChatMessage>()) { lines, batch ->
+            lines.mutate { newestFirst ->
+                batch.forEach { newestFirst.add(0, it) }
+                while (newestFirst.size > MaxChatMessages) newestFirst.removeAt(newestFirst.lastIndex)
+            }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), persistentListOf())
 }

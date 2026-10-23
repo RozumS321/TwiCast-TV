@@ -56,6 +56,13 @@ import kotlinx.coroutines.launch
 private const val OfflineAvatarAlpha = 0.6f
 
 /** Right column of the search screen: "Каналы" rows, then "Категории" covers. */
+
+private object ContentType {
+    const val TITLE = "title"
+    const val CHANNEL = "channel"
+    const val CATEGORIES = "categories"
+}
+
 @Composable
 fun SearchResults(
     state: SearchResultsState,
@@ -76,13 +83,13 @@ fun SearchResults(
             modifier = modifier.fillMaxSize(),
         ) {
             if (state.channels.isNotEmpty()) {
-                item(key = "channels-title") { SectionTitle(stringResource(R.string.search_channels)) }
-                items(state.channels, key = { "channel-" + it.id }) { channel ->
+                item(key = "channels-title", contentType = ContentType.TITLE) { SectionTitle(stringResource(R.string.search_channels)) }
+                items(state.channels, key = { "channel-" + it.id }, contentType = { ContentType.CHANNEL }) { channel ->
                     ChannelRow(channel, onClick = { onChannelClick(channel) })
                 }
             }
             if (state.categories.isNotEmpty()) {
-                item(key = "categories") { CategoriesRow(state, onCategoryClick) }
+                item(key = "categories", contentType = ContentType.CATEGORIES) { CategoriesRow(state, onCategoryClick) }
             }
         }
     }

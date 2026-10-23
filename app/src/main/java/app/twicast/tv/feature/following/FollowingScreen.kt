@@ -43,6 +43,13 @@ private const val LiveSpan = 4
 private const val OfflineSpan = 3
 private const val SkeletonColumns = 6
 
+/** Live and offline cards share one type: the grid reuses them across the two sections. */
+private object ContentType {
+    const val TITLE = "title"
+    const val EMPTY = "empty"
+    const val CHANNEL = "channel"
+}
+
 /** Mockup "Подписки": one screen, "В эфире" first, "Офлайн" below it. */
 @Composable
 fun FollowingScreen(
@@ -98,15 +105,20 @@ private fun ChannelsGrid(
             .padding(horizontal = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset)
             .focusRestorer(),
     ) {
-        item(key = "live-title", span = { GridItemSpan(maxLineSpan) }) {
+        item(key = "live-title", span = { GridItemSpan(maxLineSpan) }, contentType = ContentType.TITLE) {
             SectionTitle(stringResource(R.string.following_live), state.live.size, live = true)
         }
         if (state.live.isEmpty()) {
-            item(key = "live-empty", span = { GridItemSpan(maxLineSpan) }) {
+            item(key = "live-empty", span = { GridItemSpan(maxLineSpan) }, contentType = ContentType.EMPTY) {
                 Text(stringResource(R.string.following_nobody_live), style = TwiTheme.typography.body, color = TwiTheme.colors.onSurfaceVariant)
             }
         }
-        itemsIndexed(state.live, key = { _, stream -> "live-" + stream.userId }, span = { _, _ -> GridItemSpan(LiveSpan) }) { index, stream ->
+        itemsIndexed(
+            state.live,
+            key = { _, stream -> "live-" + stream.userId },
+            span = { _, _ -> GridItemSpan(LiveSpan) },
+            contentType = { _, _ -> ContentType.CHANNEL },
+        ) { index, stream ->
             ChannelCardItem(
                 name = stream.channelName,
                 avatarUrl = stream.avatarUrl,
@@ -117,7 +129,7 @@ private fun ChannelsGrid(
             )
         }
         if (state.offline.isNotEmpty()) {
-            item(key = "offline-title", span = { GridItemSpan(maxLineSpan) }) {
+            item(key = "offline-title", span = { GridItemSpan(maxLineSpan) }, contentType = ContentType.TITLE) {
                 SectionTitle(
                     stringResource(R.string.following_offline),
                     state.offline.size,
@@ -126,7 +138,12 @@ private fun ChannelsGrid(
                 )
             }
         }
-        itemsIndexed(state.offline, key = { _, channel -> "offline-" + channel.id }, span = { _, _ -> GridItemSpan(OfflineSpan) }) { index, channel ->
+        itemsIndexed(
+            state.offline,
+            key = { _, channel -> "offline-" + channel.id },
+            span = { _, _ -> GridItemSpan(OfflineSpan) },
+            contentType = { _, _ -> ContentType.CHANNEL },
+        ) { index, channel ->
             ChannelCardItem(
                 name = channel.displayName,
                 avatarUrl = channel.avatarUrl,
