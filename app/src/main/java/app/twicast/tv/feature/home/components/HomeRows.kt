@@ -33,7 +33,7 @@ private val RowPadding = PaddingValues(
 )
 
 /**
- * Titled row of dense stream cards: the channel is the card title, the category its caption.
+ * Titled row of dense stream cards (mockup "Главная"): the stream's title, then "channel · category".
  * [takesInitialFocus]: the first card is focused when home opens (also collapses the sidebar).
  */
 @Composable
@@ -57,8 +57,8 @@ fun StreamRow(
         ) {
             itemsIndexed(streams, key = { _, it -> it.id }, contentType = { _, _ -> "stream" }) { index, stream ->
                 StreamCard(
-                    title = stream.channelName,
-                    subtitle = stream.categoryName,
+                    title = stream.title,
+                    subtitle = listOf(stream.channelName, stream.categoryName).filter { it.isNotEmpty() }.joinToString(" · "),
                     viewerCountText = formatViewerCount(stream.viewerCount),
                     thumbnailUrl = rememberTwitchImageUrl(stream.thumbnailTemplate, TwiDimens.StreamCardDenseWidth, TwiAspect.Thumbnail),
                     avatarUrl = stream.avatarUrl,
