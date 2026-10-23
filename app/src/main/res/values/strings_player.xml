@@ -23,4 +23,9 @@
     <string name="player_chat_title">Chat</string>
     <string name="player_chat_read_only">read only</string>
     <string name="player_chat_connecting">Connecting to chat…</string>
+
+    <string name="seek_hint">← → — 10 seconds · hold to go faster · down — to the buttons</string>
+    <string name="seek_delta_seconds">%1$s %2$d s</string>
+    <string name="seek_delta_minutes">%1$s %2$d min</string>
+    <string name="seek_delta_minutes_seconds">%1$s %2$d min %3$d s</string>
 </resources>

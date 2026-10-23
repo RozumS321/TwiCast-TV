@@ -36,6 +36,8 @@ private const val BridgeName = "TwiCast"
 /** Player start timings in logcat (`adb logcat -s TwiCastPerf`): WebView creation, page load, Twitch events. */
 internal const val PerfTag = "TwiCastPerf"
 
+private const val MillisPerSecond = 1000.0
+
 private const val RendererGoneTag = "renderer-gone"
 
 /**
@@ -61,6 +63,8 @@ class TwitchEmbedController internal constructor() : PlaybackController {
     override fun togglePause() = call("window.twicast && twicast.togglePause()")
 
     override fun setQuality(id: String) = call("window.twicast && twicast.setQuality(${JSONObject.quote(id)})")
+
+    override fun seekTo(positionMs: Long) = call("window.twicast && twicast.seek(${positionMs / MillisPerSecond})")
 
     override fun setChatVisible(visible: Boolean, title: String, hint: String) =
         call("window.twicast && twicast.setChatVisible($visible, ${JSONObject.quote(title)}, ${JSONObject.quote(hint)})")
@@ -88,6 +92,9 @@ class TwitchEmbedController internal constructor() : PlaybackController {
 interface TwitchEmbedListener {
     fun onStateChanged(state: EmbedState)
     fun onQualities(qualities: List<VideoQuality>, currentId: String)
+
+    /** Recordings, about once a second: where playback is and how long the recording is. */
+    fun onProgress(positionMs: Long, durationMs: Long) = Unit
 
     /** A Twitch ad break started or ended (TwiCast player): Twitch shows its own slate meanwhile. */
     fun onAdBreak(active: Boolean) = Unit
@@ -127,6 +134,8 @@ fun TwitchEmbedView(
                 override fun onQualities(qualities: List<VideoQuality>, currentId: String) =
                     currentListener.value.onQualities(qualities, currentId)
                 override fun onRendererGone() = currentListener.value.onRendererGone()
+                override fun onProgress(positionMs: Long, durationMs: Long) =
+                    currentListener.value.onProgress(positionMs, durationMs)
             }
             if (warmPlayer != null) {
                 warmPlayer.acquire(forwarding, channelLogin, videoId, preferredQualityId, maxVideoHeight)
@@ -219,6 +228,14 @@ private class EmbedBridge(private val listener: TwitchEmbedListener) {
     @JavascriptInterface
     fun mark(label: String, atMillis: Int) {
         Log.i(PerfTag, "page +$atMillis ms: $label")
+    }
+
+    /** Seconds from the page (Twitch's getCurrentTime / getDuration). */
+    @JavascriptInterface
+    fun onProgress(positionSeconds: Double, durationSeconds: Double) {
+        val position = (positionSeconds * MillisPerSecond).toLong()
+        val duration = (durationSeconds * MillisPerSecond).toLong()
+        mainHandler.post { listener.onProgress(position, duration) }
     }
 
     @JavascriptInterface

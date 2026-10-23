@@ -36,10 +36,14 @@ import app.twicast.tv.feature.player.components.NativeStreamView
 import app.twicast.tv.feature.player.components.PlaybackController
 import app.twicast.tv.feature.player.components.PlayerControls
 import app.twicast.tv.feature.player.components.QualityPanel
+import app.twicast.tv.feature.player.components.SeekBar
 import app.twicast.tv.feature.player.components.TwitchEmbedController
 import app.twicast.tv.feature.player.components.TwitchEmbedListener
 import app.twicast.tv.feature.player.components.TwitchEmbedView
 import app.twicast.tv.feature.player.components.VideoQuality
+
+/** Keys that wind a recording right from the bare video. */
+private val SeekKeys = setOf(Key.DirectionLeft, Key.DirectionRight, Key.MediaFastForward, Key.MediaRewind)
 
 /** Remote keys that only reveal the controls when the video is bare. */
 private val RevealKeys = setOf(Key.DirectionCenter, Key.Enter, Key.DirectionUp, Key.DirectionDown, Key.DirectionLeft, Key.DirectionRight, Key.Menu)
@@ -59,6 +63,7 @@ fun PlayerScreen(
     onQualitySelected: (VideoQuality) -> Unit,
     onToggleChat: () -> Unit,
     onOpenChannel: () -> Unit,
+    onSeekStep: (forward: Boolean, repeat: Int) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     /** The chat panel; composed (and connected) only while the chat is open. */
@@ -66,8 +71,8 @@ fun PlayerScreen(
 ) {
     val rootFocus = remember { FocusRequester() }
     BackHandler(enabled = state.overlay != PlayerOverlay.Hidden || state.chatVisible, onBack = onBack)
-    // Bare video keeps focus on the root so the next key press reaches it.
-    LaunchedEffect(state.overlay) { if (state.overlay == PlayerOverlay.Hidden) rootFocus.requestFocus() }
+    // Bare video (and its seek bar) keeps focus on the root so the next key press reaches it.
+    LaunchedEffect(state.overlay) { if (state.overlay.isBare) rootFocus.requestFocus() }
     val twiCast = state.engine == PlayerEngine.TwiCast
     val controller: PlaybackController = if (twiCast) nativeController else embedController
 
@@ -83,10 +88,16 @@ fun PlayerScreen(
                         true
                     }
                     event.key == Key.Back -> false
+                    // A recording winds from the bare video (only its seek bar comes up); ⏪ ⏩ wind anywhere.
+                    state.canSeek && event.key in SeekKeys &&
+                        (event.key == Key.MediaFastForward || event.key == Key.MediaRewind || state.overlay.isBare) -> {
+                        onSeekStep(event.key == Key.DirectionRight || event.key == Key.MediaFastForward, event.nativeKeyEvent.repeatCount)
+                        true
+                    }
                     else -> {
                         onRemoteActivity()
                         // From bare video the first press only reveals the controls.
-                        state.overlay == PlayerOverlay.Hidden && event.key in RevealKeys
+                        state.overlay.isBare && event.key in RevealKeys
                     }
                 }
             }
@@ -145,8 +156,23 @@ fun PlayerScreen(
                 onOpenQuality = onOpenQuality,
                 onToggleChat = onToggleChat,
                 onOpenChannel = onOpenChannel,
+                onSeekStep = onSeekStep,
                 modifier = Modifier.align(Alignment.BottomCenter).padding(TwiDimens.PlayerControlsInset),
             )
+            PlayerOverlay.Seek -> state.progress?.let { progress ->
+                SeekBar(
+                    positionMs = state.shownPositionMs ?: progress.positionMs,
+                    durationMs = progress.durationMs,
+                    deltaMs = state.seekDeltaMs,
+                    focusable = false,
+                    onStep = onSeekStep,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(TwiDimens.PlayerControlsInset)
+                        .background(TwiTheme.colors.overlay, TwiShapes.Hero)
+                        .padding(horizontal = TwiDimens.PlayerControlsHorizontalPadding, vertical = TwiDimens.PlayerControlsVerticalPadding),
+                )
+            }
             PlayerOverlay.Quality -> QualityPanel(
                 qualities = state.qualities,
                 currentQualityId = state.currentQualityId,
@@ -184,3 +210,6 @@ private fun StatusPlate(state: PlayerUiState, modifier: Modifier) {
         )
     }
 }
+
+/** Nothing to focus over the video: the root takes the keys. */
+private val PlayerOverlay.isBare: Boolean get() = this == PlayerOverlay.Hidden || this == PlayerOverlay.Seek

@@ -55,6 +55,10 @@ class WarmTwitchPlayer(
             listener?.onQualities(qualities, currentId)
         }
 
+        override fun onProgress(positionMs: Long, durationMs: Long) {
+            listener?.onProgress(positionMs, durationMs)
+        }
+
         override fun onPageLoaded() {
             pageLoaded = true
             pendingScript?.let(::run)

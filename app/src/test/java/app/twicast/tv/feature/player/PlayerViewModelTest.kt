@@ -12,7 +12,9 @@ import app.twicast.tv.feature.player.components.VideoQuality
 import app.twicast.tv.testing.FakeStreamsRepository
 import app.twicast.tv.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
@@ -246,5 +248,79 @@ class PlayerViewModelTest {
     fun `malformed login never reaches the embed`() = runTest(mainRule.dispatcher) {
         val viewModel = PlayerViewModel(destination.copy(channelLogin = "a&b=c"), settings, playback, streams, device)
         assertFalse(viewModel.uiState.value.canPlay)
+    }
+
+    // A 7-hour recording, 1 hour in.
+    private fun TestScope.recording(): PlayerViewModel =
+        PlayerViewModel(destination.copy(videoId = "2512345678"), settings, playback, streams, device).also {
+            runCurrent()
+            it.onProgress(positionMs = 3_600_000, durationMs = 25_200_000)
+        }
+
+    private fun TestScope.sentSeeks(viewModel: PlayerViewModel): MutableList<Long> {
+        val sent = mutableListOf<Long>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.seekRequests.collect { sent += it } }
+        return sent
+    }
+
+    @Test
+    fun `winding a recording from the bare video shows only the seek bar and sends one seek`() = runTest(mainRule.dispatcher) {
+        val viewModel = recording()
+        val sent = sentSeeks(viewModel)
+
+        viewModel.onSeekStep(forward = true, repeat = 0)
+        viewModel.onSeekStep(forward = true, repeat = 0)
+        viewModel.onSeekStep(forward = false, repeat = 0)
+        val state = viewModel.uiState.value
+        assertEquals(PlayerOverlay.Seek, state.overlay)
+        assertEquals(3_610_000L, state.shownPositionMs)
+        assertEquals("the bubble shows the whole jump", 10_000L, state.seekDeltaMs)
+        assertTrue("nothing sent while the remote is busy", sent.isEmpty())
+
+        advanceTimeBy(SeekCommitMillis + 1)
+        assertEquals(listOf(3_610_000L), sent)
+        assertEquals(3_610_000L, viewModel.uiState.value.progress?.positionMs)
+        assertEquals(null, viewModel.uiState.value.seekDeltaMs)
+
+        advanceTimeBy(SeekOverlayMillis + 1)
+        assertEquals(PlayerOverlay.Hidden, viewModel.uiState.value.overlay)
+    }
+
+    @Test
+    fun `holding the key winds in bigger steps`() {
+        assertEquals(10_000L, seekStepMillis(0))
+        assertEquals(30_000L, seekStepMillis(10))
+        assertEquals(60_000L, seekStepMillis(30))
+    }
+
+    @Test
+    fun `winding stops at the start and the end of the recording`() = runTest(mainRule.dispatcher) {
+        val viewModel = recording()
+        repeat(100) { viewModel.onSeekStep(forward = false, repeat = 40) }
+        assertEquals(0L, viewModel.uiState.value.shownPositionMs)
+        repeat(500) { viewModel.onSeekStep(forward = true, repeat = 40) }
+        assertEquals(25_200_000L, viewModel.uiState.value.shownPositionMs)
+    }
+
+    @Test
+    fun `winding in the controls keeps them up, and Back sends the dialled position`() = runTest(mainRule.dispatcher) {
+        val viewModel = recording()
+        val sent = sentSeeks(viewModel)
+        viewModel.onRemoteActivity()
+        viewModel.onSeekStep(forward = false, repeat = 0)
+        assertEquals(PlayerOverlay.Controls, viewModel.uiState.value.overlay)
+
+        assertTrue(viewModel.onBack())
+        assertEquals(listOf(3_590_000L), sent)
+        assertEquals(PlayerOverlay.Hidden, viewModel.uiState.value.overlay)
+    }
+
+    @Test
+    fun `a live stream does not wind`() = runTest(mainRule.dispatcher) {
+        val viewModel = viewModel()
+        viewModel.onProgress(positionMs = 10_000, durationMs = 20_000)
+        viewModel.onSeekStep(forward = true, repeat = 0)
+        assertFalse(viewModel.uiState.value.canSeek)
+        assertEquals(PlayerOverlay.Hidden, viewModel.uiState.value.overlay)
     }
 }

@@ -112,6 +112,16 @@ object TwiDimens {
     val PlayerControlsVerticalPadding = 20.dp
     val PlayerControlsSpacing = 16.dp
     val PlayerAvatarSize = 48.dp
+    /** Recording seek bar (mockups "Плеер · запись, …"). */
+    val SeekBarHeight = 28.dp
+    val SeekTrackHeight = 8.dp
+    val SeekThumbSize = 24.dp
+    val SeekThumbRing = 4.dp
+    val SeekBubbleWidth = 96.dp
+    val SeekBubbleRise = 44.dp
+    val SeekBubbleVerticalPadding = 6.dp
+    val SeekPanelSpacing = 18.dp
+    val SeekHintSpacing = 10.dp
     val QualityPanelWidth = 400.dp
     val QualityPanelHorizontalPadding = 28.dp
     val QualityPanelVerticalPadding = 40.dp

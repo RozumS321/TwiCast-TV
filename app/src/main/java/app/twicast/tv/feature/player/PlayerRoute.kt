@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,8 +40,11 @@ fun PlayerRoute(onClose: () -> Unit, onOpenChannel: (String) -> Unit, viewModel:
             override fun onQualities(qualities: List<VideoQuality>, currentId: String) = viewModel.onQualities(qualities, currentId)
             override fun onRendererGone() = viewModel.onRendererGone()
             override fun onAdBreak(active: Boolean) = viewModel.onAdBreak(active)
+            override fun onProgress(positionMs: Long, durationMs: Long) = viewModel.onProgress(positionMs, durationMs)
         }
     }
+    val currentController by rememberUpdatedState(controller)
+    LaunchedEffect(viewModel) { viewModel.seekRequests.collect { currentController.seekTo(it) } }
     PlayerScreen(
         state = state,
         embedController = embedController,
@@ -54,6 +58,7 @@ fun PlayerRoute(onClose: () -> Unit, onOpenChannel: (String) -> Unit, viewModel:
         },
         onToggleChat = viewModel::onToggleChat,
         onOpenChannel = { onOpenChannel(state.channel.channelLogin) },
+        onSeekStep = viewModel::onSeekStep,
         onBack = { if (!viewModel.onBack()) onClose() },
         chat = { modifier ->
             val messages by chatViewModel.messages.collectAsStateWithLifecycle()

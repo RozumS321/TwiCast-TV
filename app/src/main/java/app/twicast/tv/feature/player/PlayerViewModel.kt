@@ -19,6 +19,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -62,6 +65,19 @@ const val RecoveryMaxVideoHeight = 720
  */
 const val StallCheckMillis = 8_000L
 
+/** Winding is sent to the player once the remote rests this long: one seek per gesture, not one per press. */
+const val SeekCommitMillis = 700L
+
+/** The bare-video seek bar stays this long after the winding was sent. */
+const val SeekOverlayMillis = 1_500L
+
+/** Seek step for a key held [repeat] auto-repeats long: 10 s, then 30 s, then a minute (a 7-hour recording). */
+fun seekStepMillis(repeat: Int): Long = when {
+    repeat < 10 -> 10_000L
+    repeat < 30 -> 30_000L
+    else -> 60_000L
+}
+
 /**
  * Player screen state. Playback state and the quality list come from the embed page; overlays, chat
  * and the preferred quality are decided here. The screen forwards commands to the embed itself.
@@ -93,6 +109,12 @@ class PlayerViewModel internal constructor(
 
     private var autoHideJob: Job? = null
     private var stallCheckJob: Job? = null
+    private var seekCommitJob: Job? = null
+
+    private val _seekRequests = Channel<Long>(Channel.CONFLATED)
+
+    /** Positions to play from: the screen sends them to the player on screen. */
+    val seekRequests: Flow<Long> = _seekRequests.receiveAsFlow()
 
     init {
         viewModelScope.launch {
@@ -209,14 +231,67 @@ class PlayerViewModel internal constructor(
 
     fun onAdBreak(active: Boolean) = _uiState.update { it.copy(adBreak = active) }
 
+    fun onProgress(positionMs: Long, durationMs: Long) {
+        if (durationMs <= 0) return
+        _uiState.update { it.copy(progress = PlaybackProgress(positionMs.coerceIn(0, durationMs), durationMs)) }
+    }
+
+    /**
+     * Left/Right (or ⏪ ⏩) on a recording: moves the dialled position by a step that grows while the key is held
+     * ([repeat]: the key's auto-repeat count). From the bare video only the seek bar comes up, not the controls.
+     */
+    fun onSeekStep(forward: Boolean, repeat: Int) {
+        val state = _uiState.value
+        val progress = state.progress ?: return
+        if (!state.canSeek) return
+        val step = seekStepMillis(repeat)
+        val from = state.seekTargetMs ?: progress.positionMs
+        val target = (if (forward) from + step else from - step).coerceIn(0, progress.durationMs)
+        _uiState.update {
+            it.copy(
+                seekTargetMs = target,
+                seekStartMs = it.seekStartMs ?: progress.positionMs,
+                overlay = if (it.overlay == PlayerOverlay.Hidden) PlayerOverlay.Seek else it.overlay,
+            )
+        }
+        autoHideJob?.cancel()
+        seekCommitJob?.cancel()
+        seekCommitJob = viewModelScope.launch {
+            delay(SeekCommitMillis)
+            commitSeek()
+        }
+    }
+
+    private fun commitSeek() {
+        seekCommitJob?.cancel()
+        val target = _uiState.value.seekTargetMs ?: return
+        _seekRequests.trySend(target)
+        // Shown right away; the player's next report confirms it.
+        _uiState.update {
+            it.copy(progress = it.progress?.copy(positionMs = target), seekTargetMs = null, seekStartMs = null)
+        }
+        if (_uiState.value.overlay == PlayerOverlay.Seek) {
+            autoHideJob = viewModelScope.launch {
+                delay(SeekOverlayMillis)
+                _uiState.update { if (it.overlay == PlayerOverlay.Seek) it.copy(overlay = PlayerOverlay.Hidden) else it }
+            }
+        } else {
+            restartAutoHide()
+        }
+    }
+
     fun onQualities(qualities: List<VideoQuality>, currentId: String) {
         _uiState.update { it.copy(qualities = qualities.toImmutableList(), currentQualityId = currentId.ifEmpty { null }) }
     }
 
     /** Any remote key: shows the controls from the bare video, and keeps them up while the user acts. */
     fun onRemoteActivity() {
-        if (_uiState.value.overlay == PlayerOverlay.Hidden) _uiState.update { it.copy(overlay = PlayerOverlay.Controls) }
-        restartAutoHide()
+        val overlay = _uiState.value.overlay
+        if (overlay == PlayerOverlay.Hidden || overlay == PlayerOverlay.Seek) {
+            _uiState.update { it.copy(overlay = PlayerOverlay.Controls) }
+        }
+        // Mid-winding the controls stay up until the seek is sent.
+        if (seekCommitJob?.isActive != true) restartAutoHide()
     }
 
     fun onOpenQuality() {
@@ -239,7 +314,11 @@ class PlayerViewModel internal constructor(
         val state = _uiState.value
         val next = when {
             state.overlay == PlayerOverlay.Quality -> state.copy(overlay = PlayerOverlay.Controls)
-            state.overlay == PlayerOverlay.Controls -> state.copy(overlay = PlayerOverlay.Hidden)
+            state.overlay == PlayerOverlay.Controls || state.overlay == PlayerOverlay.Seek -> {
+                // Back mid-winding still goes where the viewer dialled.
+                commitSeek()
+                _uiState.value.copy(overlay = PlayerOverlay.Hidden)
+            }
             state.chatVisible -> state.copy(chatVisible = false)
             else -> return false
         }
