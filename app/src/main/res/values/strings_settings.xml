@@ -21,4 +21,16 @@
     <string name="settings_language_russian" translatable="false">Русский</string>
     <string name="settings_language_ukrainian" translatable="false">Українська</string>
     <string name="settings_language_english" translatable="false">English</string>
+    <string name="settings_quality">Default quality</string>
+    <string name="settings_quality_hint">your choice in the player is saved here too</string>
+    <string name="settings_chat">Chat</string>
+    <string name="settings_chat_open">Open chat with the stream</string>
+    <string name="settings_chat_open_hint">Live streams only; the Chat button in the player works as usual</string>
+    <string name="settings_section_player">Player</string>
+    <string name="settings_section_player_hint">player, quality, chat</string>
+    <string name="settings_section_system">System</string>
+    <string name="settings_section_system_hint">theme, language, about</string>
+    <string name="settings_about">About</string>
+    <string name="settings_about_hint">Updates install themselves when the app starts</string>
+    <string name="settings_language_hint">each language is named in itself</string>
 </resources>

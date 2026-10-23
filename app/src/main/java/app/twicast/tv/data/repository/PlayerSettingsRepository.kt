@@ -3,6 +3,7 @@ package app.twicast.tv.data.repository
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -15,8 +16,14 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 interface PlayerSettingsRepository {
-    /** Quality group chosen last time (e.g. "720p60"), null if never chosen. */
+    /**
+     * Quality for new streams: a group chosen in the player ("720p60"), a ceiling chosen in Settings ("720p",
+     * see [qualityCeiling]) or "auto"; null if never chosen.
+     */
     suspend fun preferredQuality(): String?
+
+    /** [preferredQuality] as it changes (Settings highlights it). */
+    val preferredQualityUpdates: Flow<String?>
 
     suspend fun setPreferredQuality(qualityId: String)
 
@@ -24,7 +31,17 @@ interface PlayerSettingsRepository {
     val playerEngine: Flow<PlayerEngine>
 
     suspend fun setPlayerEngine(engine: PlayerEngine)
+
+    /** "Открывать чат вместе со стримом" (Settings); off by default. Live streams only. */
+    val openChatWithStream: Flow<Boolean>
+
+    suspend fun setOpenChatWithStream(open: Boolean)
 }
+
+private val CeilingPattern = Regex("^(\\d+)p$")
+
+/** "720p" from Settings means "the best quality up to 720"; a player group like "720p60" is exact, so null. */
+fun qualityCeiling(qualityId: String?): Int? = qualityId?.let { CeilingPattern.find(it) }?.groupValues?.get(1)?.toIntOrNull()
 
 private val Context.playerSettingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "player_settings")
 
@@ -36,8 +53,11 @@ class DataStorePlayerSettingsRepository @Inject constructor(
     private val dataStore = context.playerSettingsDataStore
     private val preferredQualityKey = stringPreferencesKey("preferred_quality")
     private val playerEngineKey = stringPreferencesKey("player_engine")
+    private val openChatKey = booleanPreferencesKey("open_chat_with_stream")
 
-    override suspend fun preferredQuality(): String? = dataStore.data.map { it[preferredQualityKey] }.first()
+    override val preferredQualityUpdates: Flow<String?> = dataStore.data.map { it[preferredQualityKey] }
+
+    override suspend fun preferredQuality(): String? = preferredQualityUpdates.first()
 
     override suspend fun setPreferredQuality(qualityId: String) {
         dataStore.edit { it[preferredQualityKey] = qualityId }
@@ -49,5 +69,11 @@ class DataStorePlayerSettingsRepository @Inject constructor(
 
     override suspend fun setPlayerEngine(engine: PlayerEngine) {
         dataStore.edit { it[playerEngineKey] = engine.name }
+    }
+
+    override val openChatWithStream: Flow<Boolean> = dataStore.data.map { it[openChatKey] ?: false }
+
+    override suspend fun setOpenChatWithStream(open: Boolean) {
+        dataStore.edit { it[openChatKey] = open }
     }
 }

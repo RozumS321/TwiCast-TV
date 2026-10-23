@@ -11,6 +11,7 @@ import app.twicast.tv.data.model.PlayerEngine
 import app.twicast.tv.data.repository.PlaybackRepository
 import app.twicast.tv.data.repository.PlaybackSource
 import app.twicast.tv.data.repository.PlayerSettingsRepository
+import app.twicast.tv.data.repository.qualityCeiling
 import app.twicast.tv.feature.player.components.EmbedState
 import app.twicast.tv.feature.player.components.VideoQuality
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -87,7 +88,17 @@ class PlayerViewModel internal constructor(
         viewModelScope.launch {
             val preferred = settings.preferredQuality()
             val engine = settings.playerEngine.first()
-            _uiState.update { it.copy(preferredQualityId = preferred) }
+            val openChat = settings.openChatWithStream.first()
+            // A ceiling from Settings ("720p") is not a quality the player knows: it caps the height instead,
+            // together with the low-memory cap, whichever is lower.
+            val ceiling = qualityCeiling(preferred)
+            _uiState.update {
+                it.copy(
+                    preferredQualityId = preferred.takeIf { ceiling == null },
+                    maxVideoHeight = lowerOf(it.maxVideoHeight, ceiling),
+                    chatVisible = openChat && it.channel.isLive,
+                )
+            }
             if (engine == PlayerEngine.TwiCast && _uiState.value.canPlay) startTwiCast() else useTwitchPlayer()
         }
     }
@@ -143,7 +154,7 @@ class PlayerViewModel internal constructor(
             } else {
                 it.copy(
                     embedAttempt = it.embedAttempt + 1,
-                    maxVideoHeight = RecoveryMaxVideoHeight,
+                    maxVideoHeight = lowerOf(it.maxVideoHeight, RecoveryMaxVideoHeight),
                     status = PlaybackStatus.Loading,
                     qualities = persistentListOf(),
                     currentQualityId = null,
@@ -194,6 +205,8 @@ class PlayerViewModel internal constructor(
         if (next.overlay == PlayerOverlay.Controls) restartAutoHide()
         return true
     }
+
+    private fun lowerOf(first: Int?, second: Int?): Int? = listOfNotNull(first, second).minOrNull()
 
     private fun restartAutoHide() {
         autoHideJob?.cancel()

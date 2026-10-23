@@ -8,17 +8,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun SettingsRoute(viewModel: SettingsViewModel = hiltViewModel()) {
-    val engine by viewModel.playerEngine.collectAsStateWithLifecycle()
-    val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
-    val language by viewModel.language.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val activity = LocalActivity.current
     SettingsScreen(
-        selected = engine,
+        state = state,
+        onSectionFocused = viewModel::onSectionFocused,
         onPlayerSelected = viewModel::onPlayerSelected,
-        themeMode = themeMode,
+        onDefaultQualitySelected = viewModel::onDefaultQualitySelected,
         onThemeSelected = viewModel::onThemeSelected,
-        language = language,
         // Resources are picked when the activity is created: recreating it redraws everything in the new language.
         onLanguageSelected = { if (viewModel.onLanguageSelected(it)) activity?.recreate() },
+        onOpenChatChanged = viewModel::onOpenChatChanged,
     )
 }

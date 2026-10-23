@@ -17,4 +17,16 @@
     <string name="settings_theme_light">Светлая</string>
     <string name="settings_theme_dark">Тёмная</string>
     <string name="settings_language">Язык</string>
+    <string name="settings_quality">Качество по умолчанию</string>
+    <string name="settings_quality_hint">выбор в плеере тоже запоминается здесь</string>
+    <string name="settings_chat">Чат</string>
+    <string name="settings_chat_open">Открывать чат вместе со стримом</string>
+    <string name="settings_chat_open_hint">Только для эфиров; кнопка «Чат» в плеере работает как обычно</string>
+    <string name="settings_section_player">Плеер</string>
+    <string name="settings_section_player_hint">плеер, качество, чат</string>
+    <string name="settings_section_system">Система</string>
+    <string name="settings_section_system_hint">тема, язык, о приложении</string>
+    <string name="settings_about">О приложении</string>
+    <string name="settings_about_hint">Обновления приходят сами при запуске</string>
+    <string name="settings_language_hint">каждый язык подписан на самом себе</string>
 </resources>

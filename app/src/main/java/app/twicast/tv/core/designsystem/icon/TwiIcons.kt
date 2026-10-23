@@ -36,6 +36,7 @@ object TwiIcons {
     )
     val Back = strokeIcon("Back", "M15 18l-6-6l6-6", strokeWidth = 2f)
     val Play = fillIcon("Play", "M7 4v16l13-8z")
+    val Video = strokeIcon("Video", "M4 5h16v14H4zM10 9v6l5-3z")
     val Pause = strokeIcon("Pause", "M8 5v14M16 5v14", strokeWidth = 2.4f)
     val Quality = strokeIcon("Quality", "M4 7h9M17 7h3M15 5v4M4 17h3M11 17h9M9 15v4", strokeWidth = 2f)
     val Chat = strokeIcon("Chat", "M4 5h16v11H9l-5 4z", strokeWidth = 2f)

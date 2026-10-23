@@ -91,6 +91,19 @@ object TwiDimens {
     val SettingsRadioSize = 22.dp
     val SettingsRadioBorder = 2.dp
     val SettingsRadioDot = 10.dp
+    val SettingsSectionsSpacing = 40.dp
+    val SettingsMenuWidth = 240.dp
+    val SettingsMenuItemHeight = 64.dp
+    val SettingsMenuItemPadding = 16.dp
+    val SettingsMenuItemSpacing = 6.dp
+    val SettingsContentSpacing = 24.dp
+    val SettingsToggleWidth = 560.dp
+    val SettingsToggleHorizontalPadding = 20.dp
+    val SettingsToggleVerticalPadding = 16.dp
+    val SettingsSwitchWidth = 48.dp
+    val SettingsSwitchHeight = 28.dp
+    val SettingsSwitchKnob = 22.dp
+    val SettingsSwitchKnobInset = 3.dp
     val PlayerPlateHorizontalPadding = 20.dp
     val PlayerPlateVerticalPadding = 14.dp
     val PlayerControlsInset = 40.dp
@@ -250,6 +263,7 @@ object TwiShapes {
     val SegmentedTab = RoundedCornerShape(13.dp)
     val ChannelCard = RoundedCornerShape(20.dp)
     val Banner = RoundedCornerShape(22.dp)
+    val SettingsToggle = RoundedCornerShape(18.dp)
 }
 
 /** Focus scales. Card scale 1.06 (not 1.08): at 1.08 neighbours in a row overlap. */
