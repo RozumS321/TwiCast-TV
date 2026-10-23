@@ -4,10 +4,11 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -17,25 +18,36 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import app.twicast.tv.R
 import app.twicast.tv.core.designsystem.component.TwiPrimaryButton
 import app.twicast.tv.core.designsystem.component.TwiSecondaryButton
+import app.twicast.tv.core.designsystem.component.focusRing
+import app.twicast.tv.core.designsystem.component.rememberFocusProgress
 import app.twicast.tv.core.designsystem.component.requestInitialFocus
+import app.twicast.tv.core.designsystem.component.trackFocus
 import app.twicast.tv.core.designsystem.icon.TwiIcons
 import app.twicast.tv.core.designsystem.theme.TwiDimens
 import app.twicast.tv.core.designsystem.theme.TwiShapes
@@ -43,6 +55,7 @@ import app.twicast.tv.core.designsystem.theme.TwiTheme
 import app.twicast.tv.data.update.AppRelease
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
+import kotlinx.coroutines.launch
 
 private const val BytesInMegabyte = 1024f * 1024f
 private const val Percent = 100
@@ -56,8 +69,6 @@ interface UpdateActions {
 }
 
 /** Long releases: a few lines per section, the rest summed up as "и ещё N". */
-private const val MaxNotesPerSection = 4
-private const val MaxNoteLines = 2
 
 /**
  * Modal panel over the whole app (mockups "Обновление · …"). Focus stays inside it; Back dismisses
@@ -90,7 +101,7 @@ fun UpdateOverlay(state: UpdateUiState, actions: UpdateActions, modifier: Modifi
         ) {
             UpdateHeader(state)
             // Notes take only the room left: the buttons below always stay on screen, however long the release.
-            state.release()?.let { NotesCards(it, Modifier.weight(1f, fill = false)) }
+            state.release()?.let { NotesList(it, Modifier.weight(1f, fill = false)) }
             if (state is UpdateUiState.Downloading) DownloadProgress(state)
             UpdateButtons(state, actions)
         }
@@ -152,9 +163,12 @@ private fun InstalledBadge() {
     }
 }
 
-/** "Новое / Исправлено / Улучшено" side by side; empty sections are left out. */
+/**
+ * "Новое / Исправлено / Улучшено" one under another, every line in full (empty sections are left out).
+ * A long release scrolls: Up from the buttons focuses the list, Up / Down scroll it, Down at its end goes back.
+ */
 @Composable
-private fun NotesCards(release: AppRelease, modifier: Modifier) {
+private fun NotesList(release: AppRelease, modifier: Modifier) {
     val colors = TwiTheme.colors
     val sections = listOf(
         NotesSection(stringResource(R.string.update_section_added), TwiIcons.Plus, colors.primary, release.notes.added),
@@ -162,25 +176,55 @@ private fun NotesCards(release: AppRelease, modifier: Modifier) {
         NotesSection(stringResource(R.string.update_section_improved), TwiIcons.ArrowUp, colors.info, release.notes.improved),
     ).filter { it.items.isNotEmpty() }
     if (sections.isEmpty()) return
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(TwiDimens.NotesCardSpacing),
-        // Cards as tall as the tallest one, not as tall as the space allowed.
-        modifier = modifier.fillMaxWidth().height(IntrinsicSize.Min),
+    val scrollState = rememberScrollState()
+    val scrollable = scrollState.maxValue > 0
+    val scope = rememberCoroutineScope()
+    val step = with(LocalDensity.current) { TwiDimens.NotesScrollStep.toPx() }
+    val focusProgress = rememberFocusProgress()
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(colors.background, TwiShapes.NotesCard)
+            .focusRing(focusProgress, colors.primary, TwiShapes.NotesCard, TwiDimens.FocusBorderWidth)
+            .onPreviewKeyEvent { event ->
+                if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                val delta = when {
+                    event.key == Key.DirectionDown && scrollState.canScrollForward -> step
+                    event.key == Key.DirectionUp && scrollState.canScrollBackward -> -step
+                    else -> return@onPreviewKeyEvent false
+                }
+                scope.launch { scrollState.animateScrollBy(delta) }
+                true
+            }
+            .trackFocus(focusProgress)
+            .focusable(enabled = scrollable),
     ) {
-        sections.forEach { section -> NotesCard(section, Modifier.weight(1f).fillMaxHeight()) }
+        Column(
+            verticalArrangement = Arrangement.spacedBy(TwiDimens.NotesSectionSpacing),
+            modifier = Modifier
+                .verticalScroll(scrollState)
+                .padding(horizontal = TwiDimens.NotesCardHorizontalPadding, vertical = TwiDimens.NotesCardVerticalPadding),
+        ) {
+            sections.forEach { NotesSectionBlock(it) }
+        }
+        // More below: the last lines fade out instead of ending at a hard cut.
+        if (scrollState.canScrollForward) {
+            Box(
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(TwiDimens.NotesFadeHeight)
+                    .background(Brush.verticalGradient(listOf(Color.Transparent, colors.background)), TwiShapes.NotesCard),
+            )
+        }
     }
 }
 
 private data class NotesSection(val title: String, val icon: ImageVector, val color: Color, val items: List<String>)
 
 @Composable
-private fun NotesCard(section: NotesSection, modifier: Modifier) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(TwiDimens.NotesItemSpacing),
-        modifier = modifier
-            .background(TwiTheme.colors.background, TwiShapes.NotesCard)
-            .padding(horizontal = TwiDimens.NotesCardHorizontalPadding, vertical = TwiDimens.NotesCardVerticalPadding),
-    ) {
+private fun NotesSectionBlock(section: NotesSection) {
+    Column(verticalArrangement = Arrangement.spacedBy(TwiDimens.NotesItemSpacing)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(TwiDimens.NotesItemSpacing)) {
             Box(
                 contentAlignment = Alignment.Center,
@@ -190,22 +234,15 @@ private fun NotesCard(section: NotesSection, modifier: Modifier) {
             }
             Text(section.title, style = TwiTheme.typography.listTitle, color = TwiTheme.colors.onSurface)
         }
-        section.items.take(MaxNotesPerSection).forEach { item ->
-            Text(
-                item,
-                style = TwiTheme.typography.bodySmall,
-                color = TwiTheme.colors.onSurfaceSecondary,
-                maxLines = MaxNoteLines,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        val hidden = section.items.size - MaxNotesPerSection
-        if (hidden > 0) {
-            Text(
-                pluralStringResource(R.plurals.update_more_items, hidden, hidden),
-                style = TwiTheme.typography.bodySmall,
-                color = TwiTheme.colors.onSurfaceVariant,
-            )
+        section.items.forEach { item ->
+            Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.NotesItemSpacing)) {
+                // Bullet in the badge's column, lined up with the first line of the item.
+                Box(Modifier.width(TwiDimens.NotesBadgeSize).padding(top = TwiDimens.NotesBulletTop), contentAlignment = Alignment.TopCenter) {
+                    Box(Modifier.size(TwiDimens.NotesBulletSize).background(section.color, CircleShape))
+                }
+                // Items are commit subjects, written in lower case.
+                Text(item.replaceFirstChar { it.titlecase() }, style = TwiTheme.typography.bodySmall, color = TwiTheme.colors.onSurfaceSecondary)
+            }
         }
     }
 }

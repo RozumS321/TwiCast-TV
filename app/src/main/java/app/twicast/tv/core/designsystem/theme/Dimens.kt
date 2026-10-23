@@ -205,6 +205,11 @@ object TwiDimens {
     val NotesItemSpacing = 10.dp
     val NotesBadgeSize = 26.dp
     val NotesBadgeIconSize = 16.dp
+    val NotesSectionSpacing = 18.dp
+    val NotesBulletSize = 6.dp
+    val NotesBulletTop = 8.dp
+    val NotesFadeHeight = 36.dp
+    val NotesScrollStep = 120.dp
     val ProgressHeight = 10.dp
     val BadgePillHorizontalPadding = 14.dp
     val BadgePillVerticalPadding = 8.dp

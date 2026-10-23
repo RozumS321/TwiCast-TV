@@ -29,8 +29,4 @@
     <string name="update_downloading">Downloading the update…</string>
     <string name="update_progress">%1$s of %2$s · %3$d%%</string>
     <string name="update_megabytes">%s MB</string>
-    <plurals name="update_more_items">
-        <item quantity="one">and %d more</item>
-        <item quantity="other">and %d more</item>
-    </plurals>
 </resources>

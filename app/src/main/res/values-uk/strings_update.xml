@@ -29,10 +29,4 @@
     <string name="update_downloading">Завантажуємо оновлення…</string>
     <string name="update_progress">%1$s з %2$s · %3$d%%</string>
     <string name="update_megabytes">%s МБ</string>
-    <plurals name="update_more_items">
-        <item quantity="one">і ще %d</item>
-        <item quantity="few">і ще %d</item>
-        <item quantity="many">і ще %d</item>
-        <item quantity="other">і ще %d</item>
-    </plurals>
 </resources>
