@@ -27,15 +27,17 @@ import app.twicast.tv.data.model.Stream
 import kotlinx.collections.immutable.ImmutableList
 
 /** Below the title: 12 (mockup); bottom: room for the focused card's scale and shadow. */
+// The row itself starts just short of the content line and clips there: scrolled cards leave a gap to the sidebar
+// instead of sliding up to it, and the inset is room for the first card's focus scale.
 private val RowPadding = PaddingValues(
-    start = TwiDimens.ContentStartPadding,
+    start = TwiDimens.GridFocusInset,
     end = TwiDimens.ContentEndPadding,
     top = TwiDimens.HomeRowTitleSpacing,
     bottom = TwiDimens.FocusOverflowPadding,
 )
 
 /**
- * Titled row of dense stream cards: the channel is the card title, the category its caption.
+ * Titled row of dense stream cards (mockup "Главная"): the stream's title, then "channel · category".
  * [takesInitialFocus]: the first card is focused when home opens (also collapses the sidebar).
  */
 @Composable
@@ -64,12 +66,12 @@ fun StreamRow(
             contentPadding = RowPadding,
             horizontalArrangement = Arrangement.spacedBy(TwiDimens.HomeCardSpacing),
             // Coming back to the row lands on the card that was focused last.
-            modifier = Modifier.focusRestorer(),
+            modifier = Modifier.padding(start = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset).focusRestorer(),
         ) {
             itemsIndexed(streams, key = { _, it -> it.id }, contentType = { _, _ -> "stream" }) { index, stream ->
                 StreamCard(
-                    title = stream.channelName,
-                    subtitle = stream.categoryName,
+                    title = stream.title,
+                    subtitle = listOf(stream.channelName, stream.categoryName).filter { it.isNotEmpty() }.joinToString(" · "),
                     viewerCountText = formatViewerCount(stream.viewerCount),
                     thumbnailUrl = rememberTwitchImageUrl(stream.thumbnailTemplate, TwiDimens.StreamCardDenseWidth, TwiAspect.Thumbnail),
                     avatarUrl = stream.avatarUrl,
