@@ -1,6 +1,7 @@
 package app.twicast.tv.feature.home
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -8,10 +9,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.Text
@@ -26,6 +31,8 @@ import app.twicast.tv.feature.common.appErrorMessage
 import app.twicast.tv.feature.home.components.HomeSkeleton
 import app.twicast.tv.feature.home.components.StreamRow
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 private object ContentType {
@@ -61,14 +68,19 @@ private fun HomeContent(state: HomeUiState.Content, onStreamClick: (Stream) -> U
         state.recommended.isNotEmpty() -> "recommended"
         else -> "regional"
     }
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
     LazyColumn(
+        state = listState,
         contentPadding = PaddingValues(top = TwiDimens.ScreenTopPadding, bottom = TwiDimens.SectionSpacing),
         modifier = modifier.fillMaxSize(),
     ) {
         item(key = "header", contentType = ContentType.HEADER) {
             Greeting(state.userName, state.followedLive.size, Modifier.padding(bottom = TwiDimens.HomeSectionSpacing))
         }
-        row("followed", state.followedLive) { key, streams ->
+        val scrollToTop = Modifier.scrollToTopOnFocus(listState, scope)
+        val topModifier = { key: String -> if (key == firstRowKey) scrollToTop else Modifier }
+        row("followed", state.followedLive, topModifier) { key, streams ->
             StreamRow(
                 title = stringResource(R.string.home_row_followed),
                 hint = stringResource(R.string.home_row_followed_hint),
@@ -78,7 +90,7 @@ private fun HomeContent(state: HomeUiState.Content, onStreamClick: (Stream) -> U
                 takesInitialFocus = key == firstRowKey,
             )
         }
-        row("recommended", state.recommended) { key, streams ->
+        row("recommended", state.recommended, topModifier) { key, streams ->
             StreamRow(
                 title = stringResource(R.string.home_row_recommended),
                 hint = stringResource(R.string.home_row_recommended_hint),
@@ -87,7 +99,7 @@ private fun HomeContent(state: HomeUiState.Content, onStreamClick: (Stream) -> U
                 takesInitialFocus = key == firstRowKey,
             )
         }
-        row("regional", state.regional) { key, streams ->
+        row("regional", state.regional, topModifier) { key, streams ->
             StreamRow(
                 title = stringResource(R.string.home_row_regional),
                 hint = languageLabel,
@@ -103,9 +115,22 @@ private fun HomeContent(state: HomeUiState.Content, onStreamClick: (Stream) -> U
 private fun LazyListScope.row(
     key: String,
     streams: ImmutableList<Stream>,
+    modifierFor: (key: String) -> Modifier,
     content: @Composable (key: String, streams: ImmutableList<Stream>) -> Unit,
 ) {
-    if (streams.isNotEmpty()) item(key = key, contentType = ContentType.ROW) { content(key, streams) }
+    if (streams.isNotEmpty()) {
+        item(key = key, contentType = ContentType.ROW) {
+            Box(modifierFor(key)) { content(key, streams) }
+        }
+    }
+}
+
+/**
+ * Only cards take focus, so focus alone never scrolls back over the greeting above the first row:
+ * coming back up to that row brings the whole list to the top.
+ */
+private fun Modifier.scrollToTopOnFocus(listState: LazyListState, scope: CoroutineScope): Modifier = onFocusChanged {
+    if (it.hasFocus && listState.canScrollBackward) scope.launch { listState.animateScrollToItem(0) }
 }
 
 @Composable
