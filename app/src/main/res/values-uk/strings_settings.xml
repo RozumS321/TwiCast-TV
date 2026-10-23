@@ -22,4 +22,11 @@
     <string name="settings_chat">Чат</string>
     <string name="settings_chat_open">Відкривати чат разом зі стримом</string>
     <string name="settings_chat_open_hint">Лише для ефірів; кнопка «Чат» у плеєрі працює як зазвичай</string>
+    <string name="settings_section_player">Плеєр</string>
+    <string name="settings_section_player_hint">плеєр, якість, чат</string>
+    <string name="settings_section_system">Система</string>
+    <string name="settings_section_system_hint">тема, мова, про застосунок</string>
+    <string name="settings_about">Про застосунок</string>
+    <string name="settings_about_hint">Оновлення приходять самі під час запуску</string>
+    <string name="settings_language_hint">кожна мова підписана нею самою</string>
 </resources>

@@ -36,6 +36,9 @@ class SettingsViewModel @Inject constructor(
     // Survives the activity being recreated for the new language, so the redrawn screen knows it was a change.
     private val languageChoice = MutableStateFlow(LanguageChoice(languages.language(), justChanged = false))
 
+    // Also survives the recreation: a language change redraws the screen still in "Система".
+    private val section = MutableStateFlow(SettingsSection.Player)
+
     val uiState: StateFlow<SettingsUiState> = combine(
         settings.playerEngine,
         settings.preferredQualityUpdates,
@@ -52,11 +55,19 @@ class SettingsViewModel @Inject constructor(
             language = choice.language,
             focusLanguage = choice.justChanged,
         )
-    }.stateIn(
+    }.combine(section) { state, section -> state.copy(section = section) }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(StopTimeoutMillis),
         SettingsUiState(language = languageChoice.value.language),
     )
+
+    /** Sections open as soon as their menu item takes focus, as usual on TV. */
+    fun onSectionFocused(focused: SettingsSection) {
+        section.value = focused
+        // Back in the menu after a language change: the language chips must not grab the focus again.
+        val choice = languageChoice.value
+        if (choice.justChanged) languageChoice.value = LanguageChoice(choice.language, justChanged = false)
+    }
 
     fun onPlayerSelected(engine: PlayerEngine) {
         viewModelScope.launch { settings.setPlayerEngine(engine) }

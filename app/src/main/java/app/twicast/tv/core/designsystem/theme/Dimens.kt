@@ -92,6 +92,11 @@ object TwiDimens {
     val SettingsRadioBorder = 2.dp
     val SettingsRadioDot = 10.dp
     val SettingsSectionsSpacing = 40.dp
+    val SettingsMenuWidth = 240.dp
+    val SettingsMenuItemHeight = 64.dp
+    val SettingsMenuItemPadding = 16.dp
+    val SettingsMenuItemSpacing = 6.dp
+    val SettingsContentSpacing = 24.dp
     val SettingsToggleWidth = 560.dp
     val SettingsToggleHorizontalPadding = 20.dp
     val SettingsToggleVerticalPadding = 16.dp

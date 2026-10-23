@@ -19,11 +19,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.Text
+import app.twicast.tv.BuildConfig
 import app.twicast.tv.R
 import app.twicast.tv.core.designsystem.component.focusRing
 import app.twicast.tv.core.designsystem.component.focusTransform
 import app.twicast.tv.core.designsystem.component.rememberFocusProgress
-import app.twicast.tv.core.designsystem.component.requestInitialFocus
 import app.twicast.tv.core.designsystem.component.trackFocus
 import app.twicast.tv.core.designsystem.theme.TwiDimens
 import app.twicast.tv.core.designsystem.theme.TwiScale
@@ -32,9 +32,12 @@ import app.twicast.tv.core.designsystem.theme.TwiTheme
 import app.twicast.tv.data.model.AppLanguage
 import app.twicast.tv.data.model.PlayerEngine
 import app.twicast.tv.data.model.ThemeMode
-import app.twicast.tv.feature.settings.components.AppearanceAndLanguageRow
+import app.twicast.tv.feature.settings.components.AboutSection
 import app.twicast.tv.feature.settings.components.ChatSection
+import app.twicast.tv.feature.settings.components.LanguageSection
 import app.twicast.tv.feature.settings.components.QualitySection
+import app.twicast.tv.feature.settings.components.SettingsMenu
+import app.twicast.tv.feature.settings.components.ThemeSection
 
 private class PlayerOption(val engine: PlayerEngine, val title: Int, val tag: Int, val text: Int, val note: Int)
 
@@ -56,12 +59,13 @@ private val PlayerOptions = listOf(
 )
 
 /**
- * Mockup "Настройки": player cards, default quality, appearance and language side by side, chat.
- * Choices show once read from storage; the language is known right away.
+ * Mockups "Настройки · Плеер" / "Настройки · Система": the section menu on the left, its content on the right.
+ * Entering the screen focuses the open section in the menu; after a language change, the language chips.
  */
 @Composable
 fun SettingsScreen(
     state: SettingsUiState,
+    onSectionFocused: (SettingsSection) -> Unit,
     onPlayerSelected: (PlayerEngine) -> Unit,
     onDefaultQualitySelected: (DefaultQuality) -> Unit,
     onThemeSelected: (ThemeMode) -> Unit,
@@ -70,21 +74,34 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(TwiDimens.HomeSectionSpacing),
+        verticalArrangement = Arrangement.spacedBy(TwiDimens.SettingsContentSpacing),
         modifier = modifier
             .fillMaxSize()
             .padding(start = TwiDimens.ContentStartPadding, end = TwiDimens.ContentEndPadding, top = TwiDimens.ScreenTopPadding),
     ) {
         Text(stringResource(R.string.settings_title), style = TwiTheme.typography.screenTitle, color = TwiTheme.colors.onSurface)
-        PlayerSection(state.playerEngine, takesInitialFocus = !state.focusLanguage, onPlayerSelected)
-        QualitySection(state.defaultQuality, state.loaded, onDefaultQualitySelected)
-        AppearanceAndLanguageRow(state.themeMode, onThemeSelected, state.language, state.focusLanguage, onLanguageSelected)
-        ChatSection(state.openChatWithStream, onOpenChatChanged)
+        Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.SettingsSectionsSpacing)) {
+            SettingsMenu(state.section, takesInitialFocus = !state.focusLanguage, onSectionFocused)
+            Column(verticalArrangement = Arrangement.spacedBy(TwiDimens.SettingsContentSpacing), modifier = Modifier.weight(1f)) {
+                when (state.section) {
+                    SettingsSection.Player -> {
+                        PlayerSection(state.playerEngine, onPlayerSelected)
+                        QualitySection(state.defaultQuality, state.loaded, onDefaultQualitySelected)
+                        ChatSection(state.openChatWithStream, onOpenChatChanged)
+                    }
+                    SettingsSection.System -> {
+                        ThemeSection(state.themeMode, onThemeSelected)
+                        LanguageSection(state.language, state.focusLanguage, onLanguageSelected)
+                        AboutSection(BuildConfig.VERSION_NAME)
+                    }
+                }
+            }
+        }
     }
 }
 
 @Composable
-private fun PlayerSection(selected: PlayerEngine?, takesInitialFocus: Boolean, onPlayerSelected: (PlayerEngine) -> Unit) {
+private fun PlayerSection(selected: PlayerEngine?, onPlayerSelected: (PlayerEngine) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(TwiDimens.HomeRowTitleSpacing)) {
         Text(stringResource(R.string.settings_player), style = TwiTheme.typography.rowTitleDense, color = TwiTheme.colors.onSurface)
         if (selected != null) {
@@ -93,7 +110,6 @@ private fun PlayerSection(selected: PlayerEngine?, takesInitialFocus: Boolean, o
                     PlayerCard(
                         option = option,
                         selected = option.engine == selected,
-                        takesInitialFocus = takesInitialFocus,
                         onClick = { onPlayerSelected(option.engine) },
                         modifier = Modifier.weight(1f),
                     )
@@ -109,15 +125,13 @@ private fun PlayerSection(selected: PlayerEngine?, takesInitialFocus: Boolean, o
 }
 
 @Composable
-private fun PlayerCard(option: PlayerOption, selected: Boolean, takesInitialFocus: Boolean, onClick: () -> Unit, modifier: Modifier) {
+private fun PlayerCard(option: PlayerOption, selected: Boolean, onClick: () -> Unit, modifier: Modifier) {
     val colors = TwiTheme.colors
     val focusProgress = rememberFocusProgress()
     val interactionSource = remember { MutableInteractionSource() }
     Column(
         verticalArrangement = Arrangement.spacedBy(TwiDimens.ChannelAboutSpacing),
         modifier = modifier
-            // Opening the screen lands on the current choice.
-            .then(if (selected && takesInitialFocus) Modifier.requestInitialFocus() else Modifier)
             .focusTransform(
                 progress = focusProgress,
                 focusedScale = TwiScale.CardFocused,

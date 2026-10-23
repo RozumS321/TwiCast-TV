@@ -97,4 +97,19 @@ class SettingsViewModelTest {
         assertEquals(DefaultQuality.P480, DefaultQuality.of("480p"))
         assertEquals(null, DefaultQuality.of("chunked"))
     }
+
+    @Test
+    fun `a language change keeps System open and hands the focus to the language once`() = runTest(mainRule.dispatcher) {
+        val viewModel = SettingsViewModel(FakeSettings(), FakeAppearance(), FakeLanguages())
+        backgroundScope.launch { viewModel.uiState.collect {} }
+
+        assertEquals(SettingsSection.Player, viewModel.uiState.value.section)
+        viewModel.onSectionFocused(SettingsSection.System)
+        viewModel.onLanguageSelected(AppLanguage.English)
+        assertEquals(SettingsSection.System, viewModel.uiState.value.section)
+        assertTrue(viewModel.uiState.value.focusLanguage)
+
+        viewModel.onSectionFocused(SettingsSection.System)
+        assertFalse(viewModel.uiState.value.focusLanguage)
+    }
 }

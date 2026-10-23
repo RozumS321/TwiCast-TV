@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.settings.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.Text
 import app.twicast.tv.R
@@ -63,36 +65,58 @@ fun QualitySection(selected: DefaultQuality?, loaded: Boolean, onSelected: (Defa
     }
 }
 
-/** "Оформление" and "Язык" side by side, as on the mockup: stacked they would not fit the 720 screen. */
+/** "Оформление": System / Light / Dark. Hidden while the setting loads. */
 @Composable
-fun AppearanceAndLanguageRow(
-    themeMode: ThemeMode?,
-    onThemeSelected: (ThemeMode) -> Unit,
-    language: AppLanguage,
-    focusLanguage: Boolean,
-    onLanguageSelected: (AppLanguage) -> Unit,
-) {
-    Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.SettingsSectionsSpacing)) {
-        SettingsSection(R.string.settings_theme, R.string.settings_theme_hint) {
-            if (themeMode == null) return@SettingsSection
-            Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChipSpacing)) {
-                ThemeOptions.forEach { option ->
-                    TwiChip(stringResource(option.title), selected = option.mode == themeMode, onClick = { onThemeSelected(option.mode) })
-                }
+fun ThemeSection(themeMode: ThemeMode?, onThemeSelected: (ThemeMode) -> Unit) {
+    SettingsSection(R.string.settings_theme, R.string.settings_theme_hint) {
+        if (themeMode == null) return@SettingsSection
+        Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChipSpacing)) {
+            ThemeOptions.forEach { option ->
+                TwiChip(stringResource(option.title), selected = option.mode == themeMode, onClick = { onThemeSelected(option.mode) })
             }
         }
-        SettingsSection(R.string.settings_language, hint = null) {
-            Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChipSpacing)) {
-                LanguageOptions.forEach { option ->
-                    val isCurrent = option.language == language
-                    TwiChip(
-                        text = stringResource(option.title),
-                        selected = isCurrent,
-                        onClick = { onLanguageSelected(option.language) },
-                        // Back from the redraw in the new language: stay where the viewer was.
-                        modifier = if (isCurrent && focusLanguage) Modifier.requestInitialFocus() else Modifier,
-                    )
-                }
+    }
+}
+
+/** "Язык": each language named in itself. [focusLanguage]: just redrawn in a new language, focus stays here. */
+@Composable
+fun LanguageSection(language: AppLanguage, focusLanguage: Boolean, onLanguageSelected: (AppLanguage) -> Unit) {
+    SettingsSection(R.string.settings_language, R.string.settings_language_hint) {
+        Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChipSpacing)) {
+            LanguageOptions.forEach { option ->
+                val isCurrent = option.language == language
+                TwiChip(
+                    text = stringResource(option.title),
+                    selected = isCurrent,
+                    onClick = { onLanguageSelected(option.language) },
+                    modifier = if (isCurrent && focusLanguage) Modifier.requestInitialFocus() else Modifier,
+                )
+            }
+        }
+    }
+}
+
+/** "О приложении": version; updates arrive by themselves, so there is nothing to press. */
+@Composable
+fun AboutSection(versionName: String) {
+    SettingsSection(R.string.settings_about, hint = null) {
+        val colors = TwiTheme.colors
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChipSpacing),
+            modifier = Modifier
+                .width(TwiDimens.SettingsToggleWidth)
+                .background(colors.surface, TwiShapes.SettingsToggle)
+                .padding(horizontal = TwiDimens.SettingsToggleHorizontalPadding, vertical = TwiDimens.SettingsToggleVerticalPadding),
+        ) {
+            Image(
+                painter = painterResource(R.drawable.ic_logo_mark),
+                contentDescription = null,
+                modifier = Modifier.size(TwiDimens.LogoMarkSize),
+            )
+            Column {
+                Text(stringResource(R.string.profile_version, versionName), style = TwiTheme.typography.listTitle, color = colors.onSurface)
+                Text(stringResource(R.string.settings_about_hint), style = TwiTheme.typography.caption, color = colors.onSurfaceVariant)
             }
         }
     }

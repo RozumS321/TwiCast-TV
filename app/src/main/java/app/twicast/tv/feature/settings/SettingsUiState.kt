@@ -25,11 +25,15 @@ enum class DefaultQuality(val id: String, val height: Int?) {
     }
 }
 
+/** Left menu of Settings (mockups "Настройки · Плеер" / "Настройки · Система"). */
+enum class SettingsSection { Player, System }
+
 /** Mockup "Настройки". Choices read from storage are null until loaded: nothing is highlighted yet. */
 @Immutable
 data class SettingsUiState(
     /** False until the stored choices are read. */
     val loaded: Boolean = false,
+    val section: SettingsSection = SettingsSection.Player,
     val playerEngine: PlayerEngine? = null,
     val defaultQuality: DefaultQuality? = null,
     val themeMode: ThemeMode? = null,

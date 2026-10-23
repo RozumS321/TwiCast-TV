@@ -12,6 +12,7 @@ fun SettingsRoute(viewModel: SettingsViewModel = hiltViewModel()) {
     val activity = LocalActivity.current
     SettingsScreen(
         state = state,
+        onSectionFocused = viewModel::onSectionFocused,
         onPlayerSelected = viewModel::onPlayerSelected,
         onDefaultQualitySelected = viewModel::onDefaultQualitySelected,
         onThemeSelected = viewModel::onThemeSelected,
