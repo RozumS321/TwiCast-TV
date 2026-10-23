@@ -2,6 +2,7 @@
 <resources>
     <string name="player_loading">Загружаем стрим…</string>
     <string name="player_paused">Пауза · OK — продолжить</string>
+    <string name="player_ended">Трансляция завершилась</string>
     <string name="player_offline">Канал сейчас не в эфире</string>
     <string name="player_error">Не удалось загрузить плеер Twitch</string>
     <string name="player_ad_break">Реклама на Twitch · стрим продолжится сам</string>

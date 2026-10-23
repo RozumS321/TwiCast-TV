@@ -9,6 +9,7 @@ import app.twicast.tv.data.repository.PlaybackSource
 import app.twicast.tv.data.repository.PlayerSettingsRepository
 import app.twicast.tv.feature.player.components.EmbedState
 import app.twicast.tv.feature.player.components.VideoQuality
+import app.twicast.tv.testing.FakeStreamsRepository
 import app.twicast.tv.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -51,11 +52,12 @@ class PlayerViewModelTest {
 
     private val settings = FakePlayerSettings()
     private val playback = FakePlayback()
+    private val streams = FakeStreamsRepository()
     private val device = object : DeviceProfile { override var isLowMemory = false }
     private val destination = PlayerDestination("sasavot", "sasavot", "Just Chatting", 15_300, null)
 
     private fun TestScope.viewModel(): PlayerViewModel =
-        PlayerViewModel(destination, settings, playback, device).also { runCurrent() }
+        PlayerViewModel(destination, settings, playback, streams, device).also { runCurrent() }
 
     @Test
     fun `preferred quality is loaded before the embed may be created`() = runTest(mainRule.dispatcher) {
@@ -194,13 +196,55 @@ class PlayerViewModelTest {
         settings.openChatWithStream.value = true
         assertTrue(viewModel().uiState.value.chatVisible)
 
-        val recording = PlayerViewModel(destination.copy(videoId = "123"), settings, playback, device).also { runCurrent() }
+        val recording = PlayerViewModel(destination.copy(videoId = "123"), settings, playback, streams, device).also { runCurrent() }
         assertFalse(recording.uiState.value.chatVisible)
     }
 
     @Test
+    fun `a stalled live stream whose broadcast ended says so and keeps the controls up`() = runTest(mainRule.dispatcher) {
+        val viewModel = viewModel()
+        viewModel.onEmbedStateChanged(EmbedState.Playing)
+        viewModel.onEmbedStateChanged(EmbedState.Buffering)
+
+        advanceTimeBy(StallCheckMillis + 1)
+        assertEquals("still broadcasting: keep waiting", PlaybackStatus.Playing, viewModel.uiState.value.status)
+
+        streams.live = AppResult.Success(false)
+        advanceTimeBy(StallCheckMillis + 1)
+        assertEquals(PlaybackStatus.Ended, viewModel.uiState.value.status)
+        assertEquals(PlayerOverlay.Controls, viewModel.uiState.value.overlay)
+
+        advanceTimeBy(ControlsAutoHideMillis + 1)
+        assertEquals("the controls stay", PlayerOverlay.Controls, viewModel.uiState.value.overlay)
+    }
+
+    @Test
+    fun `playback resuming stops the check`() = runTest(mainRule.dispatcher) {
+        streams.live = AppResult.Success(false)
+        val viewModel = viewModel()
+        viewModel.onEmbedStateChanged(EmbedState.Playing)
+        viewModel.onEmbedStateChanged(EmbedState.Buffering)
+        viewModel.onEmbedStateChanged(EmbedState.Playing)
+
+        advanceTimeBy(StallCheckMillis * 2)
+        assertEquals(PlaybackStatus.Playing, viewModel.uiState.value.status)
+    }
+
+    @Test
+    fun `offline while watching is an ended stream, offline from the start is just offline`() = runTest(mainRule.dispatcher) {
+        val watching = viewModel()
+        watching.onEmbedStateChanged(EmbedState.Playing)
+        watching.onEmbedStateChanged(EmbedState.Offline)
+        assertEquals(PlaybackStatus.Ended, watching.uiState.value.status)
+
+        val opened = viewModel()
+        opened.onEmbedStateChanged(EmbedState.Offline)
+        assertEquals(PlaybackStatus.Offline, opened.uiState.value.status)
+    }
+
+    @Test
     fun `malformed login never reaches the embed`() = runTest(mainRule.dispatcher) {
-        val viewModel = PlayerViewModel(destination.copy(channelLogin = "a&b=c"), settings, playback, device)
+        val viewModel = PlayerViewModel(destination.copy(channelLogin = "a&b=c"), settings, playback, streams, device)
         assertFalse(viewModel.uiState.value.canPlay)
     }
 }

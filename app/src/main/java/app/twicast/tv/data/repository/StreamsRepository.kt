@@ -15,6 +15,9 @@ interface StreamsRepository {
     /** Top live streams by viewers; [language] is an ISO 639-1 code, null for the whole world. */
     suspend fun getTopStreams(language: String?, limit: Int): AppResult<List<Stream>>
 
+    /** Whether [login] is broadcasting right now; never cached (the player asks when a live stream stalls). */
+    suspend fun isLive(login: String): AppResult<Boolean>
+
     /** Live channels the user follows, by viewers (scope user:read:follows). */
     suspend fun getFollowedStreams(userId: String, limit: Int): AppResult<List<Stream>>
 
@@ -39,6 +42,9 @@ class HelixStreamsRepository @Inject constructor(
         cache.getOrLoad(CacheKey.Top(language, limit)) {
             runCatchingRemote { api.getStreams(first = limit, language = language).data.withAvatars() }
         }
+
+    override suspend fun isLive(login: String): AppResult<Boolean> =
+        runCatchingRemote { api.getStreams(first = 1, userLogins = listOf(login.lowercase())).data.isNotEmpty() }
 
     override suspend fun getFollowedStreams(userId: String, limit: Int): AppResult<List<Stream>> =
         cache.getOrLoad(CacheKey.Followed(userId, limit)) {

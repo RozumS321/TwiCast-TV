@@ -38,8 +38,11 @@ internal const val PerfTag = "TwiCastPerf"
 
 private const val RendererGoneTag = "renderer-gone"
 
-/** Events reported by the embed page (see assets/player/player.html). */
-enum class EmbedState { Ready, Playing, Paused, Offline, Error }
+/**
+ * Events reported by the embed page (see assets/player/player.html) and the TwiCast player.
+ * [Buffering]: playback ran dry after it had started (TwiCast player only).
+ */
+enum class EmbedState { Ready, Playing, Paused, Buffering, Offline, Error }
 
 /** One entry of the player's quality list; [id] is what setQuality() takes (Twitch "group"). */
 @Immutable

@@ -24,6 +24,7 @@ interface HelixApi {
         @Query("game_id") gameIds: List<String>? = null,
         @Query("after") after: String? = null,
         @Query("user_id") userIds: List<String>? = null,
+        @Query("user_login") userLogins: List<String>? = null,
     ): HelixPage<StreamDto>
 
     @GET("streams/followed")
