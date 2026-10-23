@@ -35,7 +35,7 @@ import app.twicast.tv.core.designsystem.theme.TwiDimens
 import app.twicast.tv.core.designsystem.theme.TwiShapes
 import app.twicast.tv.core.designsystem.theme.TwiTheme
 import app.twicast.tv.feature.auth.components.CodeCells
-import app.twicast.tv.feature.auth.components.QrCode
+import app.twicast.tv.core.designsystem.component.QrCode
 import app.twicast.tv.feature.common.appErrorMessage
 import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit

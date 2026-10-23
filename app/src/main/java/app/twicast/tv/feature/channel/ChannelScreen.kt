@@ -44,6 +44,7 @@ import app.twicast.tv.data.model.ChannelPage
 import app.twicast.tv.data.model.Clip
 import app.twicast.tv.data.model.Video
 import app.twicast.tv.feature.channel.components.ChannelBanner
+import app.twicast.tv.feature.channel.components.FollowQrDialog
 import app.twicast.tv.feature.common.appErrorMessage
 import java.text.NumberFormat
 import kotlinx.coroutines.launch
@@ -69,12 +70,24 @@ fun ChannelScreen(
     onVideoClick: (ChannelPage, Video) -> Unit,
     onClipClick: (ChannelPage, Clip) -> Unit,
     onRetry: () -> Unit,
+    onFollow: () -> Unit,
+    onFollowDialogClosed: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when (state) {
         ChannelUiState.Loading -> ChannelSkeleton(modifier)
         is ChannelUiState.Error -> ErrorState(appErrorMessage(state.error), onRetry, modifier.fillMaxSize())
-        is ChannelUiState.Content -> ChannelContent(state.channel, onWatchLive, onVideoClick, onClipClick, modifier)
+        is ChannelUiState.Content -> {
+            ChannelContent(state.channel, onWatchLive, onVideoClick, onClipClick, onFollow, modifier)
+            if (state.followDialog) {
+                FollowQrDialog(
+                    login = state.channel.login,
+                    displayName = state.channel.displayName,
+                    followed = state.channel.isFollowedByViewer,
+                    onDone = onFollowDialogClosed,
+                )
+            }
+        }
     }
 }
 
@@ -84,6 +97,7 @@ private fun ChannelContent(
     onWatchLive: (ChannelPage) -> Unit,
     onVideoClick: (ChannelPage, Video) -> Unit,
     onClipClick: (ChannelPage, Clip) -> Unit,
+    onFollow: () -> Unit,
     modifier: Modifier,
 ) {
     // Live: the stream; offline: the latest recording; neither: no button.
@@ -106,6 +120,7 @@ private fun ChannelContent(
                 ChannelBanner(
                     channel = channel,
                     onWatch = onWatch,
+                    onFollow = onFollow,
                     modifier = Modifier
                         .padding(start = TwiDimens.ContentStartPadding, end = TwiDimens.ContentEndPadding)
                         // The focused button sits low in the banner: bring the whole banner back, not just the button.

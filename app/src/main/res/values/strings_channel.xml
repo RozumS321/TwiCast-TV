@@ -19,4 +19,16 @@
     <string name="channel_clips_hint">last 30 days</string>
     <string name="channel_about">About</string>
     <string name="channel_no_media">This channel has no past broadcasts or clips yet.</string>
+
+    <string name="channel_follow">Follow</string>
+    <string name="follow_overline">VIA YOUR PHONE</string>
+    <string name="follow_title_follow">Follow %s</string>
+    <string name="follow_title_unfollow">Unfollow %s</string>
+    <string name="follow_step_scan">Point your phone camera at the code</string>
+    <string name="follow_step_follow">Tap «Follow» on the channel page</string>
+    <string name="follow_step_unfollow">Tap «Following» → «Unfollow» on the channel page</string>
+    <string name="follow_step_appears">The channel appears in «Following» — we refresh it</string>
+    <string name="follow_step_gone">The channel leaves «Following» — we refresh it</string>
+    <string name="follow_why">Twitch doesn\'t let third-party apps follow from a TV</string>
+    <string name="follow_done">Done</string>
 </resources>

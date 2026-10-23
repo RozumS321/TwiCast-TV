@@ -6,6 +6,7 @@ import app.twicast.tv.data.model.AuthState
 import app.twicast.tv.data.model.ChannelPage
 import app.twicast.tv.data.repository.ChannelRepository
 import app.twicast.tv.data.repository.parseTwitchDuration
+import app.twicast.tv.feature.channel.components.channelUrl
 import app.twicast.tv.testing.FakeAuthRepository
 import app.twicast.tv.testing.MainDispatcherRule
 import app.twicast.tv.testing.testUser
@@ -66,5 +67,38 @@ class ChannelViewModelTest {
     fun `formats durations like the player`() {
         assertEquals("3:42:10", formatDuration(13_330))
         assertEquals("0:58", formatDuration(58))
+    }
+
+    @Test
+    fun `the follow button opens the QR, and closing it reads the follow mark again`() = runTest {
+        val repository = FakeChannelRepository(AppResult.Success(page.copy(isFollowedByViewer = false)))
+        val viewModel = ChannelViewModel("sasavot", auth, repository)
+
+        viewModel.onFollowClick()
+        assertEquals(true, (viewModel.uiState.value as ChannelUiState.Content).followDialog)
+
+        // Followed on the phone meanwhile.
+        repository.result = AppResult.Success(page)
+        viewModel.onFollowDialogClosed()
+
+        assertEquals(ChannelUiState.Content(page, followDialog = false), viewModel.uiState.value)
+        assertEquals(2, repository.requests.size)
+    }
+
+    @Test
+    fun `a failed refresh after the QR keeps the page`() = runTest {
+        val repository = FakeChannelRepository(AppResult.Success(page))
+        val viewModel = ChannelViewModel("sasavot", auth, repository)
+        viewModel.onFollowClick()
+
+        repository.result = AppResult.Failure(AppError.Network)
+        viewModel.onFollowDialogClosed()
+
+        assertEquals(ChannelUiState.Content(page), viewModel.uiState.value)
+    }
+
+    @Test
+    fun `the QR leads to the channel on twitch tv`() {
+        assertEquals("https://www.twitch.tv/sasavot", channelUrl("sasavot"))
     }
 }

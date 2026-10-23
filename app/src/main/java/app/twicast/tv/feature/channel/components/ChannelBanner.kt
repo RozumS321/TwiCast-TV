@@ -24,11 +24,11 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import app.twicast.tv.R
 import app.twicast.tv.core.designsystem.component.LiveBadge
 import app.twicast.tv.core.designsystem.component.TwiPrimaryButton
+import app.twicast.tv.core.designsystem.component.TwiSecondaryButton
 import app.twicast.tv.core.designsystem.component.requestInitialFocus
 import app.twicast.tv.core.designsystem.format.formatViewerCount
 import app.twicast.tv.core.designsystem.format.formatViewersLabel
@@ -41,15 +41,14 @@ import coil3.compose.AsyncImage
 
 private const val OfflineAvatarAlpha = 0.75f
 private const val OfflineSaturation = 0.4f
-private const val TagBackgroundAlpha = 0.16f
 
 /**
  * Channel header (mockup "Канал"): the channel's offline image as a banner under a dark plate, avatar,
- * name, status line, the watch button and the "В подписках" mark.
+ * name, status line, the watch button and "Подписаться" / "В подписках" ([onFollow] opens the QR to do it).
  * [onWatch] is null when there is nothing to play (offline and no recordings).
  */
 @Composable
-fun ChannelBanner(channel: ChannelPage, onWatch: (() -> Unit)?, modifier: Modifier = Modifier) {
+fun ChannelBanner(channel: ChannelPage, onWatch: (() -> Unit)?, onFollow: () -> Unit, modifier: Modifier = Modifier) {
     val colors = TwiTheme.colors
     Box(
         contentAlignment = Alignment.BottomStart,
@@ -86,7 +85,13 @@ fun ChannelBanner(channel: ChannelPage, onWatch: (() -> Unit)?, modifier: Modifi
                         modifier = Modifier.requestInitialFocus(),
                     )
                 }
-                if (channel.isFollowedByViewer) FollowingMark()
+                TwiSecondaryButton(
+                    text = stringResource(if (channel.isFollowedByViewer) R.string.channel_following else R.string.channel_follow),
+                    onClick = onFollow,
+                    icon = if (channel.isFollowedByViewer) TwiIcons.Check else TwiIcons.Plus,
+                    // Nothing to watch: the follow button is the way in.
+                    modifier = if (onWatch == null) Modifier.requestInitialFocus() else Modifier,
+                )
             }
         }
     }
@@ -144,22 +149,5 @@ private fun BannerAvatar(avatarUrl: String?, live: Boolean) {
                 modifier = Modifier.fillMaxSize(),
             )
         }
-    }
-}
-
-/** Read-only: Twitch no longer lets third-party apps follow or unfollow, so this only shows the state. */
-@Composable
-private fun FollowingMark() {
-    val colors = TwiTheme.colors
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(TwiDimens.KeySpacing),
-        modifier = Modifier
-            .height(TwiDimens.ChannelTagHeight)
-            .background(colors.onOverlay.copy(alpha = TagBackgroundAlpha), TwiShapes.Chip)
-            .padding(horizontal = TwiDimens.BadgePillHorizontalPadding),
-    ) {
-        Icon(TwiIcons.Check, contentDescription = null, tint = colors.onOverlay, modifier = Modifier.size(TwiDimens.NotesBadgeIconSize))
-        Text(stringResource(R.string.channel_following), style = TwiTheme.typography.chip, color = colors.onOverlay)
     }
 }
