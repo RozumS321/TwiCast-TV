@@ -99,12 +99,12 @@ class PlayerViewModel internal constructor(
             val preferred = settings.preferredQuality()
             val engine = settings.playerEngine.first()
             val openChat = settings.openChatWithStream.first()
-            // A ceiling from Settings ("720p") is not a quality the player knows: it caps the height instead,
-            // together with the low-memory cap, whichever is lower.
+            // A ceiling from Settings ("720p") is not a quality the player knows: it also caps the height (with the
+            // low-memory cap, whichever is lower), and the TwiCast player picks the best quality under it.
             val ceiling = qualityCeiling(preferred)
             _uiState.update {
                 it.copy(
-                    preferredQualityId = preferred.takeIf { ceiling == null },
+                    preferredQualityId = preferred,
                     maxVideoHeight = lowerOf(it.maxVideoHeight, ceiling),
                     chatVisible = openChat && it.channel.isLive,
                 )
