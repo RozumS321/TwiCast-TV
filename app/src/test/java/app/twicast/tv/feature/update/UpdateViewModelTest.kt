@@ -20,13 +20,22 @@ import java.io.File
 private fun release(code: Int, notes: ReleaseNotes = ReleaseNotes(listOf("Чат"), emptyList(), emptyList())) =
     AppRelease(code, "0.1.$code", notes, "https://example.test/$code.apk", apkSizeBytes = 1_000)
 
+private fun notes(added: List<String> = emptyList(), fixed: List<String> = emptyList(), improved: List<String> = emptyList()) =
+    ReleaseNotes(added, fixed, improved)
+
 private class FakeUpdateRepository : UpdateRepository {
     var latest: AppResult<AppRelease?> = AppResult.Success(null)
-    var byVersion: Map<String, AppRelease> = emptyMap()
+    var all: List<AppRelease> = emptyList()
+    var listFails = false
     var lastSeen: Int? = null
 
     override suspend fun latestRelease() = latest
-    override suspend fun release(versionName: String): AppResult<AppRelease?> = AppResult.Success(byVersion[versionName])
+    override suspend fun releasesBetween(afterVersionCode: Int, upToVersionCode: Int): AppResult<List<AppRelease>> =
+        if (listFails) {
+            AppResult.Failure(AppError.Network)
+        } else {
+            AppResult.Success(all.filter { it.versionCode in (afterVersionCode + 1)..upToVersionCode }.sortedByDescending { it.versionCode })
+        }
     override suspend fun lastSeenVersionCode() = lastSeen
     override suspend fun setLastSeenVersionCode(versionCode: Int) {
         lastSeen = versionCode
@@ -86,7 +95,7 @@ class UpdateViewModelTest {
     @Test
     fun `first start after an update shows what's new once`() = runTest(mainRule.dispatcher) {
         repository.lastSeen = 9
-        repository.byVersion = mapOf("0.1.10" to release(10))
+        repository.all = listOf(release(10))
         assertEquals(UpdateUiState.WhatsNew(release(10)), viewModel().uiState.value)
         assertEquals(10, repository.lastSeen)
         assertEquals("not again on the next start", UpdateUiState.Hidden, viewModel().uiState.value)
@@ -94,8 +103,43 @@ class UpdateViewModelTest {
 
     @Test
     fun `the very first install shows nothing`() = runTest(mainRule.dispatcher) {
-        repository.byVersion = mapOf("0.1.10" to release(10))
+        repository.all = listOf(release(10))
         assertEquals(UpdateUiState.Hidden, viewModel().uiState.value)
+    }
+
+    @Test
+    fun `what's new after a jump lists every skipped version, newest first`() = runTest(mainRule.dispatcher) {
+        repository.lastSeen = 7
+        repository.all = listOf(
+            release(7, notes(added = listOf("Уже было"))),
+            release(8, notes(added = listOf("Чат"), fixed = listOf("Звук"))),
+            release(9, notes(improved = listOf("Скорость"))),
+            release(10, notes(added = listOf("Поиск", "Чат"))),
+        )
+        val whatsNew = viewModel().uiState.value as UpdateUiState.WhatsNew
+        assertEquals(10, whatsNew.release.versionCode)
+        assertEquals(notes(added = listOf("Поиск", "Чат"), fixed = listOf("Звук"), improved = listOf("Скорость")), whatsNew.release.notes)
+    }
+
+    @Test
+    fun `the offer lists every version between installed and latest`() = runTest(mainRule.dispatcher) {
+        repository.lastSeen = 10
+        repository.latest = AppResult.Success(release(12, notes(fixed = listOf("Плеер"))))
+        repository.all = listOf(
+            release(10, notes(added = listOf("Уже установлено"))),
+            release(11, notes(added = listOf("Темы"))),
+            release(12, notes(fixed = listOf("Плеер"))),
+        )
+        val available = viewModel().uiState.value as UpdateUiState.Available
+        assertEquals(notes(added = listOf("Темы"), fixed = listOf("Плеер")), available.release.notes)
+    }
+
+    @Test
+    fun `without the release list the offer keeps the latest notes`() = runTest(mainRule.dispatcher) {
+        repository.lastSeen = 10
+        repository.latest = AppResult.Success(release(12))
+        repository.listFails = true
+        assertEquals(UpdateUiState.Available(release(12), "0.1.10"), viewModel().uiState.value)
     }
 
     @Test
@@ -159,6 +203,17 @@ class ReleaseNotesTest {
         assertEquals(listOf("Подписки в эфире", "Голосовой поиск"), notes.added)
         assertEquals(listOf("Качество после рекламы"), notes.fixed)
         assertEquals(emptyList<String>(), notes.improved)
+    }
+
+    @Test
+    fun `merge keeps the order given and drops repeated lines`() {
+        val merged = ReleaseNotes.merge(
+            listOf(
+                ReleaseNotes(listOf("Б"), listOf("Звук"), emptyList()),
+                ReleaseNotes(listOf("А", "Б"), listOf("Звук"), listOf("Скорость")),
+            ),
+        )
+        assertEquals(ReleaseNotes(listOf("Б", "А"), listOf("Звук"), listOf("Скорость")), merged)
     }
 
     @Test

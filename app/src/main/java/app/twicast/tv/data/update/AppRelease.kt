@@ -15,6 +15,13 @@ data class ReleaseNotes(
         private const val FixedTitle = "Исправлено"
         private const val ImprovedTitle = "Улучшено"
 
+        /** One list for several releases (pass them newest first); a line repeated across releases is kept once. */
+        fun merge(notes: List<ReleaseNotes>) = ReleaseNotes(
+            added = notes.flatMap { it.added }.distinct(),
+            fixed = notes.flatMap { it.fixed }.distinct(),
+            improved = notes.flatMap { it.improved }.distinct(),
+        )
+
         /** Parses the release body; unknown sections and free text are ignored. */
         fun parse(markdown: String): ReleaseNotes {
             val sections = mutableMapOf<String, MutableList<String>>()

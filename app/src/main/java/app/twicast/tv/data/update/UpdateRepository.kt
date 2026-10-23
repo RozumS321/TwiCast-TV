@@ -18,13 +18,20 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val ApkExtension = ".apk"
+private const val ReleasesPerPage = 100
+
+// A bound on requests to the unauthenticated API (60/hour): 1000 releases back is far beyond any real skip.
+private const val MaxReleasePages = 10
 
 interface UpdateRepository {
     /** Latest published release, or null if it has no APK or a foreign tag. */
     suspend fun latestRelease(): AppResult<AppRelease?>
 
-    /** Release of a given version (for "what's new" after an update). */
-    suspend fun release(versionName: String): AppResult<AppRelease?>
+    /**
+     * Releases with versionCode in (afterVersionCode, upToVersionCode], newest first:
+     * every version a user skipped when jumping from one build to another.
+     */
+    suspend fun releasesBetween(afterVersionCode: Int, upToVersionCode: Int): AppResult<List<AppRelease>>
 
     /** versionCode the app ran with last time; null on the first run. */
     suspend fun lastSeenVersionCode(): Int?
@@ -48,18 +55,38 @@ class GitHubUpdateRepository @Inject constructor(
     override suspend fun latestRelease(): AppResult<AppRelease?> =
         runCatchingRemote { api.latestRelease(owner, repo).toModel() }
 
-    override suspend fun release(versionName: String): AppResult<AppRelease?> =
-        runCatchingRemote { api.releaseByTag(owner, repo, "v$versionName").toModel() }
+    override suspend fun releasesBetween(afterVersionCode: Int, upToVersionCode: Int): AppResult<List<AppRelease>> =
+        runCatchingRemote { api.releasesBetween(owner, repo, afterVersionCode, upToVersionCode) }
 
     override suspend fun lastSeenVersionCode(): Int? = dataStore.data.map { it[lastSeenKey] }.first()
 
     override suspend fun setLastSeenVersionCode(versionCode: Int) {
         dataStore.edit { it[lastSeenKey] = versionCode }
     }
+}
 
-    private fun GitHubReleaseDto.toModel(): AppRelease? {
-        val (versionCode, versionName) = AppRelease.parseTag(tagName) ?: return null
-        val apk = assets.firstOrNull { it.name.endsWith(ApkExtension) } ?: return null
-        return AppRelease(versionCode, versionName, ReleaseNotes.parse(body.orEmpty()), apk.downloadUrl, apk.size)
+/** Pages through the release list (newest first) only as far back as [afterVersionCode]. */
+internal suspend fun GitHubReleasesApi.releasesBetween(
+    owner: String,
+    repo: String,
+    afterVersionCode: Int,
+    upToVersionCode: Int,
+): List<AppRelease> {
+    val listed = mutableListOf<AppRelease>()
+    for (page in 1..MaxReleasePages) {
+        val pageReleases = releases(owner, repo, ReleasesPerPage, page)
+        pageReleases.mapNotNullTo(listed) { it.toModel() }
+        val reachedRangeStart = listed.any { it.versionCode <= afterVersionCode }
+        if (pageReleases.size < ReleasesPerPage || reachedRangeStart) break
     }
+    return listed
+        .filter { it.versionCode in (afterVersionCode + 1)..upToVersionCode }
+        .distinctBy { it.versionCode }
+        .sortedByDescending { it.versionCode }
+}
+
+private fun GitHubReleaseDto.toModel(): AppRelease? {
+    val (versionCode, versionName) = AppRelease.parseTag(tagName) ?: return null
+    val apk = assets.firstOrNull { it.name.endsWith(ApkExtension) } ?: return null
+    return AppRelease(versionCode, versionName, ReleaseNotes.parse(body.orEmpty()), apk.downloadUrl, apk.size)
 }

@@ -4,6 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import retrofit2.http.GET
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 /** https://api.github.com — public releases of the app's own repository (no token: 60 requests/hour per IP). */
 interface GitHubReleasesApi {
@@ -11,12 +12,14 @@ interface GitHubReleasesApi {
     @GET("repos/{owner}/{repo}/releases/latest")
     suspend fun latestRelease(@Path("owner") owner: String, @Path("repo") repo: String): GitHubReleaseDto
 
-    @GET("repos/{owner}/{repo}/releases/tags/{tag}")
-    suspend fun releaseByTag(
+    /** Newest first; [page] starts at 1, [perPage] is at most 100. */
+    @GET("repos/{owner}/{repo}/releases")
+    suspend fun releases(
         @Path("owner") owner: String,
         @Path("repo") repo: String,
-        @Path("tag") tag: String,
-    ): GitHubReleaseDto
+        @Query("per_page") perPage: Int,
+        @Query("page") page: Int,
+    ): List<GitHubReleaseDto>
 }
 
 @Serializable
