@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_search">Пошук</string>
+    <string name="nav_home">Головна</string>
+    <string name="nav_categories">Категорії</string>
+    <string name="nav_following">Підписки</string>
+    <string name="nav_profile">Профіль</string>
+
+    <string name="badge_live">LIVE</string>
+    <string name="action_watch">Дивитися</string>
+    <string name="action_channel">Канал</string>
+    <string name="action_retry">Повторити</string>
+    <string name="action_back">Назад</string>
+    <string name="action_sign_out">Вийти з акаунта</string>
+
+    <string name="home_greeting">З поверненням, %s</string>
+    <plurals name="home_followed_live">
+        <item quantity="one">%d канал із підписок зараз в ефірі</item>
+        <item quantity="few">%d канали з підписок зараз в ефірі</item>
+        <item quantity="many">%d каналів із підписок зараз в ефірі</item>
+        <item quantity="other">%d каналу з підписок зараз в ефірі</item>
+    </plurals>
+    <string name="home_followed_none">Ніхто з підписок зараз не в ефірі</string>
+    <string name="home_row_followed">В ефірі з ваших підписок</string>
+    <string name="home_row_followed_hint">оновлено щойно</string>
+    <string name="home_row_recommended">Рекомендації</string>
+    <string name="home_row_recommended_hint">за вашими категоріями</string>
+    <string name="home_row_regional">Популярне в регіоні</string>
+
+</resources>

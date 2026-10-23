@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="count_thousands">%s тис</string>
+    <string name="count_millions">%s млн</string>
+    <plurals name="viewers">
+        <item quantity="one">%s глядач</item>
+        <item quantity="few">%s глядачі</item>
+        <item quantity="many">%s глядачів</item>
+        <item quantity="other">%s глядача</item>
+    </plurals>
+    <string name="uptime_hours">%d год в ефірі</string>
+    <string name="uptime_minutes">%d хв в ефірі</string>
+
+    <string name="error_title">Не вдалося завантажити</string>
+    <string name="error_network">Немає з’єднання з інтернетом. Перевірте мережу та спробуйте ще раз.</string>
+    <string name="error_rate_limited">Забагато запитів до Twitch. Зачекайте хвилину.</string>
+    <string name="error_unauthorized">Сесія Twitch закінчилася. Увійдіть знову.</string>
+    <string name="error_not_configured">Не задано Client ID Twitch: впишіть twitch.clientId у local.properties і перезберіть.</string>
+    <string name="error_not_found">Нічого не знайдено.</string>
+    <string name="error_unknown">Щось пішло не так. Спробуйте ще раз.</string>
+    <string name="empty_streams">Зараз ніхто не в ефірі.</string>
+</resources>

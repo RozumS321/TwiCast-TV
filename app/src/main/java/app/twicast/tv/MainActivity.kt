@@ -1,6 +1,7 @@
 package app.twicast.tv
 
 import android.app.UiModeManager
+import android.content.Context
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
@@ -14,8 +15,10 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.twicast.tv.core.designsystem.theme.TwiCastTheme
 import app.twicast.tv.core.designsystem.theme.TwiTheme
+import app.twicast.tv.core.locale.withAppLanguage
 import app.twicast.tv.data.model.ThemeMode
 import app.twicast.tv.data.repository.AppearanceSettingsRepository
+import app.twicast.tv.data.repository.SharedPreferencesLanguageSettingsRepository
 import app.twicast.tv.navigation.TwiCastApp
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -24,6 +27,12 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
 
     @Inject lateinit var appearanceSettings: AppearanceSettingsRepository
+
+    // Runs before Hilt injects anything, so the language store is created by hand here.
+    override fun attachBaseContext(newBase: Context) {
+        val language = SharedPreferencesLanguageSettingsRepository(newBase.applicationContext).language()
+        super.attachBaseContext(newBase.withAppLanguage(language))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

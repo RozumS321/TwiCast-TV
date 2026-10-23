@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="categories_subtitle">По числу зрителей сейчас</string>
+    <string name="categories_filter_all">Все</string>
+    <string name="categories_filter_games">Игры</string>
+    <string name="categories_filter_irl">IRL</string>
+    <string name="categories_filter_music">Музыка</string>
+    <string name="categories_filter_creative">Творчество</string>
+    <string name="categories_empty_filter">Среди загруженных категорий в этом разделе ничего нет.</string>
+
+    <string name="category_streams_back">Назад к категориям</string>
+    <string name="category_streams_all_languages">Все языки</string>
+    <string name="category_streams_empty">В этой категории сейчас никто не в эфире на выбранном языке.</string>
+
+    <string name="search_space">Пробел</string>
+    <string name="search_erase">Стереть</string>
+    <string name="search_voice">Голосовой поиск</string>
+    <string name="search_voice_prompt">Скажите имя канала или категории</string>
+    <string name="search_channels">Каналы</string>
+    <string name="search_categories">Категории</string>
+    <string name="search_offline">Офлайн</string>
+    <string name="search_hint">Наберите имя канала или категории — результаты появятся сразу.</string>
+    <string name="search_no_results">Ничего не нашлось. Попробуйте другое написание.</string>
+</resources>

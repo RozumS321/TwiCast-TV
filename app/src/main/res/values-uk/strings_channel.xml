@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_watch_live">Дивитися ефір</string>
+    <string name="channel_watch_last">Остання трансляція</string>
+    <string name="channel_following">У підписках</string>
+    <string name="channel_offline">Офлайн</string>
+    <string name="channel_last_live">був в ефірі %s</string>
+    <plurals name="channel_followers">
+        <item quantity="one">%s підписник</item>
+        <item quantity="few">%s підписники</item>
+        <item quantity="many">%s підписників</item>
+        <item quantity="other">%s підписника</item>
+    </plurals>
+    <plurals name="channel_views">
+        <item quantity="one">%s перегляд</item>
+        <item quantity="few">%s перегляди</item>
+        <item quantity="many">%s переглядів</item>
+        <item quantity="other">%s перегляду</item>
+    </plurals>
+    <string name="channel_videos">Останні трансляції</string>
+    <string name="channel_videos_hint">записи ефірів</string>
+    <string name="channel_clips">Популярні кліпи</string>
+    <string name="channel_clips_hint">за 30 днів</string>
+    <string name="channel_about">Інформація</string>
+    <string name="channel_no_media">У каналу поки немає записів ефірів і кліпів.</string>
+</resources>

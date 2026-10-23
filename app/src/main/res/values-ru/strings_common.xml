@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="count_thousands">%s тыс</string>
+    <string name="count_millions">%s млн</string>
+    <plurals name="viewers">
+        <item quantity="one">%s зритель</item>
+        <item quantity="few">%s зрителя</item>
+        <item quantity="many">%s зрителей</item>
+        <item quantity="other">%s зрителей</item>
+    </plurals>
+    <string name="uptime_hours">%d ч в эфире</string>
+    <string name="uptime_minutes">%d мин в эфире</string>
+
+    <string name="error_title">Не удалось загрузить</string>
+    <string name="error_network">Нет соединения с интернетом. Проверьте сеть и попробуйте ещё раз.</string>
+    <string name="error_rate_limited">Слишком много запросов к Twitch. Подождите минуту.</string>
+    <string name="error_unauthorized">Сессия Twitch истекла. Войдите снова.</string>
+    <string name="error_not_configured">Не задан Client ID Twitch: впишите twitch.clientId в local.properties и пересоберите.</string>
+    <string name="error_not_found">Ничего не найдено.</string>
+    <string name="error_unknown">Что-то пошло не так. Попробуйте ещё раз.</string>
+    <string name="empty_streams">Сейчас никто не в эфире.</string>
+</resources>

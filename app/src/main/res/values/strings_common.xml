@@ -1,22 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="count_thousands">%s тыс</string>
-    <string name="count_millions">%s млн</string>
+    <string name="count_thousands">%sK</string>
+    <string name="count_millions">%sM</string>
     <plurals name="viewers">
-        <item quantity="one">%s зритель</item>
-        <item quantity="few">%s зрителя</item>
-        <item quantity="many">%s зрителей</item>
-        <item quantity="other">%s зрителей</item>
+        <item quantity="one">%s viewer</item>
+        <item quantity="other">%s viewers</item>
     </plurals>
-    <string name="uptime_hours">%d ч в эфире</string>
-    <string name="uptime_minutes">%d мин в эфире</string>
+    <string name="uptime_hours">live for %d h</string>
+    <string name="uptime_minutes">live for %d min</string>
 
-    <string name="error_title">Не удалось загрузить</string>
-    <string name="error_network">Нет соединения с интернетом. Проверьте сеть и попробуйте ещё раз.</string>
-    <string name="error_rate_limited">Слишком много запросов к Twitch. Подождите минуту.</string>
-    <string name="error_unauthorized">Сессия Twitch истекла. Войдите снова.</string>
-    <string name="error_not_configured">Не задан Client ID Twitch: впишите twitch.clientId в local.properties и пересоберите.</string>
-    <string name="error_not_found">Ничего не найдено.</string>
-    <string name="error_unknown">Что-то пошло не так. Попробуйте ещё раз.</string>
-    <string name="empty_streams">Сейчас никто не в эфире.</string>
+    <string name="error_title">Couldn\'t load</string>
+    <string name="error_network">No internet connection. Check your network and try again.</string>
+    <string name="error_rate_limited">Too many requests to Twitch. Wait a minute.</string>
+    <string name="error_unauthorized">Your Twitch session has expired. Sign in again.</string>
+    <string name="error_not_configured">Twitch Client ID is missing: set twitch.clientId in local.properties and rebuild.</string>
+    <string name="error_not_found">Nothing found.</string>
+    <string name="error_unknown">Something went wrong. Try again.</string>
+    <string name="empty_streams">Nobody is live right now.</string>
 </resources>

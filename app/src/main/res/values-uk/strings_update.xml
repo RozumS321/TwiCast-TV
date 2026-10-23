@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="update_overline_available">Доступне оновлення</string>
+    <string name="update_overline_downloading">Оновлення</string>
+    <string name="update_overline_whats_new">Що нового</string>
+    <string name="update_title">TwiCast TV %s</string>
+    <string name="update_title_installed">Ви оновилися до %s</string>
+    <string name="update_subtitle">Зараз встановлено %1$s · %2$s</string>
+    <string name="update_subtitle_installed">Ось що змінилося з минулої версії</string>
+    <string name="update_installed_badge">Встановлено</string>
+
+    <string name="update_section_added">Нове</string>
+    <string name="update_section_fixed">Виправлено</string>
+    <string name="update_section_improved">Покращено</string>
+
+    <string name="update_action_update">Оновити</string>
+    <string name="update_action_later">Пізніше</string>
+    <string name="update_action_cancel">Скасувати</string>
+    <string name="update_action_ok">Чудово</string>
+    <string name="update_action_retry">Повторити</string>
+    <string name="update_action_allow">Дозволити встановлення</string>
+
+    <string name="update_footnote_available">Встановлення займе близько хвилини</string>
+    <string name="update_footnote_downloading">Не вимикайте телевізор, поки триває завантаження</string>
+    <string name="update_footnote_installed">Повний список — на сторінці релізу в GitHub</string>
+    <string name="update_footnote_failed">Не вдалося завантажити оновлення. Перевірте мережу.</string>
+    <string name="update_footnote_permission">Дозвольте TwiCast TV встановлювати застосунки, потім поверніться сюди</string>
+
+    <string name="update_downloading">Завантажуємо оновлення…</string>
+    <string name="update_progress">%1$s з %2$s · %3$d%%</string>
+    <string name="update_megabytes">%s МБ</string>
+    <plurals name="update_more_items">
+        <item quantity="one">і ще %d</item>
+        <item quantity="few">і ще %d</item>
+        <item quantity="many">і ще %d</item>
+        <item quantity="other">і ще %d</item>
+    </plurals>
+</resources>

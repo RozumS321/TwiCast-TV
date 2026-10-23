@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Настройки</string>
+    <string name="settings_player">Плеер</string>
+    <string name="settings_player_twicast">TwiCast player</string>
+    <string name="settings_player_twicast_tag">Рекомендуем</string>
+    <string name="settings_player_twicast_text">Свой плеер: быстро запускается и легко работает даже на слабых телевизорах.</string>
+    <string name="settings_player_twicast_note">Качество, пауза и чат — как обычно</string>
+    <string name="settings_player_twitch">Twitch player</string>
+    <string name="settings_player_twitch_tag">Официальный</string>
+    <string name="settings_player_twitch_text">Официальный плеер Twitch. Медленнее и может не работать на слабых телевизорах.</string>
+    <string name="settings_player_twitch_note">Запасной вариант, если свой плеер не работает</string>
+    <string name="settings_player_footer">Применяется со следующего открытия стрима. Если видео не идёт, переключитесь на другой плеер.</string>
+    <string name="settings_theme">Оформление</string>
+    <string name="settings_theme_hint">«Как в системе» берёт тему телевизора; если её нет — светлая</string>
+    <string name="settings_theme_system">Как в системе</string>
+    <string name="settings_theme_light">Светлая</string>
+    <string name="settings_theme_dark">Тёмная</string>
+    <string name="settings_language">Язык</string>
+</resources>
