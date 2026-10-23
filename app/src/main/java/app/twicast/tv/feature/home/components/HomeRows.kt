@@ -23,8 +23,10 @@ import app.twicast.tv.data.model.Stream
 import kotlinx.collections.immutable.ImmutableList
 
 /** Below the title: 12 (mockup); bottom: room for the focused card's scale and shadow. */
+// The row itself starts just short of the content line and clips there: scrolled cards leave a gap to the sidebar
+// instead of sliding up to it, and the inset is room for the first card's focus scale.
 private val RowPadding = PaddingValues(
-    start = TwiDimens.ContentStartPadding,
+    start = TwiDimens.GridFocusInset,
     end = TwiDimens.ContentEndPadding,
     top = TwiDimens.HomeRowTitleSpacing,
     bottom = TwiDimens.FocusOverflowPadding,
@@ -51,7 +53,7 @@ fun StreamRow(
             contentPadding = RowPadding,
             horizontalArrangement = Arrangement.spacedBy(TwiDimens.HomeCardSpacing),
             // Coming back to the row lands on the card that was focused last.
-            modifier = Modifier.focusRestorer(),
+            modifier = Modifier.padding(start = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset).focusRestorer(),
         ) {
             itemsIndexed(streams, key = { _, it -> it.id }, contentType = { _, _ -> "stream" }) { index, stream ->
                 StreamCard(

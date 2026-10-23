@@ -51,8 +51,10 @@ private const val SkeletonCards = 5
 private const val SecondsInMinute = 60
 private const val SecondsInHour = 3600
 
+// The row itself starts just short of the content line and clips there: scrolled cards leave a gap to the sidebar
+// instead of sliding up to it, and the inset is room for the first card's focus scale.
 private val RowPadding = PaddingValues(
-    start = TwiDimens.ContentStartPadding,
+    start = TwiDimens.GridFocusInset,
     end = TwiDimens.ContentEndPadding,
     top = TwiDimens.HomeRowTitleSpacing,
     bottom = TwiDimens.FocusOverflowPadding,
@@ -208,7 +210,7 @@ private fun MediaRow(title: String, hint: String, content: androidx.compose.foun
         LazyRow(
             contentPadding = RowPadding,
             horizontalArrangement = Arrangement.spacedBy(TwiDimens.HomeCardSpacing),
-            modifier = Modifier.focusRestorer(),
+            modifier = Modifier.padding(start = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset).focusRestorer(),
             content = content,
         )
     }
