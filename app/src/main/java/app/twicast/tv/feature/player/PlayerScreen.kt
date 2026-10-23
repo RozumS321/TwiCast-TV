@@ -31,7 +31,6 @@ import app.twicast.tv.core.designsystem.theme.TwiDimens
 import app.twicast.tv.core.designsystem.theme.TwiShapes
 import app.twicast.tv.core.designsystem.theme.TwiTheme
 import app.twicast.tv.data.model.PlayerEngine
-import app.twicast.tv.feature.player.components.ChatPanel
 import app.twicast.tv.feature.player.components.NativePlayerController
 import app.twicast.tv.feature.player.components.NativeStreamView
 import app.twicast.tv.feature.player.components.PlaybackController
@@ -62,6 +61,8 @@ fun PlayerScreen(
     onOpenChannel: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    /** The chat panel; composed (and connected) only while the chat is open. */
+    chat: @Composable (Modifier) -> Unit = {},
 ) {
     val rootFocus = remember { FocusRequester() }
     BackHandler(enabled = state.overlay != PlayerOverlay.Hidden || state.chatVisible, onBack = onBack)
@@ -69,8 +70,6 @@ fun PlayerScreen(
     LaunchedEffect(state.overlay) { if (state.overlay == PlayerOverlay.Hidden) rootFocus.requestFocus() }
     val twiCast = state.engine == PlayerEngine.TwiCast
     val controller: PlaybackController = if (twiCast) nativeController else embedController
-    // The embed draws the chat inside its page; the TwiCast player gets a panel of its own below.
-    if (!twiCast) ChatSync(state.chatVisible, embedController)
 
     Box(
         modifier = modifier
@@ -95,9 +94,11 @@ fun PlayerScreen(
             .focusable(),
     ) {
         val streamUrl = state.streamUrl
-        when {
+        Row(Modifier.fillMaxSize()) {
+            val video = Modifier.weight(1f).fillMaxHeight()
+            when {
             !state.canPlay || !state.settingsLoaded -> Unit
-            twiCast && streamUrl != null -> Row(Modifier.fillMaxSize()) {
+            twiCast && streamUrl != null ->
                 NativeStreamView(
                     url = streamUrl,
                     isLive = state.channel.isLive,
@@ -107,17 +108,8 @@ fun PlayerScreen(
                     maxVideoHeight = state.maxVideoHeight,
                     controller = nativeController,
                     listener = listener,
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    modifier = video,
                 )
-                if (state.chatVisible) {
-                    ChatPanel(
-                        channelLogin = state.channel.channelLogin,
-                        title = stringResource(R.string.player_chat_title),
-                        hint = stringResource(R.string.player_chat_read_only),
-                        modifier = Modifier.width(TwiDimens.PlayerChatWidth).fillMaxHeight(),
-                    )
-                }
-            }
             !twiCast -> key(state.embedAttempt) {
                 // A new attempt after a renderer crash: a fresh WebView (a dead one cannot be reused).
                 TwitchEmbedView(
@@ -128,11 +120,14 @@ fun PlayerScreen(
                     maxVideoHeight = state.maxVideoHeight,
                     controller = embedController,
                     listener = listener,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = video,
                 )
             }
+            }
+            // The same chat for both players: our own, next to the video.
+            if (state.chatVisible) chat(Modifier.width(TwiDimens.PlayerChatWidth).fillMaxHeight())
         }
-        if (state.status != PlaybackStatus.Playing) {
+        if (state.status != PlaybackStatus.Playing || state.adBreak) {
             StatusPlate(state, Modifier.align(Alignment.TopStart).padding(TwiDimens.PlayerOverlayPadding))
         }
         when (state.overlay) {
@@ -155,14 +150,6 @@ fun PlayerScreen(
     }
 }
 
-/** The chat lives inside the embed page; keep it in step with the state. */
-@Composable
-private fun ChatSync(visible: Boolean, controller: TwitchEmbedController) {
-    val title = stringResource(R.string.player_chat_title)
-    val hint = stringResource(R.string.player_chat_read_only)
-    LaunchedEffect(visible) { controller.setChatVisible(visible, title, hint) }
-}
-
 @Composable
 private fun StatusPlate(state: PlayerUiState, modifier: Modifier) {
     Column(
@@ -174,11 +161,14 @@ private fun StatusPlate(state: PlayerUiState, modifier: Modifier) {
         Text(state.channel.channelName, style = TwiTheme.typography.channelName, color = TwiTheme.colors.onOverlay)
         Text(
             text = stringResource(
-                when (state.status) {
-                    PlaybackStatus.Loading, PlaybackStatus.Playing -> R.string.player_loading
-                    PlaybackStatus.Paused -> R.string.player_paused
-                    PlaybackStatus.Offline -> R.string.player_offline
-                    PlaybackStatus.Error -> R.string.player_error
+                when {
+                    state.adBreak && state.status == PlaybackStatus.Playing -> R.string.player_ad_break
+                    else -> when (state.status) {
+                        PlaybackStatus.Loading, PlaybackStatus.Playing -> R.string.player_loading
+                        PlaybackStatus.Paused -> R.string.player_paused
+                        PlaybackStatus.Offline -> R.string.player_offline
+                        PlaybackStatus.Error -> R.string.player_error
+                    }
                 },
             ),
             style = TwiTheme.typography.bodySmall,

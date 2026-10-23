@@ -1,66 +1,89 @@
 package app.twicast.tv.feature.player.components
 
-import android.annotation.SuppressLint
-import android.graphics.Color
-import android.net.Uri
-import android.view.ViewGroup
-import android.webkit.CookieManager
-import android.webkit.RenderProcessGoneDetail
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.webkit.WebViewAssetLoader
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
+import androidx.tv.material3.Text
+import app.twicast.tv.R
+import app.twicast.tv.core.designsystem.theme.TwiDimens
+import app.twicast.tv.core.designsystem.theme.TwiTheme
+import app.twicast.tv.data.repository.ChatMessage
+import kotlinx.collections.immutable.ImmutableList
+import kotlin.math.absoluteValue
 
-private const val ChatPageUrl = "https://${WebViewAssetLoader.DEFAULT_DOMAIN}/assets/player/chat.html"
+/** Names without a Twitch color get one of the mockup's, stable per name. */
+private val FallbackNameColors = listOf(Color(0xFF9146FF), Color(0xFF1D9E75), Color(0xFFD85A30), Color(0xFF378ADD))
+
+/** Light Twitch colors (yellow, cyan) are unreadable on the white panel: darken them. */
+private const val MaxNameLuminance = 0.5f
+private const val DarkenFraction = 0.45f
 
 /**
- * Read-only chat next to the TwiCast player (mockup "Плеер · чат"): the official chat embed in its own
- * WebView. Created when shown and destroyed when hidden, so a closed chat costs nothing.
+ * Read-only chat next to the video (mockup "Плеер · чат"): colored name, then the text; newest at the bottom.
+ * [messages] come newest first.
  */
-@SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun ChatPanel(channelLogin: String, title: String, hint: String, modifier: Modifier = Modifier) {
-    AndroidView(
-        modifier = modifier,
-        factory = { context ->
-            val assetLoader = WebViewAssetLoader.Builder()
-                .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
-                .build()
-            WebView(context).apply {
-                layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-                setBackgroundColor(Color.WHITE)
-                isFocusable = false
-                isFocusableInTouchMode = false
-                settings.javaScriptEnabled = true
-                settings.domStorageEnabled = true
-                settings.allowFileAccess = false
-                settings.allowContentAccess = false
-                CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
-                webViewClient = object : WebViewClient() {
-                    override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
-                        assetLoader.shouldInterceptRequest(request.url)
+fun ChatPanel(messages: ImmutableList<ChatMessage>, modifier: Modifier = Modifier) {
+    val colors = TwiTheme.colors
+    Column(
+        modifier = modifier
+            .background(colors.surface)
+            .padding(horizontal = TwiDimens.PlayerChatHorizontalPadding, vertical = TwiDimens.PlayerChatVerticalPadding),
+        verticalArrangement = Arrangement.spacedBy(TwiDimens.PlayerChatSpacing),
+    ) {
+        Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.player_chat_title), style = TwiTheme.typography.listTitle, color = colors.onSurface, modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.player_chat_read_only), style = TwiTheme.typography.caption, color = colors.onSurfaceVariant)
+        }
+        if (messages.isEmpty()) {
+            Text(stringResource(R.string.player_chat_connecting), style = TwiTheme.typography.bodySmall, color = colors.onSurfaceVariant)
+        }
+        // Bottom-anchored like any chat: the newest line sits at the bottom and pushes the rest up.
+        LazyColumn(
+            reverseLayout = true,
+            verticalArrangement = Arrangement.spacedBy(TwiDimens.PlayerChatSpacing),
+            contentPadding = PaddingValues(bottom = TwiDimens.PlayerChatSpacing),
+            modifier = Modifier.weight(1f),
+        ) {
+            items(messages, key = { it.id }) { message -> ChatLine(message) }
+        }
+    }
+}
 
-                    // Links in the chat never navigate the panel away.
-                    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
-                        request.isForMainFrame && request.url.host != WebViewAssetLoader.DEFAULT_DOMAIN
-
-                    // A dead renderer only takes the chat down, never the app.
-                    override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean = true
-                }
-                loadUrl(
-                    Uri.parse(ChatPageUrl).buildUpon()
-                        .appendQueryParameter("channel", channelLogin)
-                        .appendQueryParameter("title", title)
-                        .appendQueryParameter("hint", hint)
-                        .build()
-                        .toString(),
-                )
-            }
+@Composable
+private fun ChatLine(message: ChatMessage) {
+    val colors = TwiTheme.colors
+    val nameColor = nameColor(message)
+    Text(
+        text = buildAnnotatedString {
+            withStyle(SpanStyle(color = nameColor, fontWeight = FontWeight.ExtraBold)) { append(message.author) }
+            append(' ')
+            append(message.text)
         },
-        onRelease = { webView -> webView.destroy() },
+        style = TwiTheme.typography.bodySmall,
+        color = colors.onSurfaceSecondary,
     )
+}
+
+private fun nameColor(message: ChatMessage): Color {
+    val color = message.color?.let { Color(it) }
+        ?: FallbackNameColors[message.author.hashCode().absoluteValue % FallbackNameColors.size]
+    return if (color.luminance() > MaxNameLuminance) lerp(color, Color.Black, DarkenFraction) else color
 }

@@ -16,15 +16,18 @@ import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.common.Timeline
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.hls.HlsManifest
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import kotlin.math.roundToInt
 
 private const val HttpNotFound = 404
+private const val LiveSegmentTitle = "live"
 
 /** One selectable video track: what the quality menu shows and how to force it. */
 private class QualityOption(val quality: VideoQuality, val override: TrackSelectionOverride)
@@ -125,6 +128,7 @@ fun NativeStreamView(
 
     DisposableEffect(player) {
         var initialQualityApplied = false
+        var adBreak = false
         fun reportQualities() = currentListener.value.onQualities(controller.qualities(), controller.currentQualityId())
         val callbacks = object : Player.Listener {
             override fun onTracksChanged(tracks: Tracks) {
@@ -134,6 +138,17 @@ fun NativeStreamView(
                     controller.applyInitialQuality(preferredQualityId, maxVideoHeight)
                 }
                 reportQualities()
+            }
+
+            // Twitch titles live segments "live"; anything else at the live edge is an ad (or its slate).
+            override fun onTimelineChanged(timeline: Timeline, reason: Int) {
+                if (!isLive) return
+                val title = (player.currentManifest as? HlsManifest)?.mediaPlaylist?.segments?.lastOrNull()?.title ?: return
+                val nowAd = title.isNotEmpty() && !title.startsWith(LiveSegmentTitle)
+                if (nowAd != adBreak) {
+                    adBreak = nowAd
+                    currentListener.value.onAdBreak(nowAd)
+                }
             }
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {

@@ -154,6 +154,8 @@ class PlayerViewModel internal constructor(
         }
     }
 
+    fun onAdBreak(active: Boolean) = _uiState.update { it.copy(adBreak = active) }
+
     fun onQualities(qualities: List<VideoQuality>, currentId: String) {
         _uiState.update { it.copy(qualities = qualities.toImmutableList(), currentQualityId = currentId.ifEmpty { null }) }
     }

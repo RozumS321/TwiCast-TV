@@ -85,6 +85,9 @@ object TwiDimens {
     val PlayerOverlayPadding = 40.dp
     /** Chat panel next to the TwiCast player (mockup "Плеер · чат"). */
     val PlayerChatWidth = 384.dp
+    val PlayerChatHorizontalPadding = 24.dp
+    val PlayerChatVerticalPadding = 28.dp
+    val PlayerChatSpacing = 14.dp
     val SettingsRadioSize = 22.dp
     val SettingsRadioBorder = 2.dp
     val SettingsRadioDot = 10.dp

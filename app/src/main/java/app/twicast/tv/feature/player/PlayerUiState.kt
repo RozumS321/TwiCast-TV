@@ -30,6 +30,8 @@ data class PlayerUiState(
     val streamUrl: String? = null,
     /** Set after a renderer crash (out of memory on weak TV boxes): the embed keeps quality at or below it. */
     val maxVideoHeight: Int? = null,
+    /** Twitch is in an ad break (TwiCast player): its slate plays, a plate explains it. */
+    val adBreak: Boolean = false,
 ) {
     /** False for a malformed login: the embed is not created at all. */
     val canPlay: Boolean get() = channel.channelLogin.matches(ChannelLoginPattern)

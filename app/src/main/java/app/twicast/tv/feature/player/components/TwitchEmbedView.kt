@@ -72,6 +72,9 @@ interface TwitchEmbedListener {
     fun onStateChanged(state: EmbedState)
     fun onQualities(qualities: List<VideoQuality>, currentId: String)
 
+    /** A Twitch ad break started or ended (TwiCast player): Twitch shows its own slate meanwhile. */
+    fun onAdBreak(active: Boolean) = Unit
+
     /** The page's renderer process died (out of memory on weak boxes); this WebView is dead and gets replaced. */
     fun onRendererGone()
 }

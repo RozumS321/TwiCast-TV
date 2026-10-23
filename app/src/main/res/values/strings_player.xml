@@ -4,6 +4,7 @@
     <string name="player_paused">Пауза · OK — продолжить</string>
     <string name="player_offline">Канал сейчас не в эфире</string>
     <string name="player_error">Не удалось загрузить плеер Twitch</string>
+    <string name="player_ad_break">Реклама на Twitch · стрим продолжится сам</string>
 
     <string name="player_pause">Пауза</string>
     <string name="player_resume">Продолжить</string>
@@ -20,4 +21,5 @@
 
     <string name="player_chat_title">Чат</string>
     <string name="player_chat_read_only">только чтение</string>
+    <string name="player_chat_connecting">Подключаемся к чату…</string>
 </resources>

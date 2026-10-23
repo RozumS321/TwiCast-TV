@@ -4,6 +4,8 @@ import app.twicast.tv.core.device.AndroidDeviceProfile
 import app.twicast.tv.core.device.DeviceProfile
 import app.twicast.tv.data.repository.AuthRepository
 import app.twicast.tv.data.repository.CategoriesRepository
+import app.twicast.tv.data.repository.ChatRepository
+import app.twicast.tv.data.repository.TwitchIrcChatRepository
 import app.twicast.tv.data.repository.ChannelRepository
 import app.twicast.tv.data.repository.DataStorePlayerSettingsRepository
 import app.twicast.tv.data.repository.FollowsRepository
@@ -52,6 +54,9 @@ abstract class DataModule {
 
     @Binds
     abstract fun bindPlaybackRepository(impl: GqlPlaybackRepository): PlaybackRepository
+
+    @Binds
+    abstract fun bindChatRepository(impl: TwitchIrcChatRepository): ChatRepository
 
     @Binds
     abstract fun bindDeviceProfile(impl: AndroidDeviceProfile): DeviceProfile

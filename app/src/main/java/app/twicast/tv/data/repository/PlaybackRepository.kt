@@ -10,6 +10,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.random.Random
@@ -97,6 +98,11 @@ class GqlPlaybackRepository @Inject constructor(private val api: TwitchGqlApi) :
         .addQueryParameter("allow_source", "true")
         .addQueryParameter("playlist_include_framerate", "true")
         .addQueryParameter("player_backend", "mediaplayer")
+        // What twitch.tv itself sends: without these usher treats us as a legacy player.
+        .addQueryParameter("reassignments_supported", "true")
+        .addQueryParameter("fast_bread", "false")
+        .addQueryParameter("cdm", "wv")
+        .addQueryParameter("play_session_id", UUID.randomUUID().toString().replace("-", ""))
         // H.264 only: TV boxes rarely decode Twitch's HEVC/AV1 transcodes in hardware.
         .addQueryParameter("supported_codecs", "avc1")
         .addQueryParameter("p", Random.nextInt(PlayerRandomBound).toString())

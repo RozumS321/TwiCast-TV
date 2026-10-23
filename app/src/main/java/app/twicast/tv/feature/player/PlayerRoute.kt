@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.twicast.tv.data.model.PlayerEngine
+import app.twicast.tv.feature.player.components.ChatPanel
 import app.twicast.tv.feature.player.components.EmbedState
 import app.twicast.tv.feature.player.components.NativePlayerController
 import app.twicast.tv.feature.player.components.PlaybackController
@@ -28,6 +29,7 @@ fun PlayerRoute(onClose: () -> Unit, onOpenChannel: (String) -> Unit, viewModel:
         Log.i(PerfTag, "player opened")
         SingletonImageLoader.get(context).memoryCache?.clear()
     }
+    val chatViewModel: ChatViewModel = hiltViewModel()
     val embedController = remember { TwitchEmbedController() }
     val nativeController = remember { NativePlayerController() }
     val controller: PlaybackController = if (state.engine == PlayerEngine.TwiCast) nativeController else embedController
@@ -36,6 +38,7 @@ fun PlayerRoute(onClose: () -> Unit, onOpenChannel: (String) -> Unit, viewModel:
             override fun onStateChanged(state: EmbedState) = viewModel.onEmbedStateChanged(state)
             override fun onQualities(qualities: List<VideoQuality>, currentId: String) = viewModel.onQualities(qualities, currentId)
             override fun onRendererGone() = viewModel.onRendererGone()
+            override fun onAdBreak(active: Boolean) = viewModel.onAdBreak(active)
         }
     }
     PlayerScreen(
@@ -52,5 +55,9 @@ fun PlayerRoute(onClose: () -> Unit, onOpenChannel: (String) -> Unit, viewModel:
         onToggleChat = viewModel::onToggleChat,
         onOpenChannel = { onOpenChannel(state.channel.channelLogin) },
         onBack = { if (!viewModel.onBack()) onClose() },
+        chat = { modifier ->
+            val messages by chatViewModel.messages.collectAsStateWithLifecycle()
+            ChatPanel(messages, modifier)
+        },
     )
 }
