@@ -94,12 +94,16 @@ interface TwitchEmbedListener {
 
     /** The page's renderer process died (out of memory on weak boxes); this WebView is dead and gets replaced. */
     fun onRendererGone()
+
+    /** Our wrapper page finished loading: `window.twicast` exists from now on. */
+    fun onPageLoaded() = Unit
 }
 
 /**
- * The official Twitch embed in a WebView. One instance per player screen: created when the screen enters
- * composition and destroyed on exit (no leaked WebView or Activity context). The WebView never takes focus —
- * the remote is handled in Compose and forwarded via [TwitchEmbedController].
+ * The official Twitch embed in a WebView. With a [WarmTwitchPlayer] the already loaded page is borrowed and only
+ * switched to this stream, and given back (parked) on exit; otherwise one WebView per player screen, created
+ * when the screen enters composition and destroyed on exit. Clips always get their own (no JS API to switch to).
+ * The WebView never takes focus — the remote is handled in Compose and forwarded via [TwitchEmbedController].
  */
 @Composable
 fun TwitchEmbedView(
@@ -113,6 +117,7 @@ fun TwitchEmbedView(
     modifier: Modifier = Modifier,
 ) {
     val currentListener = rememberUpdatedState(listener)
+    val warmPlayer = LocalWarmTwitchPlayer.current.takeIf { clipSlug == null }
     BackgroundEffect(key = controller, onBackground = controller::background, onForeground = controller::foreground)
     AndroidView(
         modifier = modifier,
@@ -123,35 +128,46 @@ fun TwitchEmbedView(
                     currentListener.value.onQualities(qualities, currentId)
                 override fun onRendererGone() = currentListener.value.onRendererGone()
             }
-            val startedAt = SystemClock.elapsedRealtime()
-            createEmbedWebView(context, forwarding).also { webView ->
-                Log.i(PerfTag, "webview created in ${SystemClock.elapsedRealtime() - startedAt} ms")
-                controller.webView = webView
-                webView.loadUrl(playerUrl(channelLogin, videoId, clipSlug, preferredQualityId, maxVideoHeight))
+            if (warmPlayer != null) {
+                warmPlayer.acquire(forwarding, channelLogin, videoId, preferredQualityId, maxVideoHeight)
+                    .also { controller.webView = it }
+            } else {
+                val startedAt = SystemClock.elapsedRealtime()
+                createEmbedWebView(context, forwarding).also { webView ->
+                    Log.i(PerfTag, "webview created in ${SystemClock.elapsedRealtime() - startedAt} ms")
+                    controller.webView = webView
+                    webView.loadUrl(playerUrl(channelLogin, videoId, clipSlug, preferredQualityId, maxVideoHeight))
+                }
             }
         },
         onRelease = { webView ->
             controller.webView = null
-            // A WebView whose renderer died accepts nothing but destroy().
-            if (webView.tag != RendererGoneTag) {
-                webView.stopLoading()
-                webView.loadUrl("about:blank")
-            }
-            webView.removeJavascriptInterface(BridgeName)
-            webView.destroy()
+            if (warmPlayer != null && warmPlayer.owns(webView)) warmPlayer.release() else destroyEmbedWebView(webView)
         },
     )
 }
 
-private fun playerUrl(
+internal fun destroyEmbedWebView(webView: WebView) {
+    // A WebView whose renderer died accepts nothing but destroy().
+    if (webView.tag != RendererGoneTag) {
+        webView.stopLoading()
+        webView.loadUrl("about:blank")
+    }
+    webView.removeJavascriptInterface(BridgeName)
+    webView.destroy()
+}
+
+internal fun playerUrl(
     channelLogin: String,
     videoId: String?,
     clipSlug: String?,
     preferredQualityId: String?,
     maxVideoHeight: Int?,
+    warm: Boolean = false,
 ): String =
     Uri.parse(PlayerPageUrl).buildUpon()
         .appendQueryParameter("channel", channelLogin)
+        .apply { if (warm) appendQueryParameter("warm", "1") }
         .apply { if (videoId != null) appendQueryParameter("video", videoId) }
         .apply { if (clipSlug != null) appendQueryParameter("clip", clipSlug) }
         .apply { if (preferredQualityId != null) appendQueryParameter("quality", preferredQualityId) }
@@ -160,7 +176,7 @@ private fun playerUrl(
         .toString()
 
 @SuppressLint("SetJavaScriptEnabled")
-private fun createEmbedWebView(context: Context, listener: TwitchEmbedListener): WebView {
+internal fun createEmbedWebView(context: Context, listener: TwitchEmbedListener): WebView {
     val assetLoader = WebViewAssetLoader.Builder()
         .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
         .build()
@@ -234,7 +250,9 @@ private class EmbedWebViewClient(
     }
 
     override fun onPageFinished(view: WebView, url: String) {
-        if (url != "about:blank") Log.i(PerfTag, "page finished")
+        if (url == "about:blank") return
+        Log.i(PerfTag, "page finished")
+        listener.onPageLoaded()
     }
 
     /** Without this the whole app is killed along with the renderer. */

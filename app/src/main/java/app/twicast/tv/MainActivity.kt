@@ -10,6 +10,7 @@ import android.webkit.WebSettings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -18,12 +19,15 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.twicast.tv.core.designsystem.theme.TwiCastTheme
 import app.twicast.tv.core.designsystem.theme.TwiTheme
+import app.twicast.tv.core.device.DeviceProfile
 import app.twicast.tv.core.locale.withAppLanguage
 import app.twicast.tv.data.model.PlayerEngine
 import app.twicast.tv.data.model.ThemeMode
 import app.twicast.tv.data.repository.AppearanceSettingsRepository
 import app.twicast.tv.data.repository.PlayerSettingsRepository
 import app.twicast.tv.data.repository.SharedPreferencesLanguageSettingsRepository
+import app.twicast.tv.feature.player.components.LocalWarmTwitchPlayer
+import app.twicast.tv.feature.player.components.WarmTwitchPlayer
 import app.twicast.tv.navigation.TwiCastApp
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -37,6 +41,11 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var playerSettings: PlayerSettingsRepository
 
+    @Inject lateinit var deviceProfile: DeviceProfile
+
+    /** Kept by the activity so it lives between streams; not on low-memory TVs (see [WarmTwitchPlayer]). */
+    private var warmPlayer: WarmTwitchPlayer? = null
+
     // Runs before Hilt injects anything, so the language store is created by hand here.
     override fun attachBaseContext(newBase: Context) {
         val language = SharedPreferencesLanguageSettingsRepository(newBase.applicationContext).language()
@@ -46,6 +55,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         warmUpWebViewForTwitchPlayer()
+        if (!deviceProfile.isLowMemory) warmPlayer = WarmTwitchPlayer(this, playerSettings)
+        // Switching to the TwiCast player frees the warm page at once.
+        lifecycleScope.launch {
+            playerSettings.playerEngine.collect { if (it != PlayerEngine.Twitch) warmPlayer?.destroy() }
+        }
         setContent {
             val themeMode by appearanceSettings.themeMode.collectAsStateWithLifecycle(initialValue = null)
             // Until the choice is read the window background shows: drawing a guessed theme would flash.
@@ -60,9 +74,14 @@ class MainActivity : ComponentActivity() {
                 // uiMode changes don't recreate the activity, so the XML window background must follow by hand.
                 val background = TwiTheme.colors.background
                 SideEffect { window.setBackgroundDrawable(ColorDrawable(background.toArgb())) }
-                TwiCastApp()
+                CompositionLocalProvider(LocalWarmTwitchPlayer provides warmPlayer) { TwiCastApp() }
             }
         }
+    }
+
+    override fun onDestroy() {
+        warmPlayer?.destroy()
+        super.onDestroy()
     }
 
     /**

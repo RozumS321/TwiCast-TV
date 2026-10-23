@@ -111,17 +111,24 @@ fun PlayerScreen(
                     modifier = video,
                 )
             !twiCast -> key(state.embedAttempt) {
-                // A new attempt after a renderer crash: a fresh WebView (a dead one cannot be reused).
-                TwitchEmbedView(
-                    channelLogin = state.channel.channelLogin,
-                    videoId = state.channel.videoId,
-                    clipSlug = state.channel.clipSlug,
-                    preferredQualityId = state.preferredQualityId,
-                    maxVideoHeight = state.maxVideoHeight,
-                    controller = embedController,
-                    listener = listener,
-                    modifier = video,
-                )
+                Box(video) {
+                    // A new attempt after a renderer crash: a fresh WebView (a dead one cannot be reused).
+                    TwitchEmbedView(
+                        channelLogin = state.channel.channelLogin,
+                        videoId = state.channel.videoId,
+                        clipSlug = state.channel.clipSlug,
+                        preferredQualityId = state.preferredQualityId,
+                        maxVideoHeight = state.maxVideoHeight,
+                        controller = embedController,
+                        listener = listener,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    // Until the stream plays: the warm player still shows the previous channel's last frame, and
+                    // Twitch's page its own placeholder. Drawn by us, over the WebView, so Twitch's checks don't see it.
+                    if (state.status == PlaybackStatus.Loading) {
+                        Box(Modifier.matchParentSize().background(TwiTheme.colors.playerBackground))
+                    }
+                }
             }
             }
             // The same chat for both players: our own, next to the video.
