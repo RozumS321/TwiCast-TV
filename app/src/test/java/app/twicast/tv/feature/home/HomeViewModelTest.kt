@@ -1,6 +1,7 @@
 package app.twicast.tv.feature.home
 
 import app.cash.turbine.test
+import app.twicast.tv.core.network.Clock
 import app.twicast.tv.data.model.AppError
 import app.twicast.tv.data.model.AppResult
 import app.twicast.tv.data.model.AuthState
@@ -9,9 +10,13 @@ import app.twicast.tv.testing.FakeStreamsRepository
 import app.twicast.tv.testing.MainDispatcherRule
 import app.twicast.tv.testing.stream
 import app.twicast.tv.testing.testUser
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.util.Locale
@@ -24,7 +29,9 @@ class HomeViewModelTest {
     private val auth = FakeAuthRepository(initialState = AuthState.SignedIn(testUser))
     private val streams = FakeStreamsRepository()
 
-    private fun viewModel() = HomeViewModel(auth, streams, Locale.forLanguageTag("ru-UA"))
+    private val clock = Clock { mainRule.dispatcher.scheduler.currentTime }
+
+    private fun viewModel() = HomeViewModel(auth, streams, Locale.forLanguageTag("ru-UA"), clock)
 
     @Test
     fun `loading then followed, recommended and regional rows`() = runTest(mainRule.dispatcher) {
@@ -121,5 +128,45 @@ class HomeViewModelTest {
             assertEquals(HomeUiState.Loading, awaitItem())
             assertEquals(listOf("1"), (awaitItem() as HomeUiState.Content).regional.map { it.id })
         }
+    }
+
+    @Test
+    fun `coming back after a minute refreshes quietly, sooner does not`() = runTest(mainRule.dispatcher) {
+        streams.followed = AppResult.Success(listOf(stream("1")))
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        viewModel.onVisible()
+        viewModel.onHidden()
+
+        streams.followed = AppResult.Success(listOf(stream("1"), stream("2")))
+        advanceTimeBy(HomeStaleMillis / 2)
+        viewModel.onVisible()
+        runCurrent()
+        assertEquals(listOf("1"), (viewModel.uiState.value as HomeUiState.Content).followedLive.map { it.id })
+        viewModel.onHidden()
+
+        advanceTimeBy(HomeStaleMillis)
+        viewModel.onVisible()
+        assertTrue("no skeleton during a refresh", viewModel.uiState.value is HomeUiState.Content)
+        runCurrent()
+        assertEquals(listOf("1", "2"), (viewModel.uiState.value as HomeUiState.Content).followedLive.map { it.id })
+        viewModel.onHidden()
+    }
+
+    @Test
+    fun `home on screen refreshes by itself, a failed refresh keeps the rows`() = runTest(mainRule.dispatcher) {
+        streams.followed = AppResult.Success(listOf(stream("1")))
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        viewModel.onVisible()
+
+        streams.followed = AppResult.Failure(AppError.Network)
+        advanceTimeBy(HomeAutoRefreshMillis + 1)
+        assertEquals(listOf("1"), (viewModel.uiState.value as HomeUiState.Content).followedLive.map { it.id })
+
+        streams.followed = AppResult.Success(listOf(stream("3")))
+        advanceTimeBy(HomeAutoRefreshMillis + 1)
+        assertEquals(listOf("3"), (viewModel.uiState.value as HomeUiState.Content).followedLive.map { it.id })
+        viewModel.onHidden()
     }
 }
