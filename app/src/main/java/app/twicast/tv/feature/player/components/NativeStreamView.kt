@@ -26,13 +26,17 @@ import androidx.media3.exoplayer.util.EventLogger
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import app.twicast.tv.BuildConfig
+import app.twicast.tv.data.repository.qualityCeiling
 import kotlin.math.roundToInt
 
 private const val HttpNotFound = 404
 private const val LiveSegmentTitle = "live"
 
 /** One selectable video track: what the quality menu shows and how to force it. */
-private class QualityOption(val quality: VideoQuality, val override: TrackSelectionOverride)
+private class QualityOption(val quality: VideoQuality, val override: TrackSelectionOverride) {
+    /** "720p60" → 720. */
+    val height: Int get() = quality.id.substringBefore('p').toIntOrNull() ?: 0
+}
 
 /** Drives ExoPlayer for the screen; the same commands as the embed, so the screen does not care which is on. */
 class NativePlayerController : PlaybackController {
@@ -94,10 +98,15 @@ class NativePlayerController : PlaybackController {
         return options.firstOrNull { option -> option.override in overrides }?.quality?.id ?: AutoQualityId
     }
 
-    /** First tracks of a stream: the remembered quality if this stream has it, else auto within [maxVideoHeight]. */
+    /**
+     * First tracks of a stream: the remembered quality if this stream has it; for a ceiling from Settings ("720p")
+     * the best quality under it, so the menu names what plays instead of "Авто"; else auto within [maxVideoHeight].
+     */
     internal fun applyInitialQuality(preferredQualityId: String?, maxVideoHeight: Int?) {
         val player = player ?: return
+        val ceiling = listOfNotNull(qualityCeiling(preferredQualityId), maxVideoHeight).minOrNull()
         val preferred = options.firstOrNull { it.quality.id == preferredQualityId }
+            ?: options.firstOrNull { qualityCeiling(preferredQualityId) != null && it.height <= (ceiling ?: Int.MAX_VALUE) }
         val parameters = player.trackSelectionParameters.buildUpon()
         when {
             preferred != null -> parameters.setOverrideForType(preferred.override)

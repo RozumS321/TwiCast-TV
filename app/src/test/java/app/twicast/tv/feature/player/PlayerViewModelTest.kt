@@ -175,10 +175,10 @@ class PlayerViewModelTest {
     }
 
     @Test
-    fun `a ceiling from Settings caps the height instead of naming a quality`() = runTest(mainRule.dispatcher) {
+    fun `a ceiling from Settings caps the height and is passed on to the player`() = runTest(mainRule.dispatcher) {
         settings.stored = "480p"
         val state = viewModel().uiState.value
-        assertEquals(null, state.preferredQualityId)
+        assertEquals("480p", state.preferredQualityId)
         assertEquals(480, state.maxVideoHeight)
     }
 
