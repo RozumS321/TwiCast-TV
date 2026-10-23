@@ -7,7 +7,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRestorer
@@ -44,10 +48,19 @@ fun StreamRow(
     followed: Boolean = false,
     takesInitialFocus: Boolean = false,
 ) {
+    val listState = rememberLazyListState()
+    // A refresh can reorder the cards, and a lazy row keeps following its old first card. A row the viewer had
+    // not scrolled stays at its start instead. Read without observation: scrolling must not recompose the row.
+    val startReset = remember(streams) {
+        StartReset(Snapshot.withoutReadObservation { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0 })
+    }
+    // Once per new list, so a later recomposition never pulls back a row the viewer has scrolled since.
+    SideEffect { if (startReset.consume()) listState.requestScrollToItem(0) }
     // No top padding: the previous row's bottom focus room (24) already separates rows (mockup: 22).
     Column(modifier) {
         RowHeader(title, hint)
         LazyRow(
+            state = listState,
             contentPadding = RowPadding,
             horizontalArrangement = Arrangement.spacedBy(TwiDimens.HomeCardSpacing),
             // Coming back to the row lands on the card that was focused last.
@@ -68,6 +81,11 @@ fun StreamRow(
             }
         }
     }
+}
+
+/** Whether a row should go back to its start for a new list; answers true at most once. */
+private class StartReset(private var pending: Boolean) {
+    fun consume(): Boolean = pending.also { pending = false }
 }
 
 @Composable
