@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "TwiCastTV"
 include(":app")
+include(":baselineprofile")

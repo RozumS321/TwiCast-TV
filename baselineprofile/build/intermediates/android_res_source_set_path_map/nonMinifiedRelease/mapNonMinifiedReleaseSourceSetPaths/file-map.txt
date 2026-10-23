@@ -1,0 +1,8 @@
+app.twicast.tv.baselineprofile-pngs-0 /Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/generated/res/pngs/nonMinifiedRelease
+app.twicast.tv.baselineprofile-updated_navigation_xml-1 /Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/generated/updated_navigation_xml/nonMinifiedRelease
+app.twicast.tv.baselineprofile-packageNonMinifiedReleaseResources-2 /Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/intermediates/incremental/nonMinifiedRelease/packageNonMinifiedReleaseResources/merged.dir
+app.twicast.tv.baselineprofile-packageNonMinifiedReleaseResources-3 /Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/intermediates/incremental/nonMinifiedRelease/packageNonMinifiedReleaseResources/stripped.dir
+app.twicast.tv.baselineprofile-nonMinifiedRelease-4 /Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/build/intermediates/merged_res/nonMinifiedRelease/mergeNonMinifiedReleaseResources
+app.twicast.tv.baselineprofile-main-5 /Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/src/main/res
+app.twicast.tv.baselineprofile-nonMinifiedRelease-6 /Users/serhii/Desktop/study/TwiCast-TV/baselineprofile/src/nonMinifiedRelease/res
+gradleHome-0 /Users/serhii/.gradle
