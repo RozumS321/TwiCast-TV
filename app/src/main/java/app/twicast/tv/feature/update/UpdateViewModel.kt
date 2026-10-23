@@ -6,6 +6,7 @@ import app.twicast.tv.data.model.AppResult
 import app.twicast.tv.data.update.ApkDownloader
 import app.twicast.tv.data.update.ApkInstaller
 import app.twicast.tv.data.update.AppRelease
+import app.twicast.tv.data.update.ReleaseNotes
 import app.twicast.tv.data.update.UpdateRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -23,7 +24,7 @@ data class AppVersion(val code: Int, val name: String, val updatesEnabled: Boole
 sealed interface UpdateUiState {
     data object Hidden : UpdateUiState
 
-    /** Mockup "Обновление · доступно". */
+    /** Mockup "Обновление · доступно". The release's notes cover every version since [installedVersion]. */
     data class Available(val release: AppRelease, val installedVersion: String) : UpdateUiState
 
     /** Mockup "Обновление · загрузка". */
@@ -35,7 +36,7 @@ sealed interface UpdateUiState {
 
     data class Failed(val release: AppRelease, val installedVersion: String) : UpdateUiState
 
-    /** Mockup "Обновление · что нового": shown once after the update installed. */
+    /** Mockup "Обновление · что нового": shown once after the update installed, notes of every version skipped. */
     data class WhatsNew(val release: AppRelease) : UpdateUiState
 }
 
@@ -65,15 +66,28 @@ class UpdateViewModel @Inject constructor(
         val lastSeen = repository.lastSeenVersionCode()
         repository.setLastSeenVersionCode(version.code)
         if (lastSeen != null && version.code > lastSeen) {
-            val current = (repository.release(version.name) as? AppResult.Success)?.value
-            if (current != null && !current.notes.isEmpty) {
-                _uiState.value = UpdateUiState.WhatsNew(current)
-                return
+            val installed = (repository.releasesBetween(lastSeen, version.code) as? AppResult.Success)?.value.orEmpty()
+            val current = installed.firstOrNull { it.versionCode == version.code }
+            if (current != null) {
+                val whatsNew = withNotesOf(current, installed)
+                if (!whatsNew.notes.isEmpty) {
+                    _uiState.value = UpdateUiState.WhatsNew(whatsNew)
+                    return
+                }
             }
         }
         // Failures stay silent: the update is offered next time the app starts.
         val latest = (repository.latestRelease() as? AppResult.Success)?.value ?: return
-        if (latest.versionCode > version.code) _uiState.value = UpdateUiState.Available(latest, version.name)
+        if (latest.versionCode <= version.code) return
+        // Without the list the offer still shows the latest release's own notes.
+        val skipped = (repository.releasesBetween(version.code, latest.versionCode) as? AppResult.Success)?.value.orEmpty()
+        _uiState.value = UpdateUiState.Available(withNotesOf(latest, skipped), version.name)
+    }
+
+    /** [newest] with its own notes followed by those of the older [releases] (duplicates dropped). */
+    private fun withNotesOf(newest: AppRelease, releases: List<AppRelease>): AppRelease {
+        val older = releases.filter { it.versionCode < newest.versionCode }.sortedByDescending { it.versionCode }
+        return newest.copy(notes = ReleaseNotes.merge(listOf(newest.notes) + older.map { it.notes }))
     }
 
     fun onUpdate() {
