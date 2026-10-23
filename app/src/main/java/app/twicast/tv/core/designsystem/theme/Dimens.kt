@@ -98,6 +98,7 @@ object TwiDimens {
     val SettingsMenuItemSpacing = 6.dp
     val SettingsContentSpacing = 24.dp
     val SettingsToggleWidth = 560.dp
+    val SettingsWideToggleWidth = 760.dp
     val SettingsToggleHorizontalPadding = 20.dp
     val SettingsToggleVerticalPadding = 16.dp
     val SettingsSwitchWidth = 48.dp

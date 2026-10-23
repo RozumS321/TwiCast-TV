@@ -9,6 +9,7 @@ import androidx.core.view.doOnAttach
 import androidx.core.view.doOnNextLayout
 import androidx.compose.runtime.staticCompositionLocalOf
 import app.twicast.tv.data.model.PlayerEngine
+import app.twicast.tv.data.repository.OptimizationSettingsRepository
 import app.twicast.tv.data.repository.PlayerSettingsRepository
 import kotlinx.coroutines.flow.first
 import org.json.JSONObject
@@ -21,13 +22,21 @@ val LocalWarmTwitchPlayer = staticCompositionLocalOf<WarmTwitchPlayer?> { null }
  * ~10 s on a TV box; already loaded, opening a stream is only `setChannel`. Started from Home with a channel the
  * viewer is likely to open, muted and without autoplay, so it downloads no video while it waits.
  *
- * The price is the WebView renderer (~250 MB) for as long as the app runs, so only with the Twitch player chosen
- * and never on low-memory TVs. Ads are not affected: Twitch decides on them when a channel starts playing.
+ * The price is the WebView renderer (~250 MB) for as long as the app runs, so it is an opt-in ("Настройки ·
+ * Оптимизация"), only with the Twitch player chosen and never on low-memory TVs. Ads are not affected: Twitch
+ * decides on them when a channel starts playing.
  */
 class WarmTwitchPlayer(
     private val context: Context,
     private val settings: PlayerSettingsRepository,
+    private val optimization: OptimizationSettingsRepository,
 ) {
+    /** The channel the page was prepared for: loaded again when the app comes back from the background. */
+    private var lastChannel: String? = null
+
+    /** Freeing was asked while a screen still used the page: done when that screen gives it back. */
+    private var dropOnRelease = false
+
     private var webView: WebView? = null
     private var pageLoaded = false
 
@@ -60,9 +69,10 @@ class WarmTwitchPlayer(
         }
     }
 
-    /** Loads the page in the background if the Twitch player is chosen; a no-op once it is there. */
+    /** Loads the page in the background if the option is on and the Twitch player chosen; a no-op once it is there. */
     suspend fun prepare(channelLogin: String) {
-        if (webView != null || settings.playerEngine.first() != PlayerEngine.Twitch) return
+        lastChannel = channelLogin
+        if (webView != null || !isWanted()) return
         Log.i(PerfTag, "warm player: preparing")
         create(channelLogin)
     }
@@ -102,12 +112,31 @@ class WarmTwitchPlayer(
     /** The player screen is gone: stop, mute and idle the page until the next stream. */
     internal fun release() {
         listener = null
+        if (dropOnRelease) {
+            destroy()
+            return
+        }
         run("twicast.park()")
         webView?.onPause()
     }
 
+    /** App sent to the background with "free memory" on: drop the page now, or as soon as the screen lets go. */
+    fun freeMemory() {
+        if (listener == null) destroy() else dropOnRelease = true
+    }
+
+    /** Back from the background: load the page again for the last channel, if it is still wanted. */
+    suspend fun restore() {
+        val channel = lastChannel ?: return
+        prepare(channel)
+    }
+
+    private suspend fun isWanted(): Boolean =
+        settings.playerEngine.first() == PlayerEngine.Twitch && optimization.warmTwitchPlayer.first()
+
     /** Frees the page (activity gone, or the TwiCast player chosen). */
     fun destroy() {
+        dropOnRelease = false
         webView?.let { (it.parent as? ViewGroup)?.removeView(it) }
         webView?.let(::destroyEmbedWebView)
         webView = null

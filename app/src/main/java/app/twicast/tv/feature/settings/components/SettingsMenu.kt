@@ -40,6 +40,12 @@ private class MenuEntry(val section: SettingsSection, val title: Int, val hint: 
 private val MenuEntries = listOf(
     MenuEntry(SettingsSection.Player, R.string.settings_section_player, R.string.settings_section_player_hint, TwiIcons.Video),
     MenuEntry(SettingsSection.System, R.string.settings_section_system, R.string.settings_section_system_hint, TwiIcons.Settings),
+    MenuEntry(
+        SettingsSection.Optimization,
+        R.string.settings_section_optimization,
+        R.string.settings_section_optimization_hint,
+        TwiIcons.Gauge,
+    ),
 )
 
 private val MenuItemShape = RoundedCornerShape(TwiDimens.NavigationItemRadius)

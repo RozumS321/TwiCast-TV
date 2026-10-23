@@ -33,4 +33,17 @@
     <string name="settings_about">About</string>
     <string name="settings_about_hint">Updates install themselves when the app starts</string>
     <string name="settings_language_hint">each language is named in itself</string>
+    <string name="settings_section_optimization">Optimization</string>
+    <string name="settings_section_optimization_hint">memory and speed</string>
+    <string name="settings_speed">Speed</string>
+    <string name="settings_speed_hint">faster, but uses memory</string>
+    <string name="settings_warm_player">Faster stream start</string>
+    <string name="settings_warm_player_text">The Twitch player loads in the background ahead of time: streams open in 1–2 seconds instead of 10–15. The memory stays in use while the app is open.</string>
+    <string name="settings_warm_player_cost">≈ %d MB</string>
+    <string name="settings_warm_player_twitch_only">Twitch player only — TwiCast player is selected now</string>
+    <string name="settings_warm_player_low_memory">Unavailable: this device is low on memory</string>
+    <string name="settings_memory">Memory</string>
+    <string name="settings_memory_hint">less memory, a bit slower after coming back</string>
+    <string name="settings_free_memory">Free memory in the background</string>
+    <string name="settings_free_memory_text">While the app is in the background: closes the background player and clears images from memory. After coming back, images and the first stream load again.</string>
 </resources>

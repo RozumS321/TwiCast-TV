@@ -26,7 +26,7 @@ enum class DefaultQuality(val id: String, val height: Int?) {
 }
 
 /** Left menu of Settings (mockups "Настройки · Плеер" / "Настройки · Система"). */
-enum class SettingsSection { Player, System }
+enum class SettingsSection { Player, System, Optimization }
 
 /** Mockup "Настройки". Choices read from storage are null until loaded: nothing is highlighted yet. */
 @Immutable
@@ -42,4 +42,8 @@ data class SettingsUiState(
     val language: AppLanguage,
     /** The screen was just redrawn in a new language: the focus goes back to the language chips. */
     val focusLanguage: Boolean = false,
+    val warmTwitchPlayer: Boolean? = null,
+    val freeMemoryInBackground: Boolean? = null,
+    /** Too little memory for a warm Twitch player: the option is shown but cannot be turned on. */
+    val lowMemory: Boolean = false,
 )
