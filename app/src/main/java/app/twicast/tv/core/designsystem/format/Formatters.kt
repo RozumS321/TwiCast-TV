@@ -41,5 +41,36 @@ fun formatUptime(startedAtMillis: Long, nowMillis: Long): String {
     }
 }
 
+/** A recording's clock: "1:24:10", "4:05" under an hour. */
+fun formatPlaybackTime(millis: Long): String {
+    val totalSeconds = TimeUnit.MILLISECONDS.toSeconds(millis.coerceAtLeast(0))
+    val hours = totalSeconds / SecondsPerHour
+    val minutes = totalSeconds % SecondsPerHour / SecondsPerMinute
+    val seconds = totalSeconds % SecondsPerMinute
+    return if (hours > 0) {
+        String.format(Locale.ROOT, "%d:%02d:%02d", hours, minutes, seconds)
+    } else {
+        String.format(Locale.ROOT, "%d:%02d", minutes, seconds)
+    }
+}
+
+/** The dialled jump over the seek bar: "+ 10 с", "− 1 мин", "+ 2 мин 30 с". */
+@Composable
+@ReadOnlyComposable
+fun formatSeekDelta(millis: Long): String {
+    val sign = if (millis < 0) "−" else "+"
+    val totalSeconds = TimeUnit.MILLISECONDS.toSeconds(kotlin.math.abs(millis))
+    val minutes = totalSeconds / SecondsPerMinute
+    val seconds = totalSeconds % SecondsPerMinute
+    return when {
+        minutes == 0L -> stringResource(R.string.seek_delta_seconds, sign, seconds)
+        seconds == 0L -> stringResource(R.string.seek_delta_minutes, sign, minutes)
+        else -> stringResource(R.string.seek_delta_minutes_seconds, sign, minutes, seconds)
+    }
+}
+
+private const val SecondsPerMinute = 60L
+private const val SecondsPerHour = 3_600L
+
 private fun oneDecimal(value: Double): String =
     DecimalFormat("0.#", DecimalFormatSymbols.getInstance(Locale.getDefault())).format(value)

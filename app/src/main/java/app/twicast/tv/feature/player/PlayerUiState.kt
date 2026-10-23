@@ -9,8 +9,15 @@ import kotlinx.collections.immutable.persistentListOf
 /** [Ended]: the broadcast stopped while it was being watched (not just a channel that is offline). */
 enum class PlaybackStatus { Loading, Playing, Paused, Offline, Ended, Error }
 
-/** What is drawn over the video (mockups "Плеер · панель управления" / "Плеер · качество"). */
-enum class PlayerOverlay { Hidden, Controls, Quality }
+/**
+ * What is drawn over the video (mockups "Плеер · панель управления" / "Плеер · качество").
+ * [Seek]: only the seek bar, while a recording is wound from the bare video ("Плеер · запись, перематываю").
+ */
+enum class PlayerOverlay { Hidden, Controls, Quality, Seek }
+
+/** Where a recording is: for the seek bar. */
+@Immutable
+data class PlaybackProgress(val positionMs: Long, val durationMs: Long)
 
 @Immutable
 data class PlayerUiState(
@@ -33,7 +40,21 @@ data class PlayerUiState(
     val maxVideoHeight: Int? = null,
     /** Twitch is in an ad break (TwiCast player): its slate plays, a plate explains it. */
     val adBreak: Boolean = false,
+    /** Recordings: reported by the player about once a second. */
+    val progress: PlaybackProgress? = null,
+    /** While the viewer winds: the position being dialled, and where the winding started (for "+ 1 мин"). */
+    val seekTargetMs: Long? = null,
+    val seekStartMs: Long? = null,
 ) {
+    /** Only recordings wind; a live stream and a clip don't. */
+    val canSeek: Boolean get() = channel.videoId != null && progress != null
+
+    /** What the seek bar shows: the dialled position while winding, else where playback is. */
+    val shownPositionMs: Long? get() = seekTargetMs ?: progress?.positionMs
+
+    /** "+ 1 мин" over the seek bar while winding. */
+    val seekDeltaMs: Long? get() = seekTargetMs?.let { target -> seekStartMs?.let { target - it } }
+
     /** False for a malformed login: the embed is not created at all. */
     val canPlay: Boolean get() = channel.channelLogin.matches(ChannelLoginPattern)
 

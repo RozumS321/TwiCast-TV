@@ -24,7 +24,11 @@ import app.twicast.tv.core.designsystem.theme.TwiTheme
 import app.twicast.tv.feature.player.PlaybackStatus
 import app.twicast.tv.feature.player.PlayerUiState
 
-/** Bottom panel (mockup "Плеер · панель управления"): channel info and Пауза / Качество / Чат / Канал. */
+/**
+ * Bottom panel (mockup "Плеер · панель управления"): channel info and Пауза / Качество / Чат / Канал. A recording
+ * also gets its seek bar on top (mockup "Плеер · запись, перемотка"), focused first: Left/Right wind, Down goes
+ * to the buttons.
+ */
 @Composable
 fun PlayerControls(
     state: PlayerUiState,
@@ -32,15 +36,48 @@ fun PlayerControls(
     onOpenQuality: () -> Unit,
     onToggleChat: () -> Unit,
     onOpenChannel: () -> Unit,
+    onSeekStep: (forward: Boolean, repeat: Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(TwiDimens.PlayerControlsSpacing),
+    val progress = state.progress
+    val seekable = state.canSeek && progress != null
+    Column(
+        verticalArrangement = Arrangement.spacedBy(TwiDimens.SeekPanelSpacing),
         modifier = modifier
             .fillMaxWidth()
             .background(TwiTheme.colors.overlay, TwiShapes.Hero)
             .padding(horizontal = TwiDimens.PlayerControlsHorizontalPadding, vertical = TwiDimens.PlayerControlsVerticalPadding),
+    ) {
+        if (seekable && progress != null) {
+            Column(verticalArrangement = Arrangement.spacedBy(TwiDimens.SeekHintSpacing)) {
+                SeekBar(
+                    positionMs = state.shownPositionMs ?: progress.positionMs,
+                    durationMs = progress.durationMs,
+                    deltaMs = state.seekDeltaMs,
+                    focusable = true,
+                    onStep = onSeekStep,
+                    modifier = Modifier.requestInitialFocus(),
+                )
+                Text(stringResource(R.string.seek_hint), style = TwiTheme.typography.bodySmall, color = TwiTheme.colors.onOverlayVariant)
+            }
+        }
+        ControlsRow(state, seekable, onTogglePause, onOpenQuality, onToggleChat, onOpenChannel)
+    }
+}
+
+@Composable
+private fun ControlsRow(
+    state: PlayerUiState,
+    seekable: Boolean,
+    onTogglePause: () -> Unit,
+    onOpenQuality: () -> Unit,
+    onToggleChat: () -> Unit,
+    onOpenChannel: () -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(TwiDimens.PlayerControlsSpacing),
+        modifier = Modifier.fillMaxWidth(),
     ) {
         RingedAvatar(state.channel.avatarUrl, TwiDimens.PlayerAvatarSize)
         Column(Modifier.weight(1f)) {
@@ -61,7 +98,8 @@ fun PlayerControls(
             text = stringResource(if (paused) R.string.player_resume else R.string.player_pause),
             icon = if (paused) TwiIcons.Play else TwiIcons.Pause,
             onClick = onTogglePause,
-            modifier = Modifier.requestInitialFocus(),
+            // A recording's panel starts on its seek bar instead.
+            modifier = if (seekable) Modifier else Modifier.requestInitialFocus(),
         )
         TwiSecondaryButton(
             text = stringResource(R.string.player_quality_button, state.currentQualityLabel ?: stringResource(R.string.player_quality_auto)),

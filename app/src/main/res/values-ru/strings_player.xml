@@ -23,4 +23,9 @@
     <string name="player_chat_title">Чат</string>
     <string name="player_chat_read_only">только чтение</string>
     <string name="player_chat_connecting">Подключаемся к чату…</string>
+
+    <string name="seek_hint">← → — 10 секунд · удерживайте, чтобы быстрее · вниз — к кнопкам</string>
+    <string name="seek_delta_seconds">%1$s %2$d с</string>
+    <string name="seek_delta_minutes">%1$s %2$d мин</string>
+    <string name="seek_delta_minutes_seconds">%1$s %2$d мин %3$d с</string>
 </resources>

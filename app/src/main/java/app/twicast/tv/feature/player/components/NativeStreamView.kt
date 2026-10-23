@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.annotation.OptIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -27,10 +28,12 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import app.twicast.tv.BuildConfig
 import app.twicast.tv.data.repository.qualityCeiling
+import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 private const val HttpNotFound = 404
 private const val LiveSegmentTitle = "live"
+private const val ProgressIntervalMillis = 1_000L
 
 /** One selectable video track: what the quality menu shows and how to force it. */
 private class QualityOption(val quality: VideoQuality, val override: TrackSelectionOverride) {
@@ -69,6 +72,10 @@ class NativePlayerController : PlaybackController {
         options.firstOrNull { it.quality.id == id }?.let { parameters.setOverrideForType(it.override) }
         player.trackSelectionParameters = parameters.build()
         onQualitiesChanged?.invoke()
+    }
+
+    override fun seekTo(positionMs: Long) {
+        player?.seekTo(positionMs)
     }
 
     override fun setChatVisible(visible: Boolean, title: String, hint: String) = Unit
@@ -216,6 +223,17 @@ fun NativeStreamView(
             controller.detach()
             player.removeListener(callbacks)
             player.release()
+        }
+    }
+
+    // A recording reports where it is for the seek bar; a live stream has nothing to seek.
+    if (!isLive) {
+        LaunchedEffect(player) {
+            while (true) {
+                delay(ProgressIntervalMillis)
+                val duration = player.duration
+                if (duration != C.TIME_UNSET) currentListener.value.onProgress(player.currentPosition, duration)
+            }
         }
     }
 
