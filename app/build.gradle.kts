@@ -80,6 +80,10 @@ android {
     }
 
     buildTypes {
+        // Installs next to the release build (own id and name), so a TV can test a branch without losing its sign-in.
+        debug {
+            applicationIdSuffix = ".debug"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true

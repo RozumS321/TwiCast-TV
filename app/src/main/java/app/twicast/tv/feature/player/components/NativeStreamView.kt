@@ -22,8 +22,10 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.hls.HlsManifest
+import androidx.media3.exoplayer.util.EventLogger
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import app.twicast.tv.BuildConfig
 import kotlin.math.roundToInt
 
 private const val HttpNotFound = 404
@@ -184,6 +186,8 @@ fun NativeStreamView(
             }
         }
         player.addListener(callbacks)
+        // Track switches, buffering and dropped frames in logcat (tag EventLogger) for debugging on a TV.
+        if (BuildConfig.DEBUG) player.addAnalyticsListener(EventLogger())
         controller.attach(player, ::reportQualities)
         val mediaItem = MediaItem.Builder()
             .setUri(url)
