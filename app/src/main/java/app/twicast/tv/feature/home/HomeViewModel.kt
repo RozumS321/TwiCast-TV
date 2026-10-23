@@ -2,6 +2,7 @@ package app.twicast.tv.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.twicast.tv.core.network.Clock
 import app.twicast.tv.data.model.AppResult
 import app.twicast.tv.data.model.AuthState
 import app.twicast.tv.data.model.Stream
@@ -11,6 +12,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,6 +29,12 @@ private const val RecommendationCategories = 5
 /** Twitch's value for streams without a declared language. */
 private const val UnknownLanguage = "other"
 
+/** Coming back to home after this long reloads it (the streams cache keeps answers for a minute anyway). */
+const val HomeStaleMillis = 60_000L
+
+/** While home stays on screen it refreshes at this pace: viewer counts and live channels change. */
+const val HomeAutoRefreshMillis = 3 * 60_000L
+
 /**
  * Signed-in home: live followed channels, recommendations, popular in the viewer's language.
  * Twitch exposes neither the viewer's region nor recommendations, so (MVP):
@@ -38,6 +46,7 @@ class HomeViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val streamsRepository: StreamsRepository,
     locale: Locale,
+    private val clock: Clock,
 ) : ViewModel() {
 
     private val deviceLanguage = locale.language
@@ -45,21 +54,49 @@ class HomeViewModel @Inject constructor(
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     private var loadJob: Job? = null
+    private var autoRefreshJob: Job? = null
+    private var loadedAtMillis: Long? = null
 
     init {
-        load()
+        load(quietly = false)
     }
 
-    fun onRetry() = load()
+    fun onRetry() = load(quietly = false)
 
-    private fun load() {
+    /**
+     * Home is on screen (opened, or come back to from a stream or another section): reload if the rows are stale,
+     * then keep refreshing while it stays visible.
+     */
+    fun onVisible() {
+        val loadedAt = loadedAtMillis
+        if (loadedAt != null && clock.nowMillis() - loadedAt >= HomeStaleMillis) load(quietly = true)
+        autoRefreshJob?.cancel()
+        autoRefreshJob = viewModelScope.launch {
+            while (true) {
+                delay(HomeAutoRefreshMillis)
+                load(quietly = true)
+            }
+        }
+    }
+
+    fun onHidden() {
+        autoRefreshJob?.cancel()
+    }
+
+    /**
+     * [quietly]: a refresh of rows already on screen — no skeleton, and a failure keeps the old rows
+     * (the next refresh tries again) instead of replacing them with an error.
+     */
+    private fun load(quietly: Boolean) {
+        if (quietly && loadJob?.isActive == true) return
         loadJob?.cancel()
-        _uiState.value = HomeUiState.Loading
+        val hasContent = _uiState.value is HomeUiState.Content
+        if (!quietly || !hasContent) _uiState.value = HomeUiState.Loading
         loadJob = viewModelScope.launch {
             val user = authRepository.authState.filterIsInstance<AuthState.SignedIn>().first().user
             val followed = when (val result = streamsRepository.getFollowedStreams(user.id, FollowedLimit)) {
                 is AppResult.Failure -> {
-                    _uiState.value = HomeUiState.Error(result.error)
+                    if (!(quietly && hasContent)) _uiState.value = HomeUiState.Error(result.error)
                     return@launch
                 }
                 is AppResult.Success -> result.value
@@ -71,6 +108,9 @@ class HomeViewModel @Inject constructor(
             }
             val recommended = recommendedRequest.await()
             val regional = regionalRequest.await()
+            val failure = (recommended as? AppResult.Failure)?.error ?: (regional as? AppResult.Failure)?.error
+            if (failure != null && quietly && hasContent) return@launch
+            loadedAtMillis = clock.nowMillis()
             _uiState.value = when {
                 recommended is AppResult.Failure -> HomeUiState.Error(recommended.error)
                 regional is AppResult.Failure -> HomeUiState.Error(regional.error)
