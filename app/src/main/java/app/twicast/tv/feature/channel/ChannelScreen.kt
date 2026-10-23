@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -246,7 +247,11 @@ private fun ChannelSkeleton(modifier: Modifier) {
             .padding(start = TwiDimens.ContentStartPadding, end = TwiDimens.ContentEndPadding, top = TwiDimens.ScreenTopPadding),
     ) {
         SkeletonBlock(pulse, TwiShapes.Banner, Modifier.fillMaxWidth().height(TwiDimens.ChannelBannerHeight))
-        Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.HomeCardSpacing)) {
+        // Unbounded, as on home: cards past the edge keep their width instead of turning into a huge 16:9 block.
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(TwiDimens.HomeCardSpacing),
+            modifier = Modifier.wrapContentWidth(align = Alignment.Start, unbounded = true),
+        ) {
             repeat(SkeletonCards) { StreamCardSkeleton(pulse, width = TwiDimens.StreamCardDenseWidth) }
         }
     }
