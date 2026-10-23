@@ -56,6 +56,9 @@ class FakeStreamsRepository(
 ) : StreamsRepository {
     var requestedCategoryIds: List<String> = emptyList()
         private set
+    var live: AppResult<Boolean> = AppResult.Success(true)
+
+    override suspend fun isLive(login: String): AppResult<Boolean> = live
     var requestedLanguages: List<String?> = emptyList()
         private set
 

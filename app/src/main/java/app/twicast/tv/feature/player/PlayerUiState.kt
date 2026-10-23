@@ -6,7 +6,8 @@ import app.twicast.tv.feature.player.components.VideoQuality
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
-enum class PlaybackStatus { Loading, Playing, Paused, Offline, Error }
+/** [Ended]: the broadcast stopped while it was being watched (not just a channel that is offline). */
+enum class PlaybackStatus { Loading, Playing, Paused, Offline, Ended, Error }
 
 /** What is drawn over the video (mockups "Плеер · панель управления" / "Плеер · качество"). */
 enum class PlayerOverlay { Hidden, Controls, Quality }

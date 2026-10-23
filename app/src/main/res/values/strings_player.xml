@@ -2,6 +2,7 @@
 <resources>
     <string name="player_loading">Loading the stream…</string>
     <string name="player_paused">Paused · OK to resume</string>
+    <string name="player_ended">The stream has ended</string>
     <string name="player_offline">The channel is offline</string>
     <string name="player_error">Couldn\'t load the Twitch player</string>
     <string name="player_ad_break">Twitch ad break · the stream will resume by itself</string>

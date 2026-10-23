@@ -131,6 +131,7 @@ fun NativeStreamView(
     DisposableEffect(player) {
         var initialQualityApplied = false
         var adBreak = false
+        var startedPlaying = false
         fun reportQualities() = currentListener.value.onQualities(controller.qualities(), controller.currentQualityId())
         val callbacks = object : Player.Listener {
             override fun onTracksChanged(tracks: Tracks) {
@@ -155,7 +156,10 @@ fun NativeStreamView(
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 if (isPlaying) Log.i(PerfTag, "native playing")
-                if (isPlaying) currentListener.value.onStateChanged(EmbedState.Playing)
+                if (isPlaying) {
+                    startedPlaying = true
+                    currentListener.value.onStateChanged(EmbedState.Playing)
+                }
             }
 
             override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
@@ -165,6 +169,8 @@ fun NativeStreamView(
             override fun onPlaybackStateChanged(state: Int) {
                 when (state) {
                     Player.STATE_READY -> currentListener.value.onStateChanged(EmbedState.Ready)
+                    // Waiting for data once the picture was moving: the screen checks whether the broadcast ended.
+                    Player.STATE_BUFFERING -> if (startedPlaying) currentListener.value.onStateChanged(EmbedState.Buffering)
                     // A live stream ends when the broadcast does; a recording just stops at its end.
                     Player.STATE_ENDED -> currentListener.value.onStateChanged(if (isLive) EmbedState.Offline else EmbedState.Paused)
                 }

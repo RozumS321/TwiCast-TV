@@ -167,6 +167,7 @@ private fun StatusPlate(state: PlayerUiState, modifier: Modifier) {
                         PlaybackStatus.Loading, PlaybackStatus.Playing -> R.string.player_loading
                         PlaybackStatus.Paused -> R.string.player_paused
                         PlaybackStatus.Offline -> R.string.player_offline
+                        PlaybackStatus.Ended -> R.string.player_ended
                         PlaybackStatus.Error -> R.string.player_error
                     }
                 },

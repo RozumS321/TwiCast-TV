@@ -11,6 +11,7 @@ import app.twicast.tv.data.model.PlayerEngine
 import app.twicast.tv.data.repository.PlaybackRepository
 import app.twicast.tv.data.repository.PlaybackSource
 import app.twicast.tv.data.repository.PlayerSettingsRepository
+import app.twicast.tv.data.repository.StreamsRepository
 import app.twicast.tv.data.repository.qualityCeiling
 import app.twicast.tv.feature.player.components.EmbedState
 import app.twicast.tv.feature.player.components.VideoQuality
@@ -56,6 +57,12 @@ const val MaxEmbedRestarts = 2
 const val RecoveryMaxVideoHeight = 720
 
 /**
+ * A live stream waiting for data this long gets a "still broadcasting?" check, then again at this pace.
+ * When Twitch ends a broadcast the playlist often just stops growing: the picture would freeze with no word.
+ */
+const val StallCheckMillis = 8_000L
+
+/**
  * Player screen state. Playback state and the quality list come from the embed page; overlays, chat
  * and the preferred quality are decided here. The screen forwards commands to the embed itself.
  */
@@ -64,6 +71,7 @@ class PlayerViewModel internal constructor(
     destination: PlayerDestination,
     private val settings: PlayerSettingsRepository,
     private val playback: PlaybackRepository,
+    private val streams: StreamsRepository,
     device: DeviceProfile,
 ) : ViewModel() {
 
@@ -73,8 +81,9 @@ class PlayerViewModel internal constructor(
         savedStateHandle: SavedStateHandle,
         settings: PlayerSettingsRepository,
         playback: PlaybackRepository,
+        streams: StreamsRepository,
         device: DeviceProfile,
-    ) : this(savedStateHandle.toRoute<PlayerDestination>(), settings, playback, device)
+    ) : this(savedStateHandle.toRoute<PlayerDestination>(), settings, playback, streams, device)
 
     // Weak TVs start below 1080p right away instead of waiting for the renderer to crash.
     private val _uiState = MutableStateFlow(
@@ -83,6 +92,7 @@ class PlayerViewModel internal constructor(
     val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
 
     private var autoHideJob: Job? = null
+    private var stallCheckJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -132,18 +142,50 @@ class PlayerViewModel internal constructor(
             _uiState.update { it.copy(engine = PlayerEngine.Twitch, streamUrl = null, status = PlaybackStatus.Loading) }
             return
         }
+        if (state == EmbedState.Buffering) {
+            if (_uiState.value.channel.isLive) startStallCheck()
+            return
+        }
+        stallCheckJob?.cancel()
         _uiState.update {
             it.copy(
                 status = when (state) {
                     // READY comes before the first frame: keep "loading" until PLAYING.
-                    EmbedState.Ready -> it.status
+                    EmbedState.Ready, EmbedState.Buffering -> it.status
                     EmbedState.Playing -> PlaybackStatus.Playing
                     EmbedState.Paused -> PlaybackStatus.Paused
-                    EmbedState.Offline -> PlaybackStatus.Offline
+                    // Offline right after watching it means the broadcast ended in front of the viewer.
+                    EmbedState.Offline -> if (it.wasWatching) PlaybackStatus.Ended else PlaybackStatus.Offline
                     EmbedState.Error -> PlaybackStatus.Error
                 },
             )
         }
+        if (_uiState.value.status == PlaybackStatus.Ended) showEndedControls()
+    }
+
+    private val PlayerUiState.wasWatching: Boolean
+        get() = status == PlaybackStatus.Playing || status == PlaybackStatus.Paused
+
+    /** Asks Twitch whether the channel still broadcasts while playback keeps waiting; a network error just waits more. */
+    private fun startStallCheck() {
+        if (stallCheckJob?.isActive == true) return
+        stallCheckJob = viewModelScope.launch {
+            while (true) {
+                delay(StallCheckMillis)
+                val live = streams.isLive(_uiState.value.channel.channelLogin)
+                if (live is AppResult.Success && !live.value) {
+                    _uiState.update { it.copy(status = PlaybackStatus.Ended, adBreak = false) }
+                    showEndedControls()
+                    return@launch
+                }
+            }
+        }
+    }
+
+    /** The "Канал" button is the way on from an ended stream: the controls come up and stay. */
+    private fun showEndedControls() {
+        autoHideJob?.cancel()
+        _uiState.update { it.copy(overlay = PlayerOverlay.Controls) }
     }
 
     /** The WebView renderer died (usually out of memory): rebuild the embed with a lower quality ceiling. */
@@ -212,7 +254,10 @@ class PlayerViewModel internal constructor(
         autoHideJob?.cancel()
         autoHideJob = viewModelScope.launch {
             delay(ControlsAutoHideMillis)
-            _uiState.update { if (it.overlay == PlayerOverlay.Controls) it.copy(overlay = PlayerOverlay.Hidden) else it }
+            _uiState.update {
+                // After the broadcast ended the controls stay: "Канал" is the way on.
+                if (it.overlay == PlayerOverlay.Controls && it.status != PlaybackStatus.Ended) it.copy(overlay = PlayerOverlay.Hidden) else it
+            }
         }
     }
 }
