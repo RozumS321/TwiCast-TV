@@ -256,6 +256,9 @@ object TwiDimens {
     val QrPadding = 18.dp
     val QrCaptionSpacing = 12.dp
     val QrShadowElevation = 12.dp
+    /** Mockup "Канал · подписка через QR". */
+    val FollowDialogWidth = 860.dp
+    val FollowQrSize = 232.dp
 }
 
 object TwiShapes {

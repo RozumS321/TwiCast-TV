@@ -28,9 +28,9 @@ sealed interface ChannelUiState {
     data object Loading : ChannelUiState
     data class Error(val error: AppError) : ChannelUiState
 
-    /** Mockups "Канал · в эфире" / "Канал · офлайн". */
+    /** Mockups "Канал · в эфире" / "Канал · офлайн"; [followDialog]: "Канал · подписка через QR" on top. */
     @Immutable
-    data class Content(val channel: ChannelPage) : ChannelUiState
+    data class Content(val channel: ChannelPage, val followDialog: Boolean = false) : ChannelUiState
 }
 
 @HiltViewModel
@@ -53,6 +53,25 @@ class ChannelViewModel internal constructor(
     }
 
     fun onRetry() = load()
+
+    /** "Подписаться" / "В подписках": the QR to do it on the phone (Twitch lets no app follow for the viewer). */
+    fun onFollowClick() = updateContent { it.copy(followDialog = true) }
+
+    /** "Готово" or Back: the viewer may have followed or unfollowed on the phone, so the mark is read again quietly. */
+    fun onFollowDialogClosed() {
+        updateContent { it.copy(followDialog = false) }
+        viewModelScope.launch {
+            val viewerId = authRepository.authState.filterIsInstance<AuthState.SignedIn>().first().user.id
+            val result = repository.getChannel(login, viewerId)
+            // A failed refresh keeps what is shown: the page is still right apart from the mark.
+            if (result is AppResult.Success) updateContent { it.copy(channel = result.value) }
+        }
+    }
+
+    private fun updateContent(change: (ChannelUiState.Content) -> ChannelUiState.Content) {
+        val current = _uiState.value as? ChannelUiState.Content ?: return
+        _uiState.value = change(current)
+    }
 
     private fun load() {
         _uiState.value = ChannelUiState.Loading

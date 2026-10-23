@@ -1,4 +1,4 @@
-package app.twicast.tv.feature.auth.components
+package app.twicast.tv.core.designsystem.component
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box

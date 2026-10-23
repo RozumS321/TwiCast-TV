@@ -22,5 +22,7 @@ fun ChannelRoute(
         onVideoClick = onVideoClick,
         onClipClick = onClipClick,
         onRetry = viewModel::onRetry,
+        onFollow = viewModel::onFollowClick,
+        onFollowDialogClosed = viewModel::onFollowDialogClosed,
     )
 }

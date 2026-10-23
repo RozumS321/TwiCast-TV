@@ -23,4 +23,16 @@
     <string name="channel_clips_hint">за 30 дней</string>
     <string name="channel_about">Информация</string>
     <string name="channel_no_media">У канала пока нет записей эфиров и клипов.</string>
+
+    <string name="channel_follow">Подписаться</string>
+    <string name="follow_overline">ЧЕРЕЗ ТЕЛЕФОН</string>
+    <string name="follow_title_follow">Подписаться на %s</string>
+    <string name="follow_title_unfollow">Отписаться от %s</string>
+    <string name="follow_step_scan">Наведите камеру телефона на код</string>
+    <string name="follow_step_follow">На странице канала нажмите «Follow»</string>
+    <string name="follow_step_unfollow">На странице канала нажмите «Following» → «Unfollow»</string>
+    <string name="follow_step_appears">Канал появится в «Подписках» — обновим сами</string>
+    <string name="follow_step_gone">Канал пропадёт из «Подписок» — обновим сами</string>
+    <string name="follow_why">Twitch не даёт сторонним приложениям подписываться с телевизора</string>
+    <string name="follow_done">Готово</string>
 </resources>
