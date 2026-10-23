@@ -115,3 +115,6 @@ data class ChannelPage(
 
 /** The player that opens streams: our own (ExoPlayer on Twitch's HLS) or the official Twitch embed. */
 enum class PlayerEngine { TwiCast, Twitch }
+
+/** App theme chosen in Settings. [System] follows the TV's dark mode; TVs without one get light. */
+enum class ThemeMode { System, Light, Dark }

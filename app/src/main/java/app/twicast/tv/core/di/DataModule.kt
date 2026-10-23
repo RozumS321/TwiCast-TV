@@ -2,11 +2,13 @@ package app.twicast.tv.core.di
 
 import app.twicast.tv.core.device.AndroidDeviceProfile
 import app.twicast.tv.core.device.DeviceProfile
+import app.twicast.tv.data.repository.AppearanceSettingsRepository
 import app.twicast.tv.data.repository.AuthRepository
 import app.twicast.tv.data.repository.CategoriesRepository
 import app.twicast.tv.data.repository.ChatRepository
 import app.twicast.tv.data.repository.TwitchIrcChatRepository
 import app.twicast.tv.data.repository.ChannelRepository
+import app.twicast.tv.data.repository.DataStoreAppearanceSettingsRepository
 import app.twicast.tv.data.repository.DataStorePlayerSettingsRepository
 import app.twicast.tv.data.repository.FollowsRepository
 import app.twicast.tv.data.repository.HelixCategoriesRepository
@@ -51,6 +53,9 @@ abstract class DataModule {
 
     @Binds
     abstract fun bindPlayerSettingsRepository(impl: DataStorePlayerSettingsRepository): PlayerSettingsRepository
+
+    @Binds
+    abstract fun bindAppearanceSettingsRepository(impl: DataStoreAppearanceSettingsRepository): AppearanceSettingsRepository
 
     @Binds
     abstract fun bindPlaybackRepository(impl: GqlPlaybackRepository): PlaybackRepository

@@ -33,7 +33,10 @@ private val FallbackNameColors = listOf(Color(0xFF9146FF), Color(0xFF1D9E75), Co
 
 /** Light Twitch colors (yellow, cyan) are unreadable on the white panel: darken them. */
 private const val MaxNameLuminance = 0.5f
-private const val DarkenFraction = 0.45f
+
+/** Dark ones (navy, deep red) are unreadable on the dark panel: lighten them. */
+private const val MinNameLuminanceOnDark = 0.15f
+private const val AdjustFraction = 0.45f
 
 /**
  * Read-only chat next to the video (mockup "Плеер · чат"): colored name, then the text; newest at the bottom.
@@ -70,7 +73,7 @@ fun ChatPanel(messages: ImmutableList<ChatMessage>, modifier: Modifier = Modifie
 @Composable
 private fun ChatLine(message: ChatMessage) {
     val colors = TwiTheme.colors
-    val nameColor = nameColor(message)
+    val nameColor = nameColor(message, onDarkPanel = colors.isDark)
     Text(
         text = buildAnnotatedString {
             withStyle(SpanStyle(color = nameColor, fontWeight = FontWeight.ExtraBold)) { append(message.author) }
@@ -82,8 +85,15 @@ private fun ChatLine(message: ChatMessage) {
     )
 }
 
-private fun nameColor(message: ChatMessage): Color {
+private fun nameColor(message: ChatMessage, onDarkPanel: Boolean): Color {
     val color = message.color?.let { Color(it) }
         ?: FallbackNameColors[message.author.hashCode().absoluteValue % FallbackNameColors.size]
-    return if (color.luminance() > MaxNameLuminance) lerp(color, Color.Black, DarkenFraction) else color
+    return readableNameColor(color, onDarkPanel)
+}
+
+/** Keeps the author's color recognizable but readable on the panel. */
+internal fun readableNameColor(color: Color, onDarkPanel: Boolean): Color = when {
+    onDarkPanel && color.luminance() < MinNameLuminanceOnDark -> lerp(color, Color.White, AdjustFraction)
+    !onDarkPanel && color.luminance() > MaxNameLuminance -> lerp(color, Color.Black, AdjustFraction)
+    else -> color
 }

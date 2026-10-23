@@ -1,7 +1,7 @@
 # TwiCast TV — дизайн (handoff)
 
 Источник: холст «TwiCast TV — дизайн» в Claude (Design): https://claude.ai/artifact/XFCKut6eRqyEoyRBbRwDLX. Экраны 1280×720 смотреть там.
-Тема: **светлая**. Тёмная — следующим шагом (вторая колонка токенов).
+Темы: **светлая** и **тёмная** (холст: ряд «Тёмная тема»). Выбор — «Настройки · Оформление»: Как в системе / Светлая / Тёмная.
 
 Целевой стек: Kotlin, Compose for TV (`androidx.tv:tv-material`), MVVM + UDF, Hilt, Retrofit + kotlinx.serialization, Coil 3.
 Размеры в макетах указаны в px при ширине 1280 — для ТВ (960dp логической ширины на 1080p) **переводить 1:1 в dp и проверить на устройстве**; если тесно — масштаб 0.75.
@@ -58,6 +58,29 @@ object TwiColors {
     val Scrim = Color(0x5217151F)
 }
 ```
+
+## Цвета (тёмная тема)
+
+Те же токены, другие значения (`TwiDarkColors` / `DarkTwiColorScheme`). Не меняются: `primary`, `live`, `overlay`, фон плеера, `success`, `info`.
+
+| Токен | HEX | Почему так |
+|---|---|---|
+| background | `#0F0E14` | |
+| surface | `#1A1824` | |
+| surfaceVariant | `#262331` | |
+| outline | `#36323F` | |
+| outlineVariant | `#2A2733` | |
+| onSurface | `#F4F2F8` | |
+| onSurfaceSecondary | `#D6D2E0` | текст чипов и тегов |
+| onSurfaceVariant | `#A49EB4` | |
+| onSurfaceFaint | `#6E6880` | только рамки и разделители (3:1) |
+| primaryStrong | `#C4A0FF` | `#5C16C5` на почти чёрном не читается |
+| primaryContainer | `#2B1F47` | |
+| scrim | `#000000` @ 55% | светлый скрим почти не затемняет тёмный экран |
+| surfaceOverlay | `#1A1824` @ 92% | плашка ранга на обложке |
+| inverseSurface / inverseOnSurface | `#F4F2F8` / `#17151F` | активный чип |
+
+Ники в чате: на светлой панели светлые цвета затемняются, на тёмной — тёмные осветляются.
 
 ## Типографика — Plus Jakarta Sans (Google Fonts, res/font)
 

@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.Text
 import app.twicast.tv.R
+import app.twicast.tv.core.designsystem.component.TwiChip
 import app.twicast.tv.core.designsystem.component.focusRing
 import app.twicast.tv.core.designsystem.component.focusTransform
 import app.twicast.tv.core.designsystem.component.rememberFocusProgress
@@ -30,6 +31,7 @@ import app.twicast.tv.core.designsystem.theme.TwiScale
 import app.twicast.tv.core.designsystem.theme.TwiShapes
 import app.twicast.tv.core.designsystem.theme.TwiTheme
 import app.twicast.tv.data.model.PlayerEngine
+import app.twicast.tv.data.model.ThemeMode
 
 private class PlayerOption(val engine: PlayerEngine, val title: Int, val tag: Int, val text: Int, val note: Int)
 
@@ -50,9 +52,26 @@ private val PlayerOptions = listOf(
     ),
 )
 
-/** Mockup "Настройки · плеер": two cards, OK picks one. [selected] is null while the setting loads. */
+private class ThemeOption(val mode: ThemeMode, val title: Int)
+
+private val ThemeOptions = listOf(
+    ThemeOption(ThemeMode.System, R.string.settings_theme_system),
+    ThemeOption(ThemeMode.Light, R.string.settings_theme_light),
+    ThemeOption(ThemeMode.Dark, R.string.settings_theme_dark),
+)
+
+/**
+ * Mockup "Настройки · плеер и оформление": two player cards and three theme chips, OK picks one.
+ * [selected] and [themeMode] are null while the settings load.
+ */
 @Composable
-fun SettingsScreen(selected: PlayerEngine?, onPlayerSelected: (PlayerEngine) -> Unit, modifier: Modifier = Modifier) {
+fun SettingsScreen(
+    selected: PlayerEngine?,
+    onPlayerSelected: (PlayerEngine) -> Unit,
+    themeMode: ThemeMode?,
+    onThemeSelected: (ThemeMode) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column(
         verticalArrangement = Arrangement.spacedBy(TwiDimens.HomeSectionSpacing),
         modifier = modifier
@@ -79,6 +98,24 @@ fun SettingsScreen(selected: PlayerEngine?, onPlayerSelected: (PlayerEngine) -> 
                 style = TwiTheme.typography.caption,
                 color = TwiTheme.colors.onSurfaceVariant,
             )
+        }
+        ThemeSection(themeMode, onThemeSelected)
+    }
+}
+
+@Composable
+private fun ThemeSection(themeMode: ThemeMode?, onThemeSelected: (ThemeMode) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(TwiDimens.HomeRowTitleSpacing)) {
+        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(TwiDimens.HomeRowTitleSpacing)) {
+            Text(stringResource(R.string.settings_theme), style = TwiTheme.typography.rowTitleDense, color = TwiTheme.colors.onSurface)
+            Text(stringResource(R.string.settings_theme_hint), style = TwiTheme.typography.caption, color = TwiTheme.colors.onSurfaceVariant)
+        }
+        if (themeMode != null) {
+            Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChipSpacing)) {
+                ThemeOptions.forEach { option ->
+                    TwiChip(stringResource(option.title), selected = option.mode == themeMode, onClick = { onThemeSelected(option.mode) })
+                }
+            }
         }
     }
 }

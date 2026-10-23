@@ -159,7 +159,7 @@ private fun Sidebar(
 @Composable
 private fun SidebarPanelBackground(state: SidebarState) {
     val colors = TwiTheme.colors
-    val shadowColor = colors.onSurface
+    val shadowColor = colors.shadow
     Box(
         Modifier
             .fillMaxSize()

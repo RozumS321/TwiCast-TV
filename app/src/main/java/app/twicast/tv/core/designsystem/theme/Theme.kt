@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Density
 import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.darkColorScheme
 import androidx.tv.material3.lightColorScheme
 
 /** Width of the design canvas (the 1280×720 mockups). */
@@ -31,10 +32,11 @@ object TwiTheme {
  * Root theme. Besides colors and type it maps the 1280-wide design canvas onto the TV screen:
  * 1dp == 1px of the mockup on any TV resolution, so [TwiDimens] are the numbers from DESIGN.md as is.
  * At 1:1 dp (960dp wide on a 1080p TV) the mockup layout does not fit — DESIGN.md's 0.75 fallback.
+ * [darkTheme] is resolved by the caller from the user's choice in Settings.
  */
 @Composable
-fun TwiCastTheme(content: @Composable () -> Unit) {
-    val colors = LightTwiColorScheme
+fun TwiCastTheme(darkTheme: Boolean, content: @Composable () -> Unit) {
+    val colors = if (darkTheme) DarkTwiColorScheme else LightTwiColorScheme
     val windowWidthPx = LocalWindowInfo.current.containerSize.width
     val systemDensity = LocalDensity.current
     val canvasDensity = remember(windowWidthPx, systemDensity) {
@@ -45,7 +47,8 @@ fun TwiCastTheme(content: @Composable () -> Unit) {
         }
     }
     val materialColors = remember(colors) {
-        lightColorScheme(
+        val scheme = if (colors.isDark) darkColorScheme() else lightColorScheme()
+        scheme.copy(
             primary = colors.primary,
             onPrimary = colors.onPrimary,
             primaryContainer = colors.primaryContainer,

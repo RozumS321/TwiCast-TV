@@ -34,12 +34,34 @@ object TwiColors {
     val White = Color(0xFFFFFFFF)
 }
 
+/** Raw palette of the dark theme (canvas: "Палитра · тёмная тема"). Primary, live and video plates stay as in light. */
+object TwiDarkColors {
+    val Background = Color(0xFF0F0E14)
+    val Surface = Color(0xFF1A1824)
+    val SurfaceVariant = Color(0xFF262331)
+    val Outline = Color(0xFF36323F)
+    val OutlineVariant = Color(0xFF2A2733)
+    val OnSurface = Color(0xFFF4F2F8)
+    val OnSurfaceSecondary = Color(0xFFD6D2E0)
+    val OnSurfaceVariant = Color(0xFFA49EB4)
+    val OnSurfaceFaint = Color(0xFF6E6880)
+    /** #5C16C5 is unreadable on near-black: accent text is lighter in the dark theme. */
+    val PrimaryStrong = Color(0xFFC4A0FF)
+    val PrimaryContainer = Color(0xFF2B1F47)
+    /** Black @ 55%: the light scrim (#17151F @ 32%) barely darkens a dark screen. */
+    val Scrim = Color(0x8C000000)
+    /** Dark plate over images (rank badge): surface @ 92%. */
+    val SurfaceOverlay = Color(0xEB1A1824)
+}
+
 /**
  * Semantic color tokens. Every screen and component reads colors from here via [TwiTheme.colors],
  * so the dark theme becomes a second instance of this class.
  */
 @Immutable
 data class TwiColorScheme(
+    /** For the few colors computed against the background (chat names), not for picking tokens. */
+    val isDark: Boolean,
     val background: Color,
     val surface: Color,
     val surfaceVariant: Color,
@@ -66,9 +88,12 @@ data class TwiColorScheme(
     /** Selected chip: inverted surface. */
     val inverseSurface: Color,
     val inverseOnSurface: Color,
+    /** Soft shadows drawn by hand (sidebar edge): a light-text color would glow instead of shade. */
+    val shadow: Color,
 )
 
 val LightTwiColorScheme = TwiColorScheme(
+    isDark = false,
     background = TwiColors.Background,
     surface = TwiColors.Surface,
     surfaceVariant = TwiColors.SurfaceVariant,
@@ -94,4 +119,35 @@ val LightTwiColorScheme = TwiColorScheme(
     info = TwiColors.Info,
     inverseSurface = TwiColors.OnSurface,
     inverseOnSurface = TwiColors.White,
+    shadow = TwiColors.OnSurface,
+)
+
+val DarkTwiColorScheme = TwiColorScheme(
+    isDark = true,
+    background = TwiDarkColors.Background,
+    surface = TwiDarkColors.Surface,
+    surfaceVariant = TwiDarkColors.SurfaceVariant,
+    outline = TwiDarkColors.Outline,
+    outlineVariant = TwiDarkColors.OutlineVariant,
+    onSurface = TwiDarkColors.OnSurface,
+    onSurfaceSecondary = TwiDarkColors.OnSurfaceSecondary,
+    onSurfaceFaint = TwiDarkColors.OnSurfaceFaint,
+    onSurfaceVariant = TwiDarkColors.OnSurfaceVariant,
+    primary = TwiColors.Primary,
+    onPrimary = TwiColors.White,
+    primaryStrong = TwiDarkColors.PrimaryStrong,
+    primaryContainer = TwiDarkColors.PrimaryContainer,
+    live = TwiColors.Live,
+    onLive = TwiColors.White,
+    overlay = TwiColors.Overlay,
+    surfaceOverlay = TwiDarkColors.SurfaceOverlay,
+    onOverlay = TwiColors.White,
+    onOverlayVariant = TwiColors.OnOverlayVariant,
+    scrim = TwiDarkColors.Scrim,
+    playerBackground = TwiColors.Black,
+    success = TwiColors.Success,
+    info = TwiColors.Info,
+    inverseSurface = TwiDarkColors.OnSurface,
+    inverseOnSurface = TwiColors.OnSurface,
+    shadow = TwiColors.Black,
 )
