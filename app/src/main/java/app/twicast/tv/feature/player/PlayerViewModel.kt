@@ -12,6 +12,7 @@ import app.twicast.tv.data.repository.PlaybackRepository
 import app.twicast.tv.data.repository.PlaybackSource
 import app.twicast.tv.data.repository.PlayerSettingsRepository
 import app.twicast.tv.data.repository.qualityCeiling
+import app.twicast.tv.feature.player.components.AutoQualityId
 import app.twicast.tv.feature.player.components.EmbedState
 import app.twicast.tv.feature.player.components.VideoQuality
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -56,6 +57,12 @@ const val MaxEmbedRestarts = 2
 const val RecoveryMaxVideoHeight = 720
 
 /**
+ * The Twitch player draws every video frame through the app's window (measured on a TV box: ~110% CPU at
+ * 1080p60, ~92% at 720p60), so it stays at 720p unless the viewer chose a quality themselves.
+ */
+const val TwitchPlayerDefaultMaxVideoHeight = 720
+
+/**
  * Player screen state. Playback state and the quality list come from the embed page; overlays, chat
  * and the preferred quality are decided here. The screen forwards commands to the embed itself.
  */
@@ -84,6 +91,9 @@ class PlayerViewModel internal constructor(
 
     private var autoHideJob: Job? = null
 
+    /** A quality picked by the viewer (player menu or Settings), not "Авто": the Twitch player cap does not apply. */
+    private var qualityChosen = false
+
     init {
         viewModelScope.launch {
             val preferred = settings.preferredQuality()
@@ -92,6 +102,7 @@ class PlayerViewModel internal constructor(
             // A ceiling from Settings ("720p") is not a quality the player knows: it caps the height instead,
             // together with the low-memory cap, whichever is lower.
             val ceiling = qualityCeiling(preferred)
+            qualityChosen = preferred != null && preferred != AutoQualityId
             _uiState.update {
                 it.copy(
                     preferredQualityId = preferred.takeIf { ceiling == null },
@@ -124,12 +135,17 @@ class PlayerViewModel internal constructor(
         }
     }
 
-    private fun useTwitchPlayer() = _uiState.update { it.copy(engine = PlayerEngine.Twitch, settingsLoaded = true) }
+    private fun useTwitchPlayer() = _uiState.update { it.withTwitchPlayer().copy(settingsLoaded = true) }
+
+    private fun PlayerUiState.withTwitchPlayer(): PlayerUiState = copy(
+        engine = PlayerEngine.Twitch,
+        maxVideoHeight = if (qualityChosen) maxVideoHeight else lowerOf(maxVideoHeight, TwitchPlayerDefaultMaxVideoHeight),
+    )
 
     fun onEmbedStateChanged(state: EmbedState) {
         // The TwiCast player failed on its own (unusual playlist, codec): the official embed gets a try.
         if (state == EmbedState.Error && _uiState.value.engine == PlayerEngine.TwiCast && _uiState.value.streamUrl != null) {
-            _uiState.update { it.copy(engine = PlayerEngine.Twitch, streamUrl = null, status = PlaybackStatus.Loading) }
+            _uiState.update { it.withTwitchPlayer().copy(streamUrl = null, status = PlaybackStatus.Loading) }
             return
         }
         _uiState.update {

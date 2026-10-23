@@ -5,6 +5,8 @@ import android.content.Context
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
+import android.os.Looper
+import android.webkit.WebSettings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -12,21 +14,28 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.toArgb
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.twicast.tv.core.designsystem.theme.TwiCastTheme
 import app.twicast.tv.core.designsystem.theme.TwiTheme
 import app.twicast.tv.core.locale.withAppLanguage
+import app.twicast.tv.data.model.PlayerEngine
 import app.twicast.tv.data.model.ThemeMode
 import app.twicast.tv.data.repository.AppearanceSettingsRepository
+import app.twicast.tv.data.repository.PlayerSettingsRepository
 import app.twicast.tv.data.repository.SharedPreferencesLanguageSettingsRepository
 import app.twicast.tv.navigation.TwiCastApp
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     @Inject lateinit var appearanceSettings: AppearanceSettingsRepository
+
+    @Inject lateinit var playerSettings: PlayerSettingsRepository
 
     // Runs before Hilt injects anything, so the language store is created by hand here.
     override fun attachBaseContext(newBase: Context) {
@@ -36,6 +45,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        warmUpWebViewForTwitchPlayer()
         setContent {
             val themeMode by appearanceSettings.themeMode.collectAsStateWithLifecycle(initialValue = null)
             // Until the choice is read the window background shows: drawing a guessed theme would flash.
@@ -51,6 +61,20 @@ class MainActivity : ComponentActivity() {
                 val background = TwiTheme.colors.background
                 SideEffect { window.setBackgroundDrawable(ColorDrawable(background.toArgb())) }
                 TwiCastApp()
+            }
+        }
+    }
+
+    /**
+     * With the Twitch player chosen, loads the WebView engine (~0.5 s on a TV box) once the home screen is idle,
+     * instead of when the first stream opens. Not done for the TwiCast player: the engine costs memory.
+     */
+    private fun warmUpWebViewForTwitchPlayer() {
+        lifecycleScope.launch {
+            if (playerSettings.playerEngine.first() != PlayerEngine.Twitch) return@launch
+            Looper.myQueue().addIdleHandler {
+                WebSettings.getDefaultUserAgent(applicationContext)
+                false
             }
         }
     }

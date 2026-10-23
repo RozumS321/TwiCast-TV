@@ -26,6 +26,11 @@
       top: -50px; height: calc(100% + 50px + 250px); }
     body.with-chat #chat { display: flex; }
   </style>
+  <!-- Open the connections the Twitch player needs while its script still loads (start is ~18 s on a TV box). -->
+  <link rel="preconnect" href="https://player.twitch.tv">
+  <link rel="preconnect" href="https://static.twitchcdn.net">
+  <link rel="preconnect" href="https://gql.twitch.tv">
+  <link rel="preconnect" href="https://usher.ttvnw.net">
   <script src="https://player.twitch.tv/js/embed/v1.js"></script>
 </head>
 <body>

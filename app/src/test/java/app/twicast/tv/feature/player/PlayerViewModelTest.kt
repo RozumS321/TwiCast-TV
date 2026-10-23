@@ -199,6 +199,25 @@ class PlayerViewModelTest {
     }
 
     @Test
+    fun `the Twitch player stays at 720p on Auto, but not when the viewer chose a quality`() = runTest(mainRule.dispatcher) {
+        assertEquals(TwitchPlayerDefaultMaxVideoHeight, viewModel().uiState.value.maxVideoHeight)
+
+        settings.stored = "1080p60"
+        assertEquals(null, viewModel().uiState.value.maxVideoHeight)
+    }
+
+    @Test
+    fun `a TwiCast fallback to the Twitch player gets the 720p cap too`() = runTest(mainRule.dispatcher) {
+        settings.playerEngine.value = PlayerEngine.TwiCast
+        val viewModel = viewModel()
+        assertEquals(null, viewModel.uiState.value.maxVideoHeight)
+
+        viewModel.onEmbedStateChanged(EmbedState.Error)
+        assertEquals(PlayerEngine.Twitch, viewModel.uiState.value.engine)
+        assertEquals(TwitchPlayerDefaultMaxVideoHeight, viewModel.uiState.value.maxVideoHeight)
+    }
+
+    @Test
     fun `malformed login never reaches the embed`() = runTest(mainRule.dispatcher) {
         val viewModel = PlayerViewModel(destination.copy(channelLogin = "a&b=c"), settings, playback, device)
         assertFalse(viewModel.uiState.value.canPlay)
