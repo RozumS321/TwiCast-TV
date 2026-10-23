@@ -35,6 +35,7 @@ import app.twicast.tv.data.model.ThemeMode
 import app.twicast.tv.feature.settings.components.AboutSection
 import app.twicast.tv.feature.settings.components.ChatSection
 import app.twicast.tv.feature.settings.components.LanguageSection
+import app.twicast.tv.feature.settings.components.OptimizationSections
 import app.twicast.tv.feature.settings.components.QualitySection
 import app.twicast.tv.feature.settings.components.SettingsMenu
 import app.twicast.tv.feature.settings.components.ThemeSection
@@ -71,6 +72,8 @@ fun SettingsScreen(
     onThemeSelected: (ThemeMode) -> Unit,
     onLanguageSelected: (AppLanguage) -> Unit,
     onOpenChatChanged: (Boolean) -> Unit,
+    onWarmTwitchPlayerChanged: (Boolean) -> Unit,
+    onFreeMemoryInBackgroundChanged: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -94,6 +97,14 @@ fun SettingsScreen(
                         LanguageSection(state.language, state.focusLanguage, onLanguageSelected)
                         AboutSection(BuildConfig.VERSION_NAME)
                     }
+                    SettingsSection.Optimization -> OptimizationSections(
+                        warmPlayer = state.warmTwitchPlayer,
+                        warmAvailable = state.playerEngine == PlayerEngine.Twitch,
+                        lowMemory = state.lowMemory,
+                        freeMemory = state.freeMemoryInBackground,
+                        onWarmPlayerChanged = onWarmTwitchPlayerChanged,
+                        onFreeMemoryChanged = onFreeMemoryInBackgroundChanged,
+                    )
                 }
             }
         }

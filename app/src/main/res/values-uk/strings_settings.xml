@@ -29,4 +29,17 @@
     <string name="settings_about">Про застосунок</string>
     <string name="settings_about_hint">Оновлення приходять самі під час запуску</string>
     <string name="settings_language_hint">кожна мова підписана нею самою</string>
+    <string name="settings_section_optimization">Оптимізація</string>
+    <string name="settings_section_optimization_hint">пам’ять і швидкість</string>
+    <string name="settings_speed">Швидкість</string>
+    <string name="settings_speed_hint">швидше, але займає пам’ять</string>
+    <string name="settings_warm_player">Прискорення запуску стриму</string>
+    <string name="settings_warm_player_text">Twitch player заздалегідь завантажується у фоні: стрими відкриваються за 1–2 секунди замість 10–15. Пам’ять зайнята, поки застосунок відкритий.</string>
+    <string name="settings_warm_player_cost">≈ %d МБ</string>
+    <string name="settings_warm_player_twitch_only">Лише для Twitch player — зараз вибрано TwiCast player</string>
+    <string name="settings_warm_player_low_memory">Недоступно: на цьому пристрої мало пам’яті</string>
+    <string name="settings_memory">Пам’ять</string>
+    <string name="settings_memory_hint">менше пам’яті, трохи довше після повернення</string>
+    <string name="settings_free_memory">Звільняти пам’ять при згортанні</string>
+    <string name="settings_free_memory_text">Коли застосунок згорнуто: закриває фоновий плеєр і очищає картинки в пам’яті. Після повернення картинки й перший стрим завантажуються заново.</string>
 </resources>

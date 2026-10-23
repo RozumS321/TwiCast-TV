@@ -24,12 +24,15 @@ import app.twicast.tv.core.locale.withAppLanguage
 import app.twicast.tv.data.model.PlayerEngine
 import app.twicast.tv.data.model.ThemeMode
 import app.twicast.tv.data.repository.AppearanceSettingsRepository
+import app.twicast.tv.data.repository.OptimizationSettingsRepository
 import app.twicast.tv.data.repository.PlayerSettingsRepository
 import app.twicast.tv.data.repository.SharedPreferencesLanguageSettingsRepository
 import app.twicast.tv.feature.player.components.LocalWarmTwitchPlayer
 import app.twicast.tv.feature.player.components.WarmTwitchPlayer
 import app.twicast.tv.navigation.TwiCastApp
+import coil3.SingletonImageLoader
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -43,6 +46,12 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var deviceProfile: DeviceProfile
 
+    @Inject lateinit var optimizationSettings: OptimizationSettingsRepository
+
+    /** "Освобождать память при сворачивании", kept current for onStop. */
+    private var freeMemoryInBackground = true
+    private var freedInBackground = false
+
     /** Kept by the activity so it lives between streams; not on low-memory TVs (see [WarmTwitchPlayer]). */
     private var warmPlayer: WarmTwitchPlayer? = null
 
@@ -55,11 +64,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         warmUpWebViewForTwitchPlayer()
-        if (!deviceProfile.isLowMemory) warmPlayer = WarmTwitchPlayer(this, playerSettings)
-        // Switching to the TwiCast player frees the warm page at once.
+        if (!deviceProfile.isLowMemory) warmPlayer = WarmTwitchPlayer(this, playerSettings, optimizationSettings)
+        // Turning the option off, or switching to the TwiCast player, frees the warm page at once.
         lifecycleScope.launch {
-            playerSettings.playerEngine.collect { if (it != PlayerEngine.Twitch) warmPlayer?.destroy() }
+            combine(playerSettings.playerEngine, optimizationSettings.warmTwitchPlayer) { engine, warm -> engine == PlayerEngine.Twitch && warm }
+                .collect { wanted -> if (!wanted) warmPlayer?.destroy() }
         }
+        lifecycleScope.launch { optimizationSettings.freeMemoryInBackground.collect { freeMemoryInBackground = it } }
         setContent {
             val themeMode by appearanceSettings.themeMode.collectAsStateWithLifecycle(initialValue = null)
             // Until the choice is read the window background shows: drawing a guessed theme would flash.
@@ -79,6 +90,23 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        if (!freedInBackground) return
+        freedInBackground = false
+        lifecycleScope.launch { warmPlayer?.restore() }
+    }
+
+    // Sent to the background (Home, another app): give back what is quick to rebuild. Images come back from the
+    // disk cache, the warm player from Home.
+    override fun onStop() {
+        super.onStop()
+        if (!freeMemoryInBackground || isChangingConfigurations) return
+        warmPlayer?.freeMemory()
+        SingletonImageLoader.get(this).memoryCache?.clear()
+        freedInBackground = true
+    }
+
     override fun onDestroy() {
         warmPlayer?.destroy()
         super.onDestroy()
@@ -90,7 +118,7 @@ class MainActivity : ComponentActivity() {
      */
     private fun warmUpWebViewForTwitchPlayer() {
         lifecycleScope.launch {
-            if (playerSettings.playerEngine.first() != PlayerEngine.Twitch) return@launch
+            if (playerSettings.playerEngine.first() != PlayerEngine.Twitch || !optimizationSettings.warmTwitchPlayer.first()) return@launch
             Looper.myQueue().addIdleHandler {
                 WebSettings.getDefaultUserAgent(applicationContext)
                 false

@@ -19,5 +19,7 @@ fun SettingsRoute(viewModel: SettingsViewModel = hiltViewModel()) {
         // Resources are picked when the activity is created: recreating it redraws everything in the new language.
         onLanguageSelected = { if (viewModel.onLanguageSelected(it)) activity?.recreate() },
         onOpenChatChanged = viewModel::onOpenChatChanged,
+        onWarmTwitchPlayerChanged = viewModel::onWarmTwitchPlayerChanged,
+        onFreeMemoryInBackgroundChanged = viewModel::onFreeMemoryInBackgroundChanged,
     )
 }

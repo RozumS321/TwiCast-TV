@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.tv.material3.Text
 import app.twicast.tv.R
 import app.twicast.tv.core.designsystem.component.TwiChip
@@ -127,29 +128,114 @@ fun AboutSection(versionName: String) {
 fun ChatSection(openChat: Boolean?, onOpenChatChanged: (Boolean) -> Unit) {
     SettingsSection(R.string.settings_chat, hint = null) {
         if (openChat == null) return@SettingsSection
-        val colors = TwiTheme.colors
-        val focusProgress = rememberFocusProgress()
-        val interactionSource = remember { MutableInteractionSource() }
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChipSpacing),
-            modifier = Modifier
-                .width(TwiDimens.SettingsToggleWidth)
-                .focusTransform(focusProgress, TwiScale.ButtonFocused, TwiShapes.SettingsToggle)
-                .background(colors.surface, TwiShapes.SettingsToggle)
-                .focusRing(focusProgress, colors.primary, TwiShapes.SettingsToggle, TwiDimens.FocusBorderWidth)
-                .trackFocus(focusProgress)
-                .clickable(interactionSource = interactionSource, indication = null) { onOpenChatChanged(!openChat) }
-                .padding(horizontal = TwiDimens.SettingsToggleHorizontalPadding, vertical = TwiDimens.SettingsToggleVerticalPadding),
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.settings_chat_open), style = TwiTheme.typography.listTitle, color = colors.onSurface)
-                Text(stringResource(R.string.settings_chat_open_hint), style = TwiTheme.typography.caption, color = colors.onSurfaceVariant)
-            }
-            Switch(checked = openChat)
-        }
+        SwitchCard(
+            title = stringResource(R.string.settings_chat_open),
+            text = stringResource(R.string.settings_chat_open_hint),
+            checked = openChat,
+            onToggle = { onOpenChatChanged(!openChat) },
+        )
     }
 }
+
+/** Memory a warm Twitch player keeps (its WebView renderer), measured on a 4 GB TV box. */
+private const val WarmPlayerCostMb = 250
+
+/**
+ * Mockup "Настройки · Оптимизация": what the app may trade. [warmAvailable]: the Twitch player is chosen;
+ * [lowMemory]: the device is too small for a warm player at all.
+ */
+@Composable
+fun OptimizationSections(
+    warmPlayer: Boolean?,
+    warmAvailable: Boolean,
+    lowMemory: Boolean,
+    freeMemory: Boolean?,
+    onWarmPlayerChanged: (Boolean) -> Unit,
+    onFreeMemoryChanged: (Boolean) -> Unit,
+) {
+    SettingsSection(R.string.settings_speed, R.string.settings_speed_hint) {
+        if (warmPlayer == null) return@SettingsSection
+        val enabled = warmAvailable && !lowMemory
+        SwitchCard(
+            title = stringResource(R.string.settings_warm_player),
+            text = stringResource(R.string.settings_warm_player_text),
+            tag = stringResource(R.string.settings_warm_player_cost, WarmPlayerCostMb),
+            checked = warmPlayer && enabled,
+            enabled = enabled,
+            note = when {
+                lowMemory -> stringResource(R.string.settings_warm_player_low_memory)
+                !warmAvailable -> stringResource(R.string.settings_warm_player_twitch_only)
+                else -> null
+            },
+            width = TwiDimens.SettingsWideToggleWidth,
+            onToggle = { onWarmPlayerChanged(!warmPlayer) },
+        )
+    }
+    SettingsSection(R.string.settings_memory, R.string.settings_memory_hint) {
+        if (freeMemory == null) return@SettingsSection
+        SwitchCard(
+            title = stringResource(R.string.settings_free_memory),
+            text = stringResource(R.string.settings_free_memory_text),
+            checked = freeMemory,
+            width = TwiDimens.SettingsWideToggleWidth,
+            onToggle = { onFreeMemoryChanged(!freeMemory) },
+        )
+    }
+}
+
+/**
+ * A card-wide switch: title (with an optional [tag] such as "≈ 250 МБ"), explanation, optional [note] under it.
+ * A disabled card is dimmed and skipped by the remote.
+ */
+@Composable
+private fun SwitchCard(
+    title: String,
+    text: String,
+    checked: Boolean,
+    onToggle: () -> Unit,
+    tag: String? = null,
+    enabled: Boolean = true,
+    note: String? = null,
+    width: Dp = TwiDimens.SettingsToggleWidth,
+) {
+    val colors = TwiTheme.colors
+    val focusProgress = rememberFocusProgress()
+    val interactionSource = remember { MutableInteractionSource() }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(TwiDimens.SettingsSectionsSpacing),
+        modifier = Modifier
+            .width(width)
+            .graphicsLayer { alpha = if (enabled) 1f else DisabledAlpha }
+            .focusTransform(focusProgress, TwiScale.ButtonFocused, TwiShapes.SettingsToggle)
+            .background(colors.surface, TwiShapes.SettingsToggle)
+            .focusRing(focusProgress, colors.primary, TwiShapes.SettingsToggle, TwiDimens.FocusBorderWidth)
+            .trackFocus(focusProgress)
+            .clickable(interactionSource = interactionSource, indication = null, enabled = enabled, onClick = onToggle)
+            .padding(horizontal = TwiDimens.SettingsToggleHorizontalPadding, vertical = TwiDimens.SettingsToggleVerticalPadding),
+    ) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(TwiDimens.CardTextSpacing)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChipSpacing)) {
+                Text(title, style = TwiTheme.typography.listTitle, color = colors.onSurface)
+                if (tag != null) {
+                    Text(
+                        tag,
+                        style = TwiTheme.typography.tagDense,
+                        color = colors.onSurfaceVariant,
+                        modifier = Modifier
+                            .background(colors.surfaceVariant, TwiShapes.Pill)
+                            .padding(horizontal = TwiDimens.BadgePillHorizontalPadding, vertical = TwiDimens.BadgePillVerticalPadding),
+                    )
+                }
+            }
+            Text(text, style = TwiTheme.typography.caption, color = colors.onSurfaceVariant)
+            if (note != null) Text(note, style = TwiTheme.typography.caption, color = colors.primaryStrong)
+        }
+        Switch(checked = checked)
+    }
+}
+
+private const val DisabledAlpha = 0.55f
 
 @Composable
 private fun Switch(checked: Boolean) {

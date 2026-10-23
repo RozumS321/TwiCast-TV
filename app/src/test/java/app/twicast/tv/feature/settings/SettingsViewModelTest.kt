@@ -4,7 +4,9 @@ import app.twicast.tv.data.model.AppLanguage
 import app.twicast.tv.data.model.PlayerEngine
 import app.twicast.tv.data.model.ThemeMode
 import app.twicast.tv.data.repository.AppearanceSettingsRepository
+import app.twicast.tv.core.device.DeviceProfile
 import app.twicast.tv.data.repository.LanguageSettingsRepository
+import app.twicast.tv.data.repository.OptimizationSettingsRepository
 import app.twicast.tv.data.repository.PlayerSettingsRepository
 import app.twicast.tv.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,6 +49,19 @@ private class FakeLanguages : LanguageSettingsRepository {
     }
 }
 
+private class FakeOptimization : OptimizationSettingsRepository {
+    override val warmTwitchPlayer = MutableStateFlow(false)
+    override val freeMemoryInBackground = MutableStateFlow(true)
+    override suspend fun setWarmTwitchPlayer(enabled: Boolean) {
+        warmTwitchPlayer.value = enabled
+    }
+    override suspend fun setFreeMemoryInBackground(enabled: Boolean) {
+        freeMemoryInBackground.value = enabled
+    }
+}
+
+private val bigDevice = object : DeviceProfile { override val isLowMemory = false }
+
 class SettingsViewModelTest {
 
     @get:Rule
@@ -56,7 +71,7 @@ class SettingsViewModelTest {
     fun `shows the stored choices and saves new ones`() = runTest(mainRule.dispatcher) {
         val settings = FakeSettings()
         val appearance = FakeAppearance()
-        val viewModel = SettingsViewModel(settings, appearance, FakeLanguages())
+        val viewModel = SettingsViewModel(settings, appearance, FakeLanguages(), FakeOptimization(), bigDevice)
         backgroundScope.launch { viewModel.uiState.collect {} }
 
         val loaded = viewModel.uiState.value
@@ -82,7 +97,7 @@ class SettingsViewModelTest {
     @Test
     fun `a new language is saved and asks for a redraw focused on the language, the same one does not`() {
         val languages = FakeLanguages()
-        val viewModel = SettingsViewModel(FakeSettings(), FakeAppearance(), languages)
+        val viewModel = SettingsViewModel(FakeSettings(), FakeAppearance(), languages, FakeOptimization(), bigDevice)
 
         assertFalse(viewModel.onLanguageSelected(AppLanguage.Russian))
         assertTrue(viewModel.onLanguageSelected(AppLanguage.Ukrainian))
@@ -100,7 +115,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `a language change keeps System open and hands the focus to the language once`() = runTest(mainRule.dispatcher) {
-        val viewModel = SettingsViewModel(FakeSettings(), FakeAppearance(), FakeLanguages())
+        val viewModel = SettingsViewModel(FakeSettings(), FakeAppearance(), FakeLanguages(), FakeOptimization(), bigDevice)
         backgroundScope.launch { viewModel.uiState.collect {} }
 
         assertEquals(SettingsSection.Player, viewModel.uiState.value.section)
@@ -111,5 +126,20 @@ class SettingsViewModelTest {
 
         viewModel.onSectionFocused(SettingsSection.System)
         assertFalse(viewModel.uiState.value.focusLanguage)
+    }
+
+    @Test
+    fun `speed and memory options load with their defaults and save`() = runTest(mainRule.dispatcher) {
+        val optimization = FakeOptimization()
+        val viewModel = SettingsViewModel(FakeSettings(), FakeAppearance(), FakeLanguages(), optimization, bigDevice)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+
+        assertEquals(false, viewModel.uiState.value.warmTwitchPlayer)
+        assertEquals(true, viewModel.uiState.value.freeMemoryInBackground)
+
+        viewModel.onWarmTwitchPlayerChanged(true)
+        viewModel.onFreeMemoryInBackgroundChanged(false)
+        assertEquals(true, viewModel.uiState.value.warmTwitchPlayer)
+        assertEquals(false, viewModel.uiState.value.freeMemoryInBackground)
     }
 }
