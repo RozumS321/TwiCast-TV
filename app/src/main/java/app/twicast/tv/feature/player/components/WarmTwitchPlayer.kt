@@ -125,8 +125,9 @@ class WarmTwitchPlayer(
         if (listener == null) destroy() else dropOnRelease = true
     }
 
-    /** Back from the background: load the page again for the last channel, if it is still wanted. */
+    /** Back from the background: keep a page that was still on screen, or load it again for the last channel. */
     suspend fun restore() {
+        dropOnRelease = false
         val channel = lastChannel ?: return
         prepare(channel)
     }
