@@ -42,4 +42,7 @@
     <string name="settings_memory_hint">меньше памяти, чуть дольше после возврата</string>
     <string name="settings_free_memory">Освобождать память при сворачивании</string>
     <string name="settings_free_memory_text">Когда приложение свёрнуто: закрывает фоновый плеер и очищает картинки в памяти. После возврата картинки и первый стрим загружаются заново.</string>
+    <string name="settings_notify_live">Сообщать о начале эфиров</string>
+    <string name="settings_notify_live_hint">Уведомление, когда канал из подписок начинает эфир, даже если TwiCast закрыт. Проверка раз в 15 минут.</string>
+    <string name="settings_notifications">Уведомления</string>
 </resources>

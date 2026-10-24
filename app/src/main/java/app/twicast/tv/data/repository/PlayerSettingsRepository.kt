@@ -36,6 +36,11 @@ interface PlayerSettingsRepository {
     val openChatWithStream: Flow<Boolean>
 
     suspend fun setOpenChatWithStream(open: Boolean)
+
+    /** "Сообщать о начале эфиров" (Settings): a system notification when a followed channel goes live. On by default. */
+    val notifyLiveStarts: Flow<Boolean>
+
+    suspend fun setNotifyLiveStarts(enabled: Boolean)
 }
 
 private val CeilingPattern = Regex("^(\\d+)p$")
@@ -54,6 +59,7 @@ class DataStorePlayerSettingsRepository @Inject constructor(
     private val preferredQualityKey = stringPreferencesKey("preferred_quality")
     private val playerEngineKey = stringPreferencesKey("player_engine")
     private val openChatKey = booleanPreferencesKey("open_chat_with_stream")
+    private val notifyLiveKey = booleanPreferencesKey("notify_live_starts")
 
     override val preferredQualityUpdates: Flow<String?> = dataStore.data.map { it[preferredQualityKey] }
 
@@ -75,5 +81,11 @@ class DataStorePlayerSettingsRepository @Inject constructor(
 
     override suspend fun setOpenChatWithStream(open: Boolean) {
         dataStore.edit { it[openChatKey] = open }
+    }
+
+    override val notifyLiveStarts: Flow<Boolean> = dataStore.data.map { it[notifyLiveKey] ?: true }
+
+    override suspend fun setNotifyLiveStarts(enabled: Boolean) {
+        dataStore.edit { it[notifyLiveKey] = enabled }
     }
 }

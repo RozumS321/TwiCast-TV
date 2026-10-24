@@ -2,6 +2,7 @@ package app.twicast.tv
 
 import android.app.UiModeManager
 import android.content.Context
+import android.content.Intent
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
@@ -27,11 +28,15 @@ import app.twicast.tv.data.repository.AppearanceSettingsRepository
 import app.twicast.tv.data.repository.OptimizationSettingsRepository
 import app.twicast.tv.data.repository.PlayerSettingsRepository
 import app.twicast.tv.data.repository.SharedPreferencesLanguageSettingsRepository
+import app.twicast.tv.feature.notifications.LiveNotifications
+import app.twicast.tv.feature.notifications.LiveStartWorker
+import app.twicast.tv.feature.player.PlayerDestination
 import app.twicast.tv.feature.player.components.LocalWarmTwitchPlayer
 import app.twicast.tv.feature.player.components.WarmTwitchPlayer
 import app.twicast.tv.navigation.TwiCastApp
 import coil3.SingletonImageLoader
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -61,8 +66,15 @@ class MainActivity : ComponentActivity() {
         super.attachBaseContext(newBase.withAppLanguage(language))
     }
 
+    /** A stream asked for by a tapped "в эфире" notification, until the app has opened it. */
+    private val notificationStream = MutableStateFlow<PlayerDestination?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Recreated (language change): the notification was already handled.
+        if (savedInstanceState == null) notificationStream.value = LiveNotifications.destinationOf(intent)
+        // Background checks for "Сообщать о начале эфиров" follow the option.
+        lifecycleScope.launch { playerSettings.notifyLiveStarts.collect { LiveStartWorker.sync(applicationContext, it) } }
         warmUpWebViewForTwitchPlayer()
         if (!deviceProfile.isLowMemory) warmPlayer = WarmTwitchPlayer(this, playerSettings, optimizationSettings)
         // Turning the option off, or switching to the TwiCast player, frees the warm page at once.
@@ -85,9 +97,23 @@ class MainActivity : ComponentActivity() {
                 // uiMode changes don't recreate the activity, so the XML window background must follow by hand.
                 val background = TwiTheme.colors.background
                 SideEffect { window.setBackgroundDrawable(ColorDrawable(background.toArgb())) }
-                CompositionLocalProvider(LocalWarmTwitchPlayer provides warmPlayer) { TwiCastApp() }
+                val openStream by notificationStream.collectAsStateWithLifecycle()
+                val notifyLiveStarts by playerSettings.notifyLiveStarts.collectAsStateWithLifecycle(initialValue = false)
+                CompositionLocalProvider(LocalWarmTwitchPlayer provides warmPlayer) {
+                    TwiCastApp(
+                        openStream = openStream,
+                        onStreamOpened = { notificationStream.value = null },
+                        askNotificationPermission = notifyLiveStarts,
+                    )
+                }
             }
         }
+    }
+
+    // A notification tapped while TwiCast runs: the same activity gets it.
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        LiveNotifications.destinationOf(intent)?.let { notificationStream.value = it }
     }
 
     override fun onStart() {

@@ -123,6 +123,21 @@ fun AboutSection(versionName: String) {
     }
 }
 
+/** "Уведомления": "Сообщать о начале эфиров" — system notifications, checked in the background. */
+@Composable
+fun NotificationsSection(notify: Boolean?, onNotifyChanged: (Boolean) -> Unit) {
+    SettingsSection(R.string.settings_notifications, hint = null) {
+        if (notify == null) return@SettingsSection
+        SwitchCard(
+            title = stringResource(R.string.settings_notify_live),
+            text = stringResource(R.string.settings_notify_live_hint),
+            checked = notify,
+            width = TwiDimens.SettingsWideToggleWidth,
+            onToggle = { onNotifyChanged(!notify) },
+        )
+    }
+}
+
 /** "Чат": a card-wide switch (mockup), OK flips it. Hidden while the setting loads. */
 @Composable
 fun ChatSection(openChat: Boolean?, onOpenChatChanged: (Boolean) -> Unit) {

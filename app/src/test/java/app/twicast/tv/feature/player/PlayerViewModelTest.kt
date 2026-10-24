@@ -30,6 +30,10 @@ import org.junit.Test
 
 private class FakePlayerSettings(var stored: String? = null) : PlayerSettingsRepository {
     override val openChatWithStream = MutableStateFlow(false)
+    override val notifyLiveStarts = MutableStateFlow(true)
+    override suspend fun setNotifyLiveStarts(enabled: Boolean) {
+        notifyLiveStarts.value = enabled
+    }
     override suspend fun setOpenChatWithStream(open: Boolean) {
         openChatWithStream.value = open
     }

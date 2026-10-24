@@ -38,6 +38,8 @@ data class SettingsUiState(
     val defaultQuality: DefaultQuality? = null,
     val themeMode: ThemeMode? = null,
     val openChatWithStream: Boolean? = null,
+    /** "Сообщать о начале эфиров"; null while loading. */
+    val notifyLiveStarts: Boolean? = null,
     /** Read synchronously (it is what the screen is drawn in), so never null. */
     val language: AppLanguage,
     /** The screen was just redrawn in a new language: the focus goes back to the language chips. */
