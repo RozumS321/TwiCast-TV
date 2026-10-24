@@ -18,6 +18,9 @@ interface StreamsRepository {
     /** Whether [login] is broadcasting right now; never cached (the player asks when a live stream stalls). */
     suspend fun isLive(login: String): AppResult<Boolean>
 
+    /** Which of [logins] broadcast now (up to 100): their live streams. */
+    suspend fun getLiveStreams(logins: List<String>): AppResult<List<Stream>>
+
     /** Live channels the user follows, by viewers (scope user:read:follows). */
     suspend fun getFollowedStreams(userId: String, limit: Int): AppResult<List<Stream>>
 
@@ -45,6 +48,14 @@ class HelixStreamsRepository @Inject constructor(
 
     override suspend fun isLive(login: String): AppResult<Boolean> =
         runCatchingRemote { api.getStreams(first = 1, userLogins = listOf(login.lowercase())).data.isNotEmpty() }
+
+    override suspend fun getLiveStreams(logins: List<String>): AppResult<List<Stream>> {
+        if (logins.isEmpty()) return AppResult.Success(emptyList())
+        val normalized = logins.map { it.lowercase() }.distinct().sorted()
+        return cache.getOrLoad(CacheKey.Logins(normalized)) {
+            runCatchingRemote { api.getStreams(first = normalized.size, userLogins = normalized).data.withAvatars() }
+        }
+    }
 
     override suspend fun getFollowedStreams(userId: String, limit: Int): AppResult<List<Stream>> =
         cache.getOrLoad(CacheKey.Followed(userId, limit)) {
@@ -82,6 +93,7 @@ class HelixStreamsRepository @Inject constructor(
     private sealed interface CacheKey {
         data class Top(val language: String?, val limit: Int) : CacheKey
         data class Followed(val userId: String, val limit: Int) : CacheKey
+        data class Logins(val logins: List<String>) : CacheKey
         data class InCategories(val categoryIds: List<String>, val language: String?, val limit: Int) : CacheKey
     }
 }

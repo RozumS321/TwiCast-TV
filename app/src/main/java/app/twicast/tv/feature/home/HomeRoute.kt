@@ -7,11 +7,14 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.twicast.tv.data.model.Stream
+import app.twicast.tv.data.repository.HistoryEntry
 import app.twicast.tv.feature.player.components.LocalWarmTwitchPlayer
 
 @Composable
 fun HomeRoute(
     onStreamClick: (Stream) -> Unit,
+    onRecordingClick: (HistoryEntry) -> Unit,
+    onChannelClick: (String) -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -28,5 +31,11 @@ fun HomeRoute(
     LaunchedEffect(warmPlayer, firstChannel) {
         if (warmPlayer != null && firstChannel != null) warmPlayer.prepare(firstChannel)
     }
-    HomeScreen(state = state, onRetry = viewModel::onRetry, onStreamClick = onStreamClick)
+    HomeScreen(
+        state = state,
+        onRetry = viewModel::onRetry,
+        onStreamClick = onStreamClick,
+        onRecordingClick = onRecordingClick,
+        onChannelClick = onChannelClick,
+    )
 }

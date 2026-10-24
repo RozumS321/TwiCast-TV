@@ -29,7 +29,9 @@ import app.twicast.tv.core.designsystem.theme.TwiTheme
 import app.twicast.tv.data.model.Stream
 import app.twicast.tv.feature.common.appErrorMessage
 import app.twicast.tv.feature.home.components.HomeSkeleton
+import app.twicast.tv.feature.home.components.RecentRow
 import app.twicast.tv.feature.home.components.StreamRow
+import app.twicast.tv.data.repository.HistoryEntry
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -46,6 +48,8 @@ fun HomeScreen(
     onRetry: () -> Unit,
     onStreamClick: (Stream) -> Unit,
     modifier: Modifier = Modifier,
+    onRecordingClick: (HistoryEntry) -> Unit = {},
+    onChannelClick: (String) -> Unit = {},
 ) {
     when (state) {
         HomeUiState.Loading -> HomeSkeleton(modifier)
@@ -54,17 +58,26 @@ fun HomeScreen(
             Greeting(state.userName, liveFollowedCount = 0, Modifier.padding(top = TwiDimens.ScreenTopPadding))
             EmptyState(stringResource(R.string.empty_streams))
         }
-        is HomeUiState.Content -> KeepFocusedVisibleScroll { HomeContent(state, onStreamClick, modifier) }
+        is HomeUiState.Content -> KeepFocusedVisibleScroll {
+            HomeContent(state, onStreamClick, onRecordingClick, onChannelClick, modifier)
+        }
     }
 }
 
 /** Mockup "Главная · авторизован": greeting, then followed / recommended / regional rows. */
 @Composable
-private fun HomeContent(state: HomeUiState.Content, onStreamClick: (Stream) -> Unit, modifier: Modifier) {
+private fun HomeContent(
+    state: HomeUiState.Content,
+    onStreamClick: (Stream) -> Unit,
+    onRecordingClick: (HistoryEntry) -> Unit,
+    onChannelClick: (String) -> Unit,
+    modifier: Modifier,
+) {
     val languageLabel = remember(state.languageCode) { languageName(state.languageCode) }
     // The first non-empty row takes the initial focus.
     val firstRowKey = when {
         state.followedLive.isNotEmpty() -> "followed"
+        state.recent.isNotEmpty() -> "recent"
         state.recommended.isNotEmpty() -> "recommended"
         else -> "regional"
     }
@@ -89,6 +102,19 @@ private fun HomeContent(state: HomeUiState.Content, onStreamClick: (Stream) -> U
                 followed = true,
                 takesInitialFocus = key == firstRowKey,
             )
+        }
+        if (state.recent.isNotEmpty()) {
+            item(key = "recent", contentType = ContentType.ROW) {
+                Box(topModifier("recent")) {
+                    RecentRow(
+                        items = state.recent,
+                        onStreamClick = onStreamClick,
+                        onRecordingClick = onRecordingClick,
+                        onChannelClick = onChannelClick,
+                        takesInitialFocus = firstRowKey == "recent",
+                    )
+                }
+            }
         }
         row("recommended", state.recommended, topModifier) { key, streams ->
             StreamRow(

@@ -28,4 +28,9 @@
     <string name="home_row_recommended_hint">по вашим категориям</string>
     <string name="home_row_regional">Популярное в регионе</string>
 
+    <string name="home_row_recent">Недавно смотрели</string>
+    <string name="home_row_recent_hint">на этом телевизоре</string>
+    <string name="home_recent_left">осталось %s</string>
+    <string name="home_recent_recording">запись</string>
+    <string name="home_recent_offline">офлайн</string>
 </resources>

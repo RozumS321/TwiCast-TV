@@ -12,6 +12,8 @@ import app.twicast.tv.data.repository.PlaybackRepository
 import app.twicast.tv.data.repository.PlaybackSource
 import app.twicast.tv.data.repository.PlayerSettingsRepository
 import app.twicast.tv.data.repository.StreamsRepository
+import app.twicast.tv.data.repository.HistoryEntry
+import app.twicast.tv.data.repository.WatchHistoryRepository
 import app.twicast.tv.data.repository.WatchProgressRepository
 import app.twicast.tv.data.repository.qualityCeiling
 import app.twicast.tv.feature.player.components.EmbedState
@@ -46,6 +48,9 @@ data class PlayerDestination(
     val videoId: String? = null,
     /** Clip slug to play instead of the live stream. */
     val clipSlug: String? = null,
+    /** A recording's title and thumbnail template: for "Недавно смотрели" on home. */
+    val title: String? = null,
+    val thumbnailTemplate: String? = null,
 ) {
     /** Live stream (not a recording): only then the chat makes sense. */
     val isLive: Boolean get() = videoId == null && clipSlug == null
@@ -96,6 +101,7 @@ class PlayerViewModel internal constructor(
     private val playback: PlaybackRepository,
     private val streams: StreamsRepository,
     private val watchProgress: WatchProgressRepository,
+    private val history: WatchHistoryRepository,
     device: DeviceProfile,
 ) : ViewModel() {
 
@@ -107,8 +113,9 @@ class PlayerViewModel internal constructor(
         playback: PlaybackRepository,
         streams: StreamsRepository,
         watchProgress: WatchProgressRepository,
+        history: WatchHistoryRepository,
         device: DeviceProfile,
-    ) : this(savedStateHandle.toRoute<PlayerDestination>(), settings, playback, streams, watchProgress, device)
+    ) : this(savedStateHandle.toRoute<PlayerDestination>(), settings, playback, streams, watchProgress, history, device)
 
     // Weak TVs start below 1080p right away instead of waiting for the renderer to crash.
     private val _uiState = MutableStateFlow(
@@ -128,6 +135,22 @@ class PlayerViewModel internal constructor(
     val seekRequests: Flow<Long> = _seekRequests.receiveAsFlow()
 
     init {
+        // Live streams and recordings go to "Недавно смотрели"; a clip is a moment, not something to come back to.
+        if (destination.clipSlug == null && _uiState.value.canPlay) {
+            viewModelScope.launch {
+                history.record(
+                    HistoryEntry(
+                        channelLogin = destination.channelLogin,
+                        channelName = destination.channelName,
+                        avatarUrl = destination.avatarUrl,
+                        categoryName = destination.categoryName,
+                        videoId = destination.videoId,
+                        title = destination.title,
+                        thumbnailTemplate = destination.thumbnailTemplate,
+                    ),
+                )
+            }
+        }
         viewModelScope.launch {
             val preferred = settings.preferredQuality()
             val engine = settings.playerEngine.first()

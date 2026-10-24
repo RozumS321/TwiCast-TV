@@ -7,6 +7,10 @@ import app.twicast.tv.data.model.AppResult
 import app.twicast.tv.data.model.AuthState
 import app.twicast.tv.testing.FakeAuthRepository
 import app.twicast.tv.testing.FakeStreamsRepository
+import app.twicast.tv.testing.FakeWatchHistoryRepository
+import app.twicast.tv.testing.FakeWatchProgressRepository
+import app.twicast.tv.data.repository.HistoryEntry
+import app.twicast.tv.data.repository.WatchProgress
 import app.twicast.tv.testing.MainDispatcherRule
 import app.twicast.tv.testing.stream
 import app.twicast.tv.testing.testUser
@@ -28,10 +32,12 @@ class HomeViewModelTest {
 
     private val auth = FakeAuthRepository(initialState = AuthState.SignedIn(testUser))
     private val streams = FakeStreamsRepository()
+    private val history = FakeWatchHistoryRepository()
+    private val watch = FakeWatchProgressRepository()
 
     private val clock = Clock { mainRule.dispatcher.scheduler.currentTime }
 
-    private fun viewModel() = HomeViewModel(auth, streams, Locale.forLanguageTag("ru-UA"), clock)
+    private fun viewModel() = HomeViewModel(auth, streams, history, watch, Locale.forLanguageTag("ru-UA"), clock)
 
     @Test
     fun `loading then followed, recommended and regional rows`() = runTest(mainRule.dispatcher) {
@@ -168,5 +174,39 @@ class HomeViewModelTest {
         advanceTimeBy(HomeAutoRefreshMillis + 1)
         assertEquals(listOf("3"), (viewModel.uiState.value as HomeUiState.Content).followedLive.map { it.id })
         viewModel.onHidden()
+    }
+
+    @Test
+    fun `recently watched shows recordings with what is left, and channels live or off air`() = runTest(mainRule.dispatcher) {
+        streams.followed = AppResult.Success(listOf(stream("a")))
+        streams.liveStreams = AppResult.Success(listOf(stream("b")))
+        history.entries.value = listOf(
+            HistoryEntry("login_rec", "Rec", videoId = "v1", title = "Ранкед"),
+            HistoryEntry("login_b", "Channel b"),
+            HistoryEntry("login_off", "Off"),
+        )
+        watch.progress.value = mapOf("v1" to WatchProgress(positionMs = 600_000, durationMs = 3_000_000, updatedAtMillis = 1))
+
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        val recent = (viewModel.uiState.value as HomeUiState.Content).recent
+        val recording = recent[0] as RecentItem.Recording
+        assertEquals(0.2f, recording.watchedFraction)
+        assertEquals(2_400_000L, recording.remainingMs)
+        assertEquals("login_b", (recent[1] as RecentItem.Channel).stream?.userLogin)
+        assertEquals(null, (recent[2] as RecentItem.Channel).stream)
+    }
+
+    @Test
+    fun `back from the player the row changes at once`() = runTest(mainRule.dispatcher) {
+        streams.followed = AppResult.Success(listOf(stream("a")))
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        assertTrue((viewModel.uiState.value as HomeUiState.Content).recent.isEmpty())
+
+        history.record(HistoryEntry("login_a", "Channel a"))
+        advanceUntilIdle()
+        assertEquals(listOf("live:login_a"), (viewModel.uiState.value as HomeUiState.Content).recent.map { it.entry.key })
     }
 }
