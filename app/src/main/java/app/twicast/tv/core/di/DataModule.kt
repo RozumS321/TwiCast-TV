@@ -11,6 +11,7 @@ import app.twicast.tv.data.repository.TwitchIrcChatRepository
 import app.twicast.tv.data.repository.ChannelRepository
 import app.twicast.tv.data.repository.DataStoreAppearanceSettingsRepository
 import app.twicast.tv.data.repository.DataStoreOptimizationSettingsRepository
+import app.twicast.tv.data.repository.DataStoreSearchHistoryRepository
 import app.twicast.tv.data.repository.DataStoreWatchHistoryRepository
 import app.twicast.tv.data.repository.DataStoreWatchProgressRepository
 import app.twicast.tv.data.repository.DataStorePlayerSettingsRepository
@@ -22,6 +23,7 @@ import app.twicast.tv.data.repository.HelixSearchRepository
 import app.twicast.tv.data.repository.HelixStreamsRepository
 import app.twicast.tv.data.repository.LanguageSettingsRepository
 import app.twicast.tv.data.repository.OptimizationSettingsRepository
+import app.twicast.tv.data.repository.SearchHistoryRepository
 import app.twicast.tv.data.repository.WatchHistoryRepository
 import app.twicast.tv.data.repository.WatchProgressRepository
 import app.twicast.tv.data.repository.GqlPlaybackRepository
@@ -71,6 +73,9 @@ abstract class DataModule {
 
     @Binds
     abstract fun bindChatRepository(impl: TwitchIrcChatRepository): ChatRepository
+
+    @Binds
+    abstract fun bindSearchHistoryRepository(impl: DataStoreSearchHistoryRepository): SearchHistoryRepository
 
     @Binds
     abstract fun bindWatchHistoryRepository(impl: DataStoreWatchHistoryRepository): WatchHistoryRepository

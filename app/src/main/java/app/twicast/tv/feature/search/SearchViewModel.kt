@@ -9,7 +9,12 @@ import app.twicast.tv.data.model.AppResult
 import app.twicast.tv.data.model.Category
 import app.twicast.tv.data.model.ChannelSearchResult
 import app.twicast.tv.data.repository.LanguageSettingsRepository
+import app.twicast.tv.data.repository.SearchHistoryEntry
+import app.twicast.tv.data.repository.SearchHistoryRepository
+import app.twicast.tv.data.repository.SearchHistoryRules
 import app.twicast.tv.data.repository.SearchRepository
+import app.twicast.tv.data.repository.StreamsRepository
+import kotlinx.collections.immutable.persistentListOf
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -47,6 +52,10 @@ sealed interface SearchResultsState {
     ) : SearchResultsState
 }
 
+/** A line under "Недавние"; [live]: a channel broadcasting now. */
+@Immutable
+data class SearchHistoryItem(val entry: SearchHistoryEntry, val live: Boolean)
+
 @Immutable
 data class SearchUiState(
     val query: String = "",
@@ -54,6 +63,8 @@ data class SearchUiState(
     /** The layout key was pressed: the bottom row offers the layouts instead of Пробел / Стереть. */
     val layoutMenuOpen: Boolean = false,
     val results: SearchResultsState = SearchResultsState.Idle,
+    /** Shown while the query is empty (mockup "Поиск · недавние"). */
+    val history: ImmutableList<SearchHistoryItem> = persistentListOf(),
 )
 
 /** Mockup "Поиск": on-screen keyboard on the left, channels and categories on the right, live as you type. */
@@ -62,6 +73,8 @@ data class SearchUiState(
 class SearchViewModel @Inject constructor(
     private val repository: SearchRepository,
     languages: LanguageSettingsRepository,
+    private val history: SearchHistoryRepository,
+    private val streams: StreamsRepository,
 ) : ViewModel() {
 
     // The keyboard starts in the interface language.
@@ -84,6 +97,38 @@ class SearchViewModel @Inject constructor(
                 // A newer query cancels the request still in flight.
                 .collectLatest(::search)
         }
+        viewModelScope.launch {
+            history.entries.collectLatest { entries ->
+                val shown = entries.take(SearchHistoryRules.Shown)
+                val logins = shown.mapNotNull { it.channelLogin }
+                // Unknown (no network): the channel shows without LIVE rather than the list waiting.
+                val live = (streams.getLiveStreams(logins) as? AppResult.Success)?.value.orEmpty()
+                    .mapTo(HashSet()) { it.userLogin.lowercase() }
+                val items = shown.map { SearchHistoryItem(it, live = it.channelLogin?.lowercase() in live) }
+                _uiState.update { it.copy(history = items.toImmutableList()) }
+            }
+        }
+    }
+
+    /** A channel opened from the results: remembered for "Недавние". */
+    fun onChannelOpened(channel: ChannelSearchResult) {
+        viewModelScope.launch {
+            history.record(SearchHistoryEntry(channel.displayName, channel.login, channel.avatarUrl, channel.categoryName))
+        }
+    }
+
+    /** A category opened from the results: the query that found it is remembered. */
+    fun onCategoryOpened() {
+        val query = _uiState.value.query.trim()
+        if (query.length < MinQueryLength) return
+        viewModelScope.launch { history.record(SearchHistoryEntry(query)) }
+    }
+
+    /** A remembered query: typed again for the viewer. */
+    fun onHistoryQuery(entry: SearchHistoryEntry) = editQuery { entry.text }
+
+    fun onClearHistory() {
+        viewModelScope.launch { history.clear() }
     }
 
     fun onKey(character: Char) = editQuery { it + character }

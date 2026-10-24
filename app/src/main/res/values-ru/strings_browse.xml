@@ -21,4 +21,9 @@
     <string name="search_offline">Офлайн</string>
     <string name="search_hint">Наберите имя канала или категории — результаты появятся сразу.</string>
     <string name="search_no_results">Ничего не нашлось. Попробуйте другое написание.</string>
+    <string name="search_recent">Недавние</string>
+    <string name="search_recent_hint">запросы и каналы, которые вы искали</string>
+    <string name="search_recent_clear">Очистить историю</string>
+    <string name="search_recent_channel">канал</string>
+    <string name="search_recent_query">запрос</string>
 </resources>
