@@ -1,5 +1,9 @@
 package app.twicast.tv.core.designsystem.component
 
+import androidx.compose.foundation.background
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -60,6 +64,8 @@ data class SidebarItem(
     val key: String,
     val label: String,
     val icon: ImageVector,
+    /** A red count (live channels in "Подписки"): on the icon when collapsed, at the row's end when expanded. 0: none. */
+    val badgeCount: Int = 0,
 )
 
 /** Expansion progress of the sidebar. Values are read only in draw-phase lambdas. */
@@ -225,6 +231,8 @@ private fun SidebarLogo(state: SidebarState, modifier: Modifier = Modifier) {
     }
 }
 
+private const val MaxShownCount = 99
+
 @Composable
 private fun SidebarItemRow(
     item: SidebarItem,
@@ -288,6 +296,16 @@ private fun SidebarItemRow(
     ) {
         Box(Modifier.size(TwiDimens.SidebarItemHeight), contentAlignment = Alignment.Center) {
             Icon(item.icon, contentDescription = item.label, tint = iconColor, modifier = Modifier.size(TwiDimens.NavigationIconSize))
+            if (item.badgeCount > 0) {
+                // Collapsed only: fades out as the label (and the row-end count) fade in.
+                SidebarCount(
+                    item.badgeCount,
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = TwiDimens.SidebarDotInset, end = TwiDimens.SidebarDotInset)
+                        .graphicsLayer { alpha = 1f - state.labelAlpha },
+                )
+            }
         }
         Text(
             text = item.label,
@@ -296,6 +314,29 @@ private fun SidebarItemRow(
             maxLines = 1,
             modifier = Modifier.graphicsLayer { alpha = state.labelAlpha },
         )
+        if (item.badgeCount > 0) {
+            Spacer(Modifier.weight(1f))
+            SidebarCount(
+                item.badgeCount,
+                Modifier.padding(end = TwiDimens.SidebarCountEndPadding).graphicsLayer { alpha = state.labelAlpha },
+            )
+        }
     }
+}
+
+/** Red pill with a number ("4"); "99+" beyond. */
+@Composable
+private fun SidebarCount(count: Int, modifier: Modifier = Modifier) {
+    Text(
+        text = if (count > MaxShownCount) "$MaxShownCount+" else count.toString(),
+        style = TwiTheme.typography.count,
+        color = TwiTheme.colors.onPrimary,
+        maxLines = 1,
+        textAlign = TextAlign.Center,
+        modifier = modifier
+            .defaultMinSize(minWidth = TwiDimens.SidebarCountMinSize, minHeight = TwiDimens.SidebarCountMinSize)
+            .background(TwiTheme.colors.live, CircleShape)
+            .padding(horizontal = TwiDimens.SidebarCountHorizontalPadding),
+    )
 }
 
