@@ -102,11 +102,11 @@ fun SettingsScreen(
                         PlayerSection(state.playerEngine, onPlayerSelected)
                         QualitySection(state.defaultQuality, state.loaded, onDefaultQualitySelected)
                         ChatSection(state.openChatWithStream, onOpenChatChanged)
-                        NotificationsSection(state.notifyLiveStarts, onNotifyLiveStartsChanged)
                     }
                     SettingsSection.System -> {
                         ThemeSection(state.themeMode, onThemeSelected)
                         LanguageSection(state.language, state.focusLanguage, onLanguageSelected)
+                        NotificationsSection(state.notifyLiveStarts, onNotifyLiveStartsChanged)
                         AboutSection(BuildConfig.VERSION_NAME)
                     }
                     SettingsSection.Optimization -> OptimizationSections(

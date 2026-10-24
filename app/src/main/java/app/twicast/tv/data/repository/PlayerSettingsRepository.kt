@@ -37,7 +37,7 @@ interface PlayerSettingsRepository {
 
     suspend fun setOpenChatWithStream(open: Boolean)
 
-    /** "Сообщать о начале эфиров" (Settings): a system notification when a followed channel goes live. On by default. */
+    /** "Сообщать о начале эфиров" (Настройки · Система): a system notification when a followed channel goes live. On by default. */
     val notifyLiveStarts: Flow<Boolean>
 
     suspend fun setNotifyLiveStarts(enabled: Boolean)
