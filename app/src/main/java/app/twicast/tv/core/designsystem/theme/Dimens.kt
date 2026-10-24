@@ -265,6 +265,17 @@ object TwiDimens {
     /** Mockup "Канал · подписка через QR". */
     val FollowDialogWidth = 860.dp
     val FollowQrSize = 232.dp
+    /** Mockup "Что нового · история обновлений". */
+    val ChangelogCardSpacing = 12.dp
+    val ChangelogDaySpacing = 10.dp
+    val ChangelogCardGap = 20.dp
+    val ChangelogCardHorizontalPadding = 20.dp
+    val ChangelogCardVerticalPadding = 16.dp
+    val ChangelogVersionWidth = 150.dp
+    val ChangelogSectionSpacing = 8.dp
+    val ChangelogIndicatorWidth = 4.dp
+    val ChangelogIndicatorGap = 12.dp
+    val ChangelogSkeletonHeight = 96.dp
     /** Mockup "Канал · расписание". */
     val ScheduleCardWidth = 200.dp
     val ScheduleCardSpacing = 4.dp

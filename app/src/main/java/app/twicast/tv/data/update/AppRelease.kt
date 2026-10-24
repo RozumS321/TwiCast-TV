@@ -48,6 +48,8 @@ data class AppRelease(
     val notes: ReleaseNotes,
     val apkUrl: String,
     val apkSizeBytes: Long,
+    /** When it was published (epoch millis): the day it is listed under in "Что нового". */
+    val publishedAtMillis: Long? = null,
 ) {
     companion object {
         private const val TagPrefix = "v"

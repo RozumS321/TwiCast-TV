@@ -78,10 +78,20 @@ class UpdateViewModel @Inject constructor(
         }
         // Failures stay silent: the update is offered next time the app starts.
         val latest = (repository.latestRelease() as? AppResult.Success)?.value ?: return
+        offer(latest)
+    }
+
+    private suspend fun offer(latest: AppRelease) {
         if (latest.versionCode <= version.code) return
         // Without the list the offer still shows the latest release's own notes.
         val skipped = (repository.releasesBetween(version.code, latest.versionCode) as? AppResult.Success)?.value.orEmpty()
         _uiState.value = UpdateUiState.Available(withNotesOf(latest, skipped), version.name)
+    }
+
+    /** «Обновить до …» in "Что нового": the same offer as at start, for a release the viewer passed on then. */
+    fun onShowUpdate(latest: AppRelease) {
+        if (_uiState.value is UpdateUiState.Downloading) return
+        viewModelScope.launch { offer(latest) }
     }
 
     /** [newest] with its own notes followed by those of the older [releases] (duplicates dropped). */

@@ -29,4 +29,12 @@
     <string name="update_downloading">Downloading the update…</string>
     <string name="update_progress">%1$s of %2$s · %3$d%%</string>
     <string name="update_megabytes">%s MB</string>
+    <string name="nav_changelog">What\'s new</string>
+    <string name="changelog_title">What\'s new</string>
+    <string name="changelog_installed">you have %s</string>
+    <string name="changelog_update">Update to %s</string>
+    <string name="changelog_today">Today, %s</string>
+    <string name="changelog_yesterday">Yesterday, %s</string>
+    <string name="changelog_undated">Earlier</string>
+    <string name="changelog_installed_badge">yours</string>
 </resources>

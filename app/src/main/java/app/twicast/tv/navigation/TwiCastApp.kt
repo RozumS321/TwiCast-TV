@@ -1,5 +1,9 @@
 package app.twicast.tv.navigation
 
+import app.twicast.tv.feature.update.UpdateViewModel
+import app.twicast.tv.feature.changelog.ChangelogRoute
+import app.twicast.tv.feature.changelog.ChangelogDestination
+import app.twicast.tv.data.update.AppRelease
 import androidx.core.content.ContextCompat
 import androidx.compose.ui.platform.LocalContext
 import androidx.activity.result.contract.ActivityResultContracts
@@ -73,12 +77,14 @@ fun TwiCastApp(
     /** "Сообщать о начале эфиров" is on: Android 13+ needs the notification permission. */
     askNotificationPermission: Boolean = false,
 ) {
+    // One update offer for the whole app: the dialog at start, and «Обновить до …» in "Что нового".
+    val updateViewModel: UpdateViewModel = hiltViewModel()
     val authState by viewModel.authState.collectAsStateWithLifecycle()
     val liveFollowedCount by viewModel.liveFollowedCount.collectAsStateWithLifecycle()
     Box(Modifier.fillMaxSize()) {
-        AuthGate(authState, liveFollowedCount, openStream, onStreamOpened, askNotificationPermission)
+        AuthGate(authState, liveFollowedCount, openStream, onStreamOpened, askNotificationPermission, updateViewModel::onShowUpdate)
         // Self-update panel over everything, sign-in included.
-        UpdateRoute()
+        UpdateRoute(updateViewModel)
     }
 }
 
@@ -89,6 +95,7 @@ private fun AuthGate(
     openStream: PlayerDestination?,
     onStreamOpened: () -> Unit,
     askNotificationPermission: Boolean,
+    onShowUpdate: (AppRelease) -> Unit,
 ) {
     // Animate by state type: the shell is not rebuilt when only the user's fields change.
     AnimatedContent(
@@ -101,7 +108,7 @@ private fun AuthGate(
         when (state) {
             AuthState.Loading -> Box(Modifier.fillMaxSize())
             AuthState.SignedOut -> LoginRoute()
-            is AuthState.SignedIn -> SignedInShell(state.user, liveFollowedCount, openStream, onStreamOpened, askNotificationPermission)
+            is AuthState.SignedIn -> SignedInShell(state.user, liveFollowedCount, openStream, onStreamOpened, askNotificationPermission, onShowUpdate)
         }
     }
 }
@@ -113,6 +120,7 @@ private fun SignedInShell(
     openStream: PlayerDestination?,
     onStreamOpened: () -> Unit,
     askNotificationPermission: Boolean,
+    onShowUpdate: (AppRelease) -> Unit,
 ) {
     val navController = rememberNavController()
     LaunchedEffect(openStream) {
@@ -198,6 +206,7 @@ private fun SignedInShell(
             }
             composable<ProfileDestination> { ProfileRoute() }
             composable<SettingsDestination> { SettingsRoute() }
+            composable<ChangelogDestination> { ChangelogRoute(onUpdate = onShowUpdate) }
             composable<ChannelDestination> {
                 ChannelRoute(
                     onWatchLive = { channel -> channel.stream?.let(navController::openStream) },
