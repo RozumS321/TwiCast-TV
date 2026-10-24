@@ -41,6 +41,20 @@ fun formatUptime(startedAtMillis: Long, nowMillis: Long): String {
     }
 }
 
+/** Hours and minutes a stream has been on: (2, 14). A start in the future (clock skew) counts as just started. */
+fun uptimeParts(startedAtMillis: Long, nowMillis: Long): Pair<Long, Long> {
+    val minutes = TimeUnit.MILLISECONDS.toMinutes((nowMillis - startedAtMillis).coerceAtLeast(0))
+    return TimeUnit.MINUTES.toHours(minutes) to minutes % SecondsPerMinute
+}
+
+/** The card's uptime badge: "2 ч" from an hour on, "35 мин" before. */
+@Composable
+@ReadOnlyComposable
+fun formatUptimeShort(startedAtMillis: Long, nowMillis: Long): String {
+    val (hours, minutes) = uptimeParts(startedAtMillis, nowMillis)
+    return if (hours > 0) stringResource(R.string.uptime_short_hours, hours) else stringResource(R.string.uptime_short_minutes, minutes)
+}
+
 /** A recording's clock: "1:24:10", "4:05" under an hour. */
 fun formatPlaybackTime(millis: Long): String {
     val totalSeconds = TimeUnit.MILLISECONDS.toSeconds(millis.coerceAtLeast(0))
