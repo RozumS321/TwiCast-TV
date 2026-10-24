@@ -17,4 +17,6 @@
     <string name="error_not_found">Nothing found.</string>
     <string name="error_unknown">Something went wrong. Try again.</string>
     <string name="empty_streams">Nobody is live right now.</string>
+    <string name="uptime_short_hours">%d h</string>
+    <string name="uptime_short_minutes">%d min</string>
 </resources>

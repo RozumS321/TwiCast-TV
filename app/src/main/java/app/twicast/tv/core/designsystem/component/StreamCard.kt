@@ -60,6 +60,8 @@ fun StreamCard(
     showAvatar: Boolean = true,
     /** Recordings: the watched share, a strip along the thumbnail's bottom (mockup "Канал · записи с прогрессом"). */
     watchedFraction: Float? = null,
+    /** Live streams: how long they are on ("2 ч"), bottom right beside the viewers. */
+    uptimeText: String? = null,
 ) {
     val focusProgress = rememberFocusProgress()
     val interactionSource = remember { MutableInteractionSource() }
@@ -83,13 +85,19 @@ fun StreamCard(
             .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
             .padding(bottom = spacing),
     ) {
-        StreamThumbnail(thumbnailUrl, viewerCountText, live, watchedFraction)
+        StreamThumbnail(thumbnailUrl, viewerCountText, live, watchedFraction, uptimeText)
         StreamCardInfo(title, subtitle, avatarUrl.takeIf { showAvatar }, dense, avatarRing, showAvatar)
     }
 }
 
 @Composable
-private fun StreamThumbnail(thumbnailUrl: String?, viewerCountText: String, live: Boolean, watchedFraction: Float?) {
+private fun StreamThumbnail(
+    thumbnailUrl: String?,
+    viewerCountText: String,
+    live: Boolean,
+    watchedFraction: Float?,
+    uptimeText: String?,
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -109,6 +117,7 @@ private fun StreamThumbnail(thumbnailUrl: String?, viewerCountText: String, live
         // Above the watched strip, when there is one.
         val badgeLift = if (watchedFraction != null) TwiDimens.WatchedStripHeight else 0.dp
         ViewerCountBadge(viewerCountText, Modifier.align(Alignment.BottomStart).padding(TwiDimens.BadgeInset).padding(bottom = badgeLift))
+        if (uptimeText != null) ViewerCountBadge(uptimeText, Modifier.align(Alignment.BottomEnd).padding(TwiDimens.BadgeInset))
         if (watchedFraction != null) {
             val colors = TwiTheme.colors
             Box(

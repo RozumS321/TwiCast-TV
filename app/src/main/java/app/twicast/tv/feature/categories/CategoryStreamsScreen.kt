@@ -32,6 +32,7 @@ import app.twicast.tv.core.designsystem.component.StreamCard
 import app.twicast.tv.core.designsystem.component.TwiChip
 import app.twicast.tv.core.designsystem.component.TwiIconButton
 import app.twicast.tv.core.designsystem.component.requestInitialFocus
+import app.twicast.tv.core.designsystem.format.formatUptimeShort
 import app.twicast.tv.core.designsystem.format.formatViewerCount
 import app.twicast.tv.core.designsystem.icon.TwiIcons
 import app.twicast.tv.core.designsystem.image.rememberTwitchImageUrl
@@ -140,6 +141,7 @@ private fun StreamsGrid(grid: StreamsGridState.Content, onStreamClick: (Stream) 
                 avatarUrl = stream.avatarUrl,
                 onClick = { onStreamClick(stream) },
                 width = TwiDimens.StreamCardGridWidth,
+                uptimeText = stream.startedAtMillis?.let { formatUptimeShort(it, System.currentTimeMillis()) },
                 modifier = if (index == 0) Modifier.requestInitialFocus() else Modifier,
             )
         }

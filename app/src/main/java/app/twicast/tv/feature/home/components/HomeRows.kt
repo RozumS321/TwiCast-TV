@@ -20,6 +20,7 @@ import androidx.tv.material3.Text
 import app.twicast.tv.core.designsystem.component.StreamCard
 import app.twicast.tv.core.designsystem.component.requestInitialFocus
 import app.twicast.tv.core.designsystem.format.formatPlaybackTime
+import app.twicast.tv.core.designsystem.format.formatUptimeShort
 import app.twicast.tv.core.designsystem.format.formatViewerCount
 import app.twicast.tv.core.designsystem.image.rememberTwitchImageUrl
 import app.twicast.tv.core.designsystem.theme.TwiAspect
@@ -83,6 +84,7 @@ fun StreamRow(
                     onClick = { onStreamClick(stream) },
                     dense = true,
                     avatarRing = followed,
+                    uptimeText = stream.startedAtMillis?.let { formatUptimeShort(it, System.currentTimeMillis()) },
                     modifier = if (takesInitialFocus && index == 0) Modifier.requestInitialFocus() else Modifier,
                 )
             }
@@ -152,6 +154,7 @@ private fun RecentCard(
                     avatarUrl = stream.avatarUrl,
                     onClick = { onStreamClick(stream) },
                     dense = true,
+                    uptimeText = stream.startedAtMillis?.let { formatUptimeShort(it, System.currentTimeMillis()) },
                     modifier = modifier,
                 )
             } else {

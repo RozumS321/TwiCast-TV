@@ -19,4 +19,6 @@
     <string name="error_not_found">Ничего не найдено.</string>
     <string name="error_unknown">Что-то пошло не так. Попробуйте ещё раз.</string>
     <string name="empty_streams">Сейчас никто не в эфире.</string>
+    <string name="uptime_short_hours">%d ч</string>
+    <string name="uptime_short_minutes">%d мин</string>
 </resources>
