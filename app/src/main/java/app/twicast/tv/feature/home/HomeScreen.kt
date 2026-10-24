@@ -30,6 +30,7 @@ import app.twicast.tv.data.model.Stream
 import app.twicast.tv.feature.common.appErrorMessage
 import app.twicast.tv.feature.home.components.HomeSkeleton
 import app.twicast.tv.feature.home.components.RecentRow
+import app.twicast.tv.feature.home.components.SignInBanner
 import app.twicast.tv.feature.home.components.StreamRow
 import app.twicast.tv.data.repository.HistoryEntry
 import kotlinx.collections.immutable.ImmutableList
@@ -50,6 +51,8 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     onRecordingClick: (HistoryEntry) -> Unit = {},
     onChannelClick: (String) -> Unit = {},
+    onSignIn: () -> Unit = {},
+    onDismissSignInBanner: () -> Unit = {},
 ) {
     when (state) {
         HomeUiState.Loading -> HomeSkeleton(modifier)
@@ -59,7 +62,7 @@ fun HomeScreen(
             EmptyState(stringResource(R.string.empty_streams))
         }
         is HomeUiState.Content -> KeepFocusedVisibleScroll {
-            HomeContent(state, onStreamClick, onRecordingClick, onChannelClick, modifier)
+            HomeContent(state, onStreamClick, onRecordingClick, onChannelClick, onSignIn, onDismissSignInBanner, modifier)
         }
     }
 }
@@ -71,6 +74,8 @@ private fun HomeContent(
     onStreamClick: (Stream) -> Unit,
     onRecordingClick: (HistoryEntry) -> Unit,
     onChannelClick: (String) -> Unit,
+    onSignIn: () -> Unit,
+    onDismissSignInBanner: () -> Unit,
     modifier: Modifier,
 ) {
     val languageLabel = remember(state.languageCode) { languageName(state.languageCode) }
@@ -78,6 +83,7 @@ private fun HomeContent(
     val firstRowKey = when {
         state.followedLive.isNotEmpty() -> "followed"
         state.recent.isNotEmpty() -> "recent"
+        state.recommended.isEmpty() && state.regional.isEmpty() && state.worldwide.isNotEmpty() -> "worldwide"
         state.recommended.isNotEmpty() -> "recommended"
         else -> "regional"
     }
@@ -89,7 +95,13 @@ private fun HomeContent(
         modifier = modifier.fillMaxSize(),
     ) {
         item(key = "header", contentType = ContentType.HEADER) {
-            Greeting(state.userName, state.followedLive.size, Modifier.padding(bottom = TwiDimens.HomeSectionSpacing))
+            when {
+                // A guest (mockup "Главная · гость"): what signing in gives, instead of the greeting.
+                state.guest && state.signInBanner ->
+                    SignInBanner(onSignIn, onDismissSignInBanner, Modifier.padding(bottom = TwiDimens.HomeSectionSpacing))
+                state.guest -> Unit
+                else -> Greeting(state.userName, state.followedLive.size, Modifier.padding(bottom = TwiDimens.HomeSectionSpacing))
+            }
         }
         val scrollToTop = Modifier.scrollToTopOnFocus(listState, scope)
         val topModifier = { key: String -> if (key == firstRowKey) scrollToTop else Modifier }
@@ -129,6 +141,15 @@ private fun HomeContent(
             StreamRow(
                 title = stringResource(R.string.home_row_regional),
                 hint = languageLabel,
+                streams = streams,
+                onStreamClick = onStreamClick,
+                takesInitialFocus = key == firstRowKey,
+            )
+        }
+        row("worldwide", state.worldwide, topModifier) { key, streams ->
+            StreamRow(
+                title = stringResource(R.string.home_row_worldwide),
+                hint = stringResource(R.string.home_row_worldwide_hint),
                 streams = streams,
                 onStreamClick = onStreamClick,
                 takesInitialFocus = key == firstRowKey,

@@ -32,4 +32,13 @@
     <string name="home_recent_left">залишилось %s</string>
     <string name="home_recent_recording">запис</string>
     <string name="home_recent_offline">офлайн</string>
+    <string name="nav_sign_in">Увійти</string>
+    <string name="following_guest_title">Увійдіть, щоб бачити свої підписки</string>
+    <string name="following_guest_text">Підписки, ефіри з них і сповіщення про початок ефірів беруться з вашого акаунта Twitch.</string>
+    <string name="following_guest_sign_in">Увійти</string>
+    <string name="home_sign_in_title">Увійдіть у Twitch для повної роботи</string>
+    <string name="home_sign_in_text">Підписки, сповіщення про початок ефірів і стабільна робота. Без входу частина функцій може тимчасово не працювати.</string>
+    <string name="home_sign_in_later">Пізніше</string>
+    <string name="home_row_worldwide">Популярне у світі</string>
+    <string name="home_row_worldwide_hint">усіма мовами</string>
 </resources>

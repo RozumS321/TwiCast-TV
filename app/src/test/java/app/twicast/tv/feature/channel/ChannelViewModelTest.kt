@@ -23,8 +23,8 @@ private val page = ChannelPage(
 )
 
 private class FakeChannelRepository(var result: AppResult<ChannelPage>) : ChannelRepository {
-    val requests = mutableListOf<Pair<String, String>>()
-    override suspend fun getChannel(login: String, viewerId: String): AppResult<ChannelPage> {
+    val requests = mutableListOf<Pair<String, String?>>()
+    override suspend fun getChannel(login: String, viewerId: String?): AppResult<ChannelPage> {
         requests += login to viewerId
         return result
     }
@@ -114,5 +114,12 @@ class ChannelViewModelTest {
 
         watch.save("v2", positionMs = 90_000, durationMs = 1_000_000)
         assertEquals(setOf("v1", "v2"), (viewModel.uiState.value as ChannelUiState.Content).watched.keys)
+    }
+
+    @Test
+    fun `a guest sees the channel page too, asked for without a viewer`() = runTest {
+        val repository = FakeChannelRepository(AppResult.Success(page.copy(isFollowedByViewer = false)))
+        ChannelViewModel("sasavot", FakeAuthRepository(AuthState.SignedOut), repository, watch)
+        assertEquals(listOf("sasavot" to null), repository.requests)
     }
 }

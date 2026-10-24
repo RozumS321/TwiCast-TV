@@ -18,7 +18,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -30,6 +29,9 @@ sealed interface FollowingUiState {
 
     /** The user follows nobody yet. */
     data object Empty : FollowingUiState
+
+    /** Not signed in: following needs a Twitch account. */
+    data object Guest : FollowingUiState
 
     data class Error(val error: AppError) : FollowingUiState
 
@@ -60,7 +62,12 @@ class FollowingViewModel @Inject constructor(
     private fun load() {
         _uiState.value = FollowingUiState.Loading
         viewModelScope.launch {
-            val userId = authRepository.authState.filterIsInstance<AuthState.SignedIn>().first().user.id
+            val user = (authRepository.authState.first { it != AuthState.Loading } as? AuthState.SignedIn)?.user
+            if (user == null) {
+                _uiState.value = FollowingUiState.Guest
+                return@launch
+            }
+            val userId = user.id
             val liveRequest = async { streamsRepository.getFollowedStreams(userId, LiveLimit) }
             val followsRequest = async { followsRepository.getFollows(userId) }
             val live = liveRequest.await()

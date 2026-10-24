@@ -8,6 +8,7 @@ import app.twicast.tv.data.model.AuthState
 import app.twicast.tv.data.model.Stream
 import app.twicast.tv.data.repository.AuthRepository
 import app.twicast.tv.data.repository.HistoryEntry
+import app.twicast.tv.data.repository.SignInPrompt
 import app.twicast.tv.data.repository.StreamsRepository
 import app.twicast.tv.data.repository.WatchHistoryRepository
 import app.twicast.tv.data.repository.WatchHistoryRules
@@ -17,13 +18,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -56,6 +58,7 @@ class HomeViewModel @Inject constructor(
     private val watchProgress: WatchProgressRepository,
     locale: Locale,
     private val clock: Clock,
+    private val signInPrompt: SignInPrompt = SignInPrompt(),
 ) : ViewModel() {
 
     private val deviceLanguage = locale.language
@@ -130,7 +133,11 @@ class HomeViewModel @Inject constructor(
         val hasContent = _uiState.value is HomeUiState.Content
         if (!quietly || !hasContent) _uiState.value = HomeUiState.Loading
         loadJob = viewModelScope.launch {
-            val user = authRepository.authState.filterIsInstance<AuthState.SignedIn>().first().user
+            val user = (authRepository.authState.first { it != AuthState.Loading } as? AuthState.SignedIn)?.user
+            if (user == null) {
+                loadGuest(quietly, hasContent)
+                return@launch
+            }
             val followed = when (val result = streamsRepository.getFollowedStreams(user.id, FollowedLimit)) {
                 is AppResult.Failure -> {
                     if (!(quietly && hasContent)) _uiState.value = HomeUiState.Error(result.error)
@@ -161,6 +168,40 @@ class HomeViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    /** «Позже» on the guest banner: gone until the app starts again. */
+    fun onDismissSignInBanner() {
+        signInPrompt.dismissed = true
+        _uiState.update { if (it is HomeUiState.Content) it.copy(signInBanner = false) else it }
+    }
+
+    /** A guest's home: popular in the device language, then in the whole world (no followed channels to start from). */
+    private suspend fun loadGuest(quietly: Boolean, hasContent: Boolean) = coroutineScope {
+        val regionalRequest = async { streamsRepository.getTopStreams(deviceLanguage, RowSize) }
+        val worldwideRequest = async { streamsRepository.getTopStreams(null, RowSize) }
+        val regional = regionalRequest.await()
+        val worldwide = worldwideRequest.await()
+        if (regional is AppResult.Failure) {
+            if (!(quietly && hasContent)) _uiState.value = HomeUiState.Error(regional.error)
+            return@coroutineScope
+        }
+        val regionalStreams = (regional as AppResult.Success).value
+        val regionalIds = regionalStreams.mapTo(HashSet()) { it.id }
+        loadedAtMillis = clock.nowMillis()
+        _uiState.value = HomeUiState.Content(
+            userName = "",
+            languageCode = deviceLanguage,
+            followedLive = persistentListOf(),
+            recommended = persistentListOf(),
+            regional = regionalStreams.toImmutableList(),
+            recent = recent.toImmutableList(),
+            guest = true,
+            signInBanner = !signInPrompt.dismissed,
+            // A world list that failed only costs that row.
+            worldwide = (worldwide as? AppResult.Success)?.value.orEmpty().filterNot { it.id in regionalIds }.toImmutableList(),
+        )
+        refreshRecent()
     }
 
     private fun viewerLanguage(followed: List<Stream>): String =

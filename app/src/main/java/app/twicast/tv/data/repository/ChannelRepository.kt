@@ -20,8 +20,11 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 interface ChannelRepository {
-    /** The channel page of [login] as seen by [viewerId] (for "В подписках"). NotFound if there is no such channel. */
-    suspend fun getChannel(login: String, viewerId: String): AppResult<ChannelPage>
+    /**
+     * The channel page of [login] as seen by [viewerId] (for "В подписках"); null for a guest.
+     * NotFound if there is no such channel.
+     */
+    suspend fun getChannel(login: String, viewerId: String?): AppResult<ChannelPage>
 }
 
 private const val VideoLimit = 20
@@ -40,7 +43,8 @@ class HelixChannelRepository @Inject constructor(
     private val clock: Clock,
 ) : ChannelRepository {
 
-    override suspend fun getChannel(login: String, viewerId: String): AppResult<ChannelPage> {
+    override suspend fun getChannel(login: String, viewerId: String?): AppResult<ChannelPage> {
+        viewerId ?: return AppResult.Failure(AppError.Unauthorized)
         val user = when (val result = runCatchingRemote { api.getUsersByLogin(listOf(login)).data.firstOrNull() }) {
             is AppResult.Failure -> return result
             is AppResult.Success -> result.value ?: return AppResult.Failure(AppError.NotFound)

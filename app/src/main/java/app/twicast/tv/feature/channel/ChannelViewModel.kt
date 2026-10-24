@@ -17,7 +17,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -85,12 +84,16 @@ class ChannelViewModel internal constructor(
     fun onFollowDialogClosed() {
         updateContent { it.copy(followDialog = false) }
         viewModelScope.launch {
-            val viewerId = authRepository.authState.filterIsInstance<AuthState.SignedIn>().first().user.id
+            val viewerId = viewerId()
             val result = repository.getChannel(login, viewerId)
             // A failed refresh keeps what is shown: the page is still right apart from the mark.
             if (result is AppResult.Success) updateContent { it.copy(channel = result.value) }
         }
     }
+
+    /** The signed-in viewer, null for a guest (their page comes from the guest source). */
+    private suspend fun viewerId(): String? =
+        (authRepository.authState.first { it != AuthState.Loading } as? AuthState.SignedIn)?.user?.id
 
     private fun updateContent(change: (ChannelUiState.Content) -> ChannelUiState.Content) {
         val current = _uiState.value as? ChannelUiState.Content ?: return
@@ -100,7 +103,7 @@ class ChannelViewModel internal constructor(
     private fun load() {
         _uiState.value = ChannelUiState.Loading
         viewModelScope.launch {
-            val viewerId = authRepository.authState.filterIsInstance<AuthState.SignedIn>().first().user.id
+            val viewerId = viewerId()
             _uiState.value = when (val result = repository.getChannel(login, viewerId)) {
                 is AppResult.Failure -> ChannelUiState.Error(result.error)
                 is AppResult.Success -> ChannelUiState.Content(result.value, watched = watched)

@@ -209,4 +209,22 @@ class HomeViewModelTest {
         advanceUntilIdle()
         assertEquals(listOf("live:login_a"), (viewModel.uiState.value as HomeUiState.Content).recent.map { it.entry.key })
     }
+
+    @Test
+    fun `a guest gets popular in the device language, then worldwide, under the sign-in banner`() = runTest(mainRule.dispatcher) {
+        val guestAuth = FakeAuthRepository(AuthState.SignedOut)
+        streams.results = mapOf("ru" to AppResult.Success(listOf(stream("a"))), null to AppResult.Success(listOf(stream("a"), stream("w"))))
+        val viewModel = HomeViewModel(guestAuth, streams, history, watch, Locale.forLanguageTag("ru-UA"), clock)
+        advanceUntilIdle()
+
+        val content = viewModel.uiState.value as HomeUiState.Content
+        assertTrue(content.guest)
+        assertTrue(content.signInBanner)
+        assertEquals(listOf("a"), content.regional.map { it.id })
+        assertEquals("worldwide skips what the first row shows", listOf("w"), content.worldwide.map { it.id })
+        assertTrue(content.followedLive.isEmpty())
+
+        viewModel.onDismissSignInBanner()
+        assertEquals(false, (viewModel.uiState.value as HomeUiState.Content).signInBanner)
+    }
 }

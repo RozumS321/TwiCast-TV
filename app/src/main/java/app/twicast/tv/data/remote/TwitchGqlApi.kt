@@ -6,9 +6,9 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 
 /**
- * https://gql.twitch.tv — Twitch's private web API, used only for playback tokens of the TwiCast player
- * (Helix has no endpoint for stream playlists). Unofficial: Twitch may change it without notice;
- * the official embed (Twitch player in settings) stays as the fallback.
+ * https://gql.twitch.tv — Twitch's private web API: playback tokens of the TwiCast player (Helix has no endpoint
+ * for stream playlists), and everything a guest browses (Helix needs a token, and an app token needs a secret an
+ * APK cannot keep). Unofficial: Twitch may change it without notice. Signed-in viewers browse through Helix.
  */
 interface TwitchGqlApi {
     @POST("gql")
@@ -16,6 +16,26 @@ interface TwitchGqlApi {
 
     @POST("gql")
     suspend fun clipPlayback(@Body request: GqlRequest): GqlResponse<ClipPlaybackData>
+
+    // Guest browsing (no sign-in): the same queries twitch.tv runs for visitors. See GqlBrowse.kt.
+
+    @POST("gql")
+    suspend fun topStreams(@Body request: GqlRequest): GqlResponse<GqlTopStreamsData>
+
+    @POST("gql")
+    suspend fun categoryStreams(@Body request: GqlRequest): GqlResponse<GqlCategoryStreamsData>
+
+    @POST("gql")
+    suspend fun topCategories(@Body request: GqlRequest): GqlResponse<GqlTopCategoriesData>
+
+    @POST("gql")
+    suspend fun usersByLogin(@Body request: GqlRequest): GqlResponse<GqlUsersData>
+
+    @POST("gql")
+    suspend fun search(@Body request: GqlRequest): GqlResponse<GqlSearchData>
+
+    @POST("gql")
+    suspend fun channel(@Body request: GqlRequest): GqlResponse<GqlChannelData>
 }
 
 @Serializable

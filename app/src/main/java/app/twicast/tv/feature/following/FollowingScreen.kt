@@ -24,6 +24,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.Text
 import app.twicast.tv.R
+import app.twicast.tv.core.designsystem.component.ActionState
 import app.twicast.tv.core.designsystem.component.EmptyState
 import app.twicast.tv.core.designsystem.component.ErrorState
 import app.twicast.tv.core.designsystem.component.KeepFocusedVisibleScroll
@@ -58,6 +59,7 @@ fun FollowingScreen(
     onChannelClick: (FollowedChannel) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    onSignIn: () -> Unit = {},
 ) {
     Column(modifier.fillMaxSize().padding(top = TwiDimens.ScreenTopPadding)) {
         Row(
@@ -78,6 +80,12 @@ fun FollowingScreen(
         when (state) {
             FollowingUiState.Loading -> GridSkeleton(columns = SkeletonColumns, cover = true)
             FollowingUiState.Empty -> EmptyState(stringResource(R.string.following_empty))
+            FollowingUiState.Guest -> ActionState(
+                title = stringResource(R.string.following_guest_title),
+                message = stringResource(R.string.following_guest_text),
+                actionText = stringResource(R.string.following_guest_sign_in),
+                onAction = onSignIn,
+            )
             is FollowingUiState.Error -> ErrorState(appErrorMessage(state.error), onRetry)
             is FollowingUiState.Content -> KeepFocusedVisibleScroll { ChannelsGrid(state, onStreamClick, onChannelClick) }
         }

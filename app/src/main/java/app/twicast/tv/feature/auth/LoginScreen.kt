@@ -46,9 +46,17 @@ private const val CodeHalf = 4
 private const val TickMillis = 1_000L
 private const val SecondsInMinute = 60
 
-/** Sign-in panel (mockup "Вход · Device Flow"): steps and code on the left, QR on the right. */
+/**
+ * Sign-in panel (mockup "Вход · Device Flow"): steps and code on the left, QR on the right. On the first start
+ * ([onContinueAsGuest] set) it also offers to go on without an account, saying what that costs.
+ */
 @Composable
-fun LoginScreen(state: LoginUiState, onNewCode: () -> Unit, modifier: Modifier = Modifier) {
+fun LoginScreen(
+    state: LoginUiState,
+    onNewCode: () -> Unit,
+    modifier: Modifier = Modifier,
+    onContinueAsGuest: (() -> Unit)? = null,
+) {
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -70,9 +78,31 @@ fun LoginScreen(state: LoginUiState, onNewCode: () -> Unit, modifier: Modifier =
                 LoginSteps()
                 LoginCode(state)
                 LoginStatus(state, onNewCode)
+                if (onContinueAsGuest != null) GuestChoice(onContinueAsGuest)
             }
             LoginQr(state)
         }
+    }
+}
+
+/** «Продолжить без входа» and what a guest goes without. */
+@Composable
+private fun GuestChoice(onContinueAsGuest: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(TwiDimens.LoginStatusSpacing),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(TwiTheme.colors.surfaceVariant, TwiShapes.Card)
+            .padding(TwiDimens.LoginGuestPadding),
+    ) {
+        Text(
+            stringResource(R.string.login_guest_warning),
+            style = TwiTheme.typography.caption,
+            color = TwiTheme.colors.onSurfaceSecondary,
+            modifier = Modifier.weight(1f),
+        )
+        TwiSecondaryButton(text = stringResource(R.string.login_continue_as_guest), onClick = onContinueAsGuest)
     }
 }
 

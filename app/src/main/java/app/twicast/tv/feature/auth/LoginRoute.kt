@@ -6,7 +6,11 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
-fun LoginRoute(viewModel: LoginViewModel = hiltViewModel()) {
+fun LoginRoute(
+    /** First start only: «Продолжить без входа». */
+    onContinueAsGuest: (() -> Unit)? = null,
+    viewModel: LoginViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    LoginScreen(state = state, onNewCode = viewModel::onNewCode)
+    LoginScreen(state = state, onNewCode = viewModel::onNewCode, onContinueAsGuest = onContinueAsGuest)
 }
