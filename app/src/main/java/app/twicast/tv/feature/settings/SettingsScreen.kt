@@ -1,5 +1,7 @@
 package app.twicast.tv.feature.settings
 
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -34,6 +36,7 @@ import app.twicast.tv.data.model.PlayerEngine
 import app.twicast.tv.data.model.ThemeMode
 import app.twicast.tv.feature.settings.components.AboutSection
 import app.twicast.tv.feature.settings.components.ChatSection
+import app.twicast.tv.feature.settings.components.NotificationsSection
 import app.twicast.tv.feature.settings.components.LanguageSection
 import app.twicast.tv.feature.settings.components.OptimizationSections
 import app.twicast.tv.feature.settings.components.QualitySection
@@ -72,6 +75,7 @@ fun SettingsScreen(
     onThemeSelected: (ThemeMode) -> Unit,
     onLanguageSelected: (AppLanguage) -> Unit,
     onOpenChatChanged: (Boolean) -> Unit,
+    onNotifyLiveStartsChanged: (Boolean) -> Unit,
     onWarmTwitchPlayerChanged: (Boolean) -> Unit,
     onFreeMemoryInBackgroundChanged: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
@@ -85,12 +89,20 @@ fun SettingsScreen(
         Text(stringResource(R.string.settings_title), style = TwiTheme.typography.screenTitle, color = TwiTheme.colors.onSurface)
         Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.SettingsSectionsSpacing)) {
             SettingsMenu(state.section, takesInitialFocus = !state.focusLanguage, onSectionFocused)
-            Column(verticalArrangement = Arrangement.spacedBy(TwiDimens.SettingsContentSpacing), modifier = Modifier.weight(1f)) {
+            // Scrolls when a section is taller than the screen ("Плеер" with notifications); focus brings cards into view.
+            Column(
+                verticalArrangement = Arrangement.spacedBy(TwiDimens.SettingsContentSpacing),
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = TwiDimens.ScreenTopPadding),
+            ) {
                 when (state.section) {
                     SettingsSection.Player -> {
                         PlayerSection(state.playerEngine, onPlayerSelected)
                         QualitySection(state.defaultQuality, state.loaded, onDefaultQualitySelected)
                         ChatSection(state.openChatWithStream, onOpenChatChanged)
+                        NotificationsSection(state.notifyLiveStarts, onNotifyLiveStartsChanged)
                     }
                     SettingsSection.System -> {
                         ThemeSection(state.themeMode, onThemeSelected)

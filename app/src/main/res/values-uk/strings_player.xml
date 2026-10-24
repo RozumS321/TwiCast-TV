@@ -30,4 +30,13 @@
     <string name="seek_delta_minutes_seconds">%1$s %2$d хв %3$d с</string>
     <string name="player_resumed_from">Продовжуємо з %s</string>
     <string name="player_restart">З початку</string>
+    <string name="notify_channel_name">Початок ефірів</string>
+    <string name="notify_channel_description">Коли канал із підписок починає ефір</string>
+    <string name="notify_live_one">%s в ефірі</string>
+    <plurals name="notify_live_many">
+        <item quantity="one">%1$s і ще %2$d в ефірі</item>
+        <item quantity="few">%1$s і ще %2$d в ефірі</item>
+        <item quantity="many">%1$s і ще %2$d в ефірі</item>
+        <item quantity="other">%1$s і ще %2$d в ефірі</item>
+    </plurals>
 </resources>

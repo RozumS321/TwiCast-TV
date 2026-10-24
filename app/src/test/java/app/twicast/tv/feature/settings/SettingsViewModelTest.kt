@@ -22,6 +22,10 @@ private class FakeSettings : PlayerSettingsRepository {
     override val playerEngine = MutableStateFlow(PlayerEngine.TwiCast)
     override val preferredQualityUpdates = MutableStateFlow<String?>(null)
     override val openChatWithStream = MutableStateFlow(false)
+    override val notifyLiveStarts = MutableStateFlow(true)
+    override suspend fun setNotifyLiveStarts(enabled: Boolean) {
+        notifyLiveStarts.value = enabled
+    }
     override suspend fun preferredQuality(): String? = preferredQualityUpdates.value
     override suspend fun setPreferredQuality(qualityId: String) {
         preferredQualityUpdates.value = qualityId
@@ -141,5 +145,17 @@ class SettingsViewModelTest {
         viewModel.onFreeMemoryInBackgroundChanged(false)
         assertEquals(true, viewModel.uiState.value.warmTwitchPlayer)
         assertEquals(false, viewModel.uiState.value.freeMemoryInBackground)
+    }
+
+    @Test
+    fun `live start notifications are on by default and can be turned off`() = runTest(mainRule.dispatcher) {
+        val settings = FakeSettings()
+        val viewModel = SettingsViewModel(settings, FakeAppearance(), FakeLanguages(), FakeOptimization(), bigDevice)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+
+        assertEquals(true, viewModel.uiState.value.notifyLiveStarts)
+        viewModel.onNotifyLiveStartsChanged(false)
+        assertEquals(false, settings.notifyLiveStarts.value)
+        assertEquals(false, viewModel.uiState.value.notifyLiveStarts)
     }
 }

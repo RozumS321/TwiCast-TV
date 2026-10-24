@@ -1,5 +1,12 @@
 package app.twicast.tv.navigation
 
+import androidx.core.content.ContextCompat
+import androidx.compose.ui.platform.LocalContext
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
+import android.os.Build
+import android.content.pm.PackageManager
+import android.Manifest
 import app.twicast.tv.data.repository.HistoryEntry
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
@@ -58,18 +65,31 @@ import kotlinx.collections.immutable.toPersistentList
 
 /** Root: sign-in until a session exists (mandatory in the MVP), then the shell with the sidebar. */
 @Composable
-fun TwiCastApp(viewModel: AppViewModel = hiltViewModel()) {
+fun TwiCastApp(
+    viewModel: AppViewModel = hiltViewModel(),
+    /** A stream to open now (a tapped "в эфире" notification); [onStreamOpened] once it is. */
+    openStream: PlayerDestination? = null,
+    onStreamOpened: () -> Unit = {},
+    /** "Сообщать о начале эфиров" is on: Android 13+ needs the notification permission. */
+    askNotificationPermission: Boolean = false,
+) {
     val authState by viewModel.authState.collectAsStateWithLifecycle()
     val liveFollowedCount by viewModel.liveFollowedCount.collectAsStateWithLifecycle()
     Box(Modifier.fillMaxSize()) {
-        AuthGate(authState, liveFollowedCount)
+        AuthGate(authState, liveFollowedCount, openStream, onStreamOpened, askNotificationPermission)
         // Self-update panel over everything, sign-in included.
         UpdateRoute()
     }
 }
 
 @Composable
-private fun AuthGate(authState: AuthState, liveFollowedCount: Int) {
+private fun AuthGate(
+    authState: AuthState,
+    liveFollowedCount: Int,
+    openStream: PlayerDestination?,
+    onStreamOpened: () -> Unit,
+    askNotificationPermission: Boolean,
+) {
     // Animate by state type: the shell is not rebuilt when only the user's fields change.
     AnimatedContent(
         targetState = authState,
@@ -81,14 +101,26 @@ private fun AuthGate(authState: AuthState, liveFollowedCount: Int) {
         when (state) {
             AuthState.Loading -> Box(Modifier.fillMaxSize())
             AuthState.SignedOut -> LoginRoute()
-            is AuthState.SignedIn -> SignedInShell(state.user, liveFollowedCount)
+            is AuthState.SignedIn -> SignedInShell(state.user, liveFollowedCount, openStream, onStreamOpened, askNotificationPermission)
         }
     }
 }
 
 @Composable
-private fun SignedInShell(user: User, liveFollowedCount: Int) {
+private fun SignedInShell(
+    user: User,
+    liveFollowedCount: Int,
+    openStream: PlayerDestination?,
+    onStreamOpened: () -> Unit,
+    askNotificationPermission: Boolean,
+) {
     val navController = rememberNavController()
+    LaunchedEffect(openStream) {
+        if (openStream == null) return@LaunchedEffect
+        navController.navigate(openStream)
+        onStreamOpened()
+    }
+    NotificationPermission(askNotificationPermission)
     val backStackEntry by navController.currentBackStackEntryAsState()
     // The section is the last top-level screen reached: a category, a channel or the player opened from
     // "Подписки" still belong to "Подписки". Followed from the current entry, since the whole back stack
@@ -233,5 +265,17 @@ private fun NavHostController.navigateToTopLevel(destination: TopLevelDestinatio
         popUpTo(graph.findStartDestination().id) { saveState = true }
         launchSingleTop = true
         restoreState = true
+    }
+}
+
+/** Android 13+ asks once whether TwiCast may notify; the system stops asking after the viewer declines twice. */
+@Composable
+private fun NotificationPermission(wanted: Boolean) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
+    LaunchedEffect(wanted) {
+        val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        if (wanted && !granted) launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 }

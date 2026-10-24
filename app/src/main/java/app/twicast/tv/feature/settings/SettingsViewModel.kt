@@ -64,7 +64,8 @@ class SettingsViewModel @Inject constructor(
     }.combine(section) { state, section -> state.copy(section = section) }
         .combine(combine(optimization.warmTwitchPlayer, optimization.freeMemoryInBackground, ::Pair)) { state, (warm, free) ->
             state.copy(warmTwitchPlayer = warm, freeMemoryInBackground = free, lowMemory = lowMemory)
-        }.stateIn(
+        }.combine(settings.notifyLiveStarts) { state, notify -> state.copy(notifyLiveStarts = notify) }
+        .stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(StopTimeoutMillis),
         SettingsUiState(language = languageChoice.value.language),
@@ -101,6 +102,10 @@ class SettingsViewModel @Inject constructor(
 
     fun onOpenChatChanged(open: Boolean) {
         viewModelScope.launch { settings.setOpenChatWithStream(open) }
+    }
+
+    fun onNotifyLiveStartsChanged(enabled: Boolean) {
+        viewModelScope.launch { settings.setNotifyLiveStarts(enabled) }
     }
 
     /** Saves a new language; true when it changed and the screen must be recreated to speak it. */

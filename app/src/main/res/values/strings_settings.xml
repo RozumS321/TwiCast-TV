@@ -46,4 +46,7 @@
     <string name="settings_memory_hint">less memory, a bit slower after coming back</string>
     <string name="settings_free_memory">Free memory in the background</string>
     <string name="settings_free_memory_text">While the app is in the background: closes the background player and clears images from memory. After coming back, images and the first stream load again.</string>
+    <string name="settings_notify_live">Notify when streams start</string>
+    <string name="settings_notify_live_hint">A notification when a followed channel goes live, even with TwiCast closed. Checked every 15 minutes.</string>
+    <string name="settings_notifications">Notifications</string>
 </resources>
