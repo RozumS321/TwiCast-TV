@@ -30,6 +30,7 @@ private class FakeUpdateRepository : UpdateRepository {
     var lastSeen: Int? = null
 
     override suspend fun latestRelease() = latest
+    override suspend fun allReleases(): AppResult<List<AppRelease>> = AppResult.Success(all.sortedByDescending { it.versionCode })
     override suspend fun releasesBetween(afterVersionCode: Int, upToVersionCode: Int): AppResult<List<AppRelease>> =
         if (listFails) {
             AppResult.Failure(AppError.Network)
@@ -180,6 +181,20 @@ class UpdateViewModelTest {
         viewModel.onUpdate()
         runCurrent()
         assertEquals(UpdateUiState.Failed(release(12), "0.1.10"), viewModel.uiState.value)
+    }
+
+    @Test
+    fun `update from the changelog shows the same offer, with the skipped notes`() = runTest(mainRule.dispatcher) {
+        repository.lastSeen = 10
+        repository.all = listOf(release(11, notes(added = listOf("Расписание"))), release(12, notes(fixed = listOf("Звук"))))
+        val viewModel = viewModel(code = 10)
+        assertEquals(UpdateUiState.Hidden, viewModel.uiState.value)
+
+        viewModel.onShowUpdate(repository.all.last())
+        runCurrent()
+        val offer = viewModel.uiState.value as UpdateUiState.Available
+        assertEquals(12, offer.release.versionCode)
+        assertEquals(listOf("Расписание"), offer.release.notes.added)
     }
 }
 

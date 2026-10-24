@@ -14,6 +14,7 @@ import app.twicast.tv.data.remote.GitHubReleasesApi
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,6 +33,9 @@ interface UpdateRepository {
      * every version a user skipped when jumping from one build to another.
      */
     suspend fun releasesBetween(afterVersionCode: Int, upToVersionCode: Int): AppResult<List<AppRelease>>
+
+    /** Every published release, newest first: the "Что нового" screen. */
+    suspend fun allReleases(): AppResult<List<AppRelease>>
 
     /** versionCode the app ran with last time; null on the first run. */
     suspend fun lastSeenVersionCode(): Int?
@@ -57,6 +61,9 @@ class GitHubUpdateRepository @Inject constructor(
 
     override suspend fun releasesBetween(afterVersionCode: Int, upToVersionCode: Int): AppResult<List<AppRelease>> =
         runCatchingRemote { api.releasesBetween(owner, repo, afterVersionCode, upToVersionCode) }
+
+    override suspend fun allReleases(): AppResult<List<AppRelease>> =
+        runCatchingRemote { api.releasesBetween(owner, repo, afterVersionCode = 0, upToVersionCode = Int.MAX_VALUE) }
 
     override suspend fun lastSeenVersionCode(): Int? = dataStore.data.map { it[lastSeenKey] }.first()
 
@@ -88,5 +95,6 @@ internal suspend fun GitHubReleasesApi.releasesBetween(
 private fun GitHubReleaseDto.toModel(): AppRelease? {
     val (versionCode, versionName) = AppRelease.parseTag(tagName) ?: return null
     val apk = assets.firstOrNull { it.name.endsWith(ApkExtension) } ?: return null
-    return AppRelease(versionCode, versionName, ReleaseNotes.parse(body.orEmpty()), apk.downloadUrl, apk.size)
+    val published = publishedAt?.let { runCatching { Instant.parse(it).toEpochMilli() }.getOrNull() }
+    return AppRelease(versionCode, versionName, ReleaseNotes.parse(body.orEmpty()), apk.downloadUrl, apk.size, published)
 }

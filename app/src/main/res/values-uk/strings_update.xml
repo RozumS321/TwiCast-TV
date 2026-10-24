@@ -29,4 +29,12 @@
     <string name="update_downloading">Завантажуємо оновлення…</string>
     <string name="update_progress">%1$s з %2$s · %3$d%%</string>
     <string name="update_megabytes">%s МБ</string>
+    <string name="nav_changelog">Що нового</string>
+    <string name="changelog_title">Що нового</string>
+    <string name="changelog_installed">у вас версія %s</string>
+    <string name="changelog_update">Оновити до %s</string>
+    <string name="changelog_today">Сьогодні, %s</string>
+    <string name="changelog_yesterday">Учора, %s</string>
+    <string name="changelog_undated">Раніше</string>
+    <string name="changelog_installed_badge">у вас</string>
 </resources>

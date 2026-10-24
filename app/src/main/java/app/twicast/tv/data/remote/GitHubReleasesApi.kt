@@ -27,6 +27,8 @@ data class GitHubReleaseDto(
     @SerialName("tag_name") val tagName: String,
     val body: String? = null,
     val assets: List<GitHubAssetDto> = emptyList(),
+    /** ISO 8601, e.g. "2026-10-24T18:13:40Z"; null for drafts. */
+    @SerialName("published_at") val publishedAt: String? = null,
 )
 
 @Serializable
