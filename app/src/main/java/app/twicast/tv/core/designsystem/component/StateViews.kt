@@ -37,6 +37,14 @@ fun ErrorState(message: String, onRetry: () -> Unit, modifier: Modifier = Modifi
     LaunchedEffect(retryFocus) { retryFocus.requestFocus() }
 }
 
+/** A message with one action (e.g. «Войти» on a page that needs an account). */
+@Composable
+fun ActionState(title: String, message: String, actionText: String, onAction: () -> Unit, modifier: Modifier = Modifier) {
+    MessageState(title = title, message = message, modifier = modifier) {
+        TwiPrimaryButton(text = actionText, onClick = onAction, modifier = Modifier.requestInitialFocus())
+    }
+}
+
 /** Nothing to show (e.g. no live streams). */
 @Composable
 fun EmptyState(message: String, modifier: Modifier = Modifier) {

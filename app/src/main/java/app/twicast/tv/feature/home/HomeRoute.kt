@@ -12,6 +12,7 @@ import app.twicast.tv.feature.player.components.LocalWarmTwitchPlayer
 
 @Composable
 fun HomeRoute(
+    onSignIn: () -> Unit,
     onStreamClick: (Stream) -> Unit,
     onRecordingClick: (HistoryEntry) -> Unit,
     onChannelClick: (String) -> Unit,
@@ -37,5 +38,7 @@ fun HomeRoute(
         onStreamClick = onStreamClick,
         onRecordingClick = onRecordingClick,
         onChannelClick = onChannelClick,
+        onSignIn = onSignIn,
+        onDismissSignInBanner = viewModel::onDismissSignInBanner,
     )
 }

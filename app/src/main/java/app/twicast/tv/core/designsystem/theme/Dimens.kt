@@ -251,6 +251,11 @@ object TwiDimens {
     val LoginStepSpacing = 14.dp
     val LoginStepBadgeSize = 32.dp
     val LoginStatusSpacing = 16.dp
+    val LoginGuestPadding = 14.dp
+    /** Mockup "Главная · гость": the sign-in banner. */
+    val SignInBannerHorizontalPadding = 20.dp
+    val SignInBannerVerticalPadding = 14.dp
+    val SignInBannerIconBox = 40.dp
     val CodeCellWidth = 48.dp
     val CodeCellHeight = 60.dp
     val CodeCellSpacing = 8.dp

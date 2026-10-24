@@ -38,5 +38,11 @@ sealed interface HomeUiState {
         val regional: ImmutableList<Stream>,
         /** "Недавно смотрели", newest first; empty: no row. */
         val recent: ImmutableList<RecentItem> = persistentListOf(),
+        /** Not signed in (mockup "Главная · гость"): no greeting and no followed rows, the sign-in banner instead. */
+        val guest: Boolean = false,
+        /** Guests: the banner is up until «Позже» (for this run of the app). */
+        val signInBanner: Boolean = false,
+        /** Guests: popular in the whole world, after popular in their language. */
+        val worldwide: ImmutableList<Stream> = persistentListOf(),
     ) : HomeUiState
 }

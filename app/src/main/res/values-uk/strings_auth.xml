@@ -12,4 +12,6 @@
     <string name="login_code_expired">Термін дії коду минув — отримайте новий.</string>
     <string name="login_new_code">Новий код</string>
     <string name="login_qr_caption">Наведіть камеру телефона</string>
+    <string name="login_continue_as_guest">Продовжити без входу</string>
+    <string name="login_guest_warning">Без входу не буде підписок і сповіщень про початок ефірів, а частина функцій може тимчасово не працювати: Twitch може змінювати те, що показує гостям.</string>
 </resources>

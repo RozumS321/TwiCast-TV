@@ -34,4 +34,13 @@
     <string name="home_recent_left">%s left</string>
     <string name="home_recent_recording">recording</string>
     <string name="home_recent_offline">offline</string>
+    <string name="nav_sign_in">Sign in</string>
+    <string name="following_guest_title">Sign in to see who you follow</string>
+    <string name="following_guest_text">Your Following list, its live channels and notifications of streams starting come from your Twitch account.</string>
+    <string name="following_guest_sign_in">Sign in</string>
+    <string name="home_sign_in_title">Sign in to Twitch for the full experience</string>
+    <string name="home_sign_in_text">Following, notifications when streams start, and steady work. Without signing in some features may stop working for a while.</string>
+    <string name="home_sign_in_later">Later</string>
+    <string name="home_row_worldwide">Popular worldwide</string>
+    <string name="home_row_worldwide_hint">all languages</string>
 </resources>

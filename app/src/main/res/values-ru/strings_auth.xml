@@ -12,4 +12,6 @@
     <string name="login_code_expired">Код истёк — получите новый.</string>
     <string name="login_new_code">Новый код</string>
     <string name="login_qr_caption">Наведите камеру телефона</string>
+    <string name="login_continue_as_guest">Продолжить без входа</string>
+    <string name="login_guest_warning">Без входа не будет подписок и уведомлений о начале эфиров, а часть функций может временно не работать: Twitch может менять то, что показывает гостям.</string>
 </resources>

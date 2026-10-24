@@ -13,4 +13,6 @@
     <string name="login_code_expired">The code has expired — get a new one.</string>
     <string name="login_new_code">New code</string>
     <string name="login_qr_caption">Point your phone camera here</string>
+    <string name="login_continue_as_guest">Continue without signing in</string>
+    <string name="login_guest_warning">Without an account there are no Following or live-start notifications, and some features may stop working for a while: Twitch can change what it shows to visitors.</string>
 </resources>

@@ -82,4 +82,10 @@ class FollowingViewModelTest {
         runCurrent()
         assertEquals(AuthState.SignedOut, auth.authState.value)
     }
+
+    @Test
+    fun `a guest gets the sign-in page instead of the follow list`() = runTest(mainRule.dispatcher) {
+        val viewModel = FollowingViewModel(FakeAuthRepository(initialState = AuthState.SignedOut), streams, follows).also { runCurrent() }
+        assertEquals(FollowingUiState.Guest, viewModel.uiState.value)
+    }
 }

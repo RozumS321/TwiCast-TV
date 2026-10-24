@@ -67,7 +67,7 @@ import app.twicast.tv.feature.settings.SettingsRoute
 import app.twicast.tv.feature.update.UpdateRoute
 import kotlinx.collections.immutable.toPersistentList
 
-/** Root: sign-in until a session exists (mandatory in the MVP), then the shell with the sidebar. */
+/** Root: on the first start a choice (sign in or go on as a guest), then the shell with the sidebar for both. */
 @Composable
 fun TwiCastApp(
     viewModel: AppViewModel = hiltViewModel(),
@@ -81,8 +81,18 @@ fun TwiCastApp(
     val updateViewModel: UpdateViewModel = hiltViewModel()
     val authState by viewModel.authState.collectAsStateWithLifecycle()
     val liveFollowedCount by viewModel.liveFollowedCount.collectAsStateWithLifecycle()
+    val guestChosen by viewModel.guestChosen.collectAsStateWithLifecycle()
     Box(Modifier.fillMaxSize()) {
-        AuthGate(authState, liveFollowedCount, openStream, onStreamOpened, askNotificationPermission, updateViewModel::onShowUpdate)
+        AuthGate(
+            authState = authState,
+            guestChosen = guestChosen,
+            onContinueAsGuest = viewModel::onContinueAsGuest,
+            liveFollowedCount = liveFollowedCount,
+            openStream = openStream,
+            onStreamOpened = onStreamOpened,
+            askNotificationPermission = askNotificationPermission,
+            onShowUpdate = updateViewModel::onShowUpdate,
+        )
         // Self-update panel over everything, sign-in included.
         UpdateRoute(updateViewModel)
     }
@@ -91,31 +101,48 @@ fun TwiCastApp(
 @Composable
 private fun AuthGate(
     authState: AuthState,
+    guestChosen: Boolean?,
+    onContinueAsGuest: () -> Unit,
     liveFollowedCount: Int,
     openStream: PlayerDestination?,
     onStreamOpened: () -> Unit,
     askNotificationPermission: Boolean,
     onShowUpdate: (AppRelease) -> Unit,
 ) {
-    // Animate by state type: the shell is not rebuilt when only the user's fields change.
+    val gate = when {
+        authState == AuthState.Loading || (authState == AuthState.SignedOut && guestChosen == null) -> Gate.Loading
+        authState is AuthState.SignedIn -> Gate.Shell(authState.user)
+        guestChosen == true -> Gate.Shell(user = null)
+        else -> Gate.FirstStart
+    }
+    // Animate by gate type: the shell is not rebuilt when only the user's fields change.
     AnimatedContent(
-        targetState = authState,
-        contentKey = { it::class },
+        targetState = gate,
+        contentKey = { (it as? Gate.Shell)?.user?.id ?: it::class },
         transitionSpec = { fadeIn(tween(TwiMotion.ScreenFadeMillis)) togetherWith fadeOut(tween(TwiMotion.ScreenFadeMillis)) },
         modifier = Modifier.fillMaxSize().background(TwiTheme.colors.background),
         label = "auth",
     ) { state ->
         when (state) {
-            AuthState.Loading -> Box(Modifier.fillMaxSize())
-            AuthState.SignedOut -> LoginRoute()
-            is AuthState.SignedIn -> SignedInShell(state.user, liveFollowedCount, openStream, onStreamOpened, askNotificationPermission, onShowUpdate)
+            Gate.Loading -> Box(Modifier.fillMaxSize())
+            // First start: sign in from the phone, or «Продолжить без входа».
+            Gate.FirstStart -> LoginRoute(onContinueAsGuest = onContinueAsGuest)
+            is Gate.Shell -> Shell(state.user, liveFollowedCount, openStream, onStreamOpened, askNotificationPermission, onShowUpdate)
         }
     }
 }
 
+private sealed interface Gate {
+    data object Loading : Gate
+    data object FirstStart : Gate
+
+    /** [user] null: a guest, browsing without a Twitch account. */
+    data class Shell(val user: User?) : Gate
+}
+
 @Composable
-private fun SignedInShell(
-    user: User,
+private fun Shell(
+    user: User?,
     liveFollowedCount: Int,
     openStream: PlayerDestination?,
     onStreamOpened: () -> Unit,
@@ -139,7 +166,12 @@ private fun SignedInShell(
     val isPlayer = backStackEntry?.destination?.hasRoute(PlayerDestination::class) == true
 
     val labels = TopLevelDestination.entries.map { destination ->
-        if (destination == TopLevelDestination.Profile) user.displayName else stringResource(destination.labelRes)
+        when {
+            destination != TopLevelDestination.Profile -> stringResource(destination.labelRes)
+            user != null -> user.displayName
+            // A guest: the profile item is the way to sign in.
+            else -> stringResource(R.string.nav_sign_in)
+        }
     }
     val (mainItems, profileItem) = remember(labels, liveFollowedCount) {
         val items = TopLevelDestination.entries.mapIndexed { index, destination ->
@@ -174,6 +206,7 @@ private fun SignedInShell(
         ) {
             composable<HomeDestination> {
                 HomeRoute(
+                    onSignIn = { navController.navigateToTopLevel(TopLevelDestination.Profile) },
                     onStreamClick = navController::openStream,
                     onRecordingClick = { entry -> navController.navigate(entry.playerDestination()) },
                     onChannelClick = { login -> navController.navigate(ChannelDestination(login)) },
@@ -200,11 +233,13 @@ private fun SignedInShell(
             }
             composable<FollowingDestination> {
                 FollowingRoute(
+                    onSignIn = { navController.navigateToTopLevel(TopLevelDestination.Profile) },
                     onStreamClick = navController::openStream,
                     onChannelClick = { channel -> navController.navigate(ChannelDestination(channel.login)) },
                 )
             }
-            composable<ProfileDestination> { ProfileRoute() }
+            // A guest signs in here, the sidebar staying; once signed in the whole shell switches to the account.
+            composable<ProfileDestination> { if (user == null) LoginRoute() else ProfileRoute() }
             composable<SettingsDestination> { SettingsRoute() }
             composable<ChangelogDestination> { ChangelogRoute(onUpdate = onShowUpdate) }
             composable<ChannelDestination> {

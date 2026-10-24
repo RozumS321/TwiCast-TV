@@ -17,11 +17,15 @@ import app.twicast.tv.data.repository.DataStoreWatchHistoryRepository
 import app.twicast.tv.data.repository.DataStoreWatchProgressRepository
 import app.twicast.tv.data.repository.DataStorePlayerSettingsRepository
 import app.twicast.tv.data.repository.FollowsRepository
-import app.twicast.tv.data.repository.HelixCategoriesRepository
-import app.twicast.tv.data.repository.HelixChannelRepository
+import app.twicast.tv.data.repository.DataStoreGuestChoiceRepository
+import app.twicast.tv.data.repository.GuestChoiceRepository
+import app.twicast.tv.data.repository.GuestAwareCategoriesRepository
+import app.twicast.tv.data.repository.GuestAwareChannelRepository
+import app.twicast.tv.data.repository.GuestAwareSearchRepository
+import app.twicast.tv.data.repository.GuestAwareStreamsRepository
+import app.twicast.tv.data.repository.SessionSignedInCheck
+import app.twicast.tv.data.repository.SignedInCheck
 import app.twicast.tv.data.repository.HelixFollowsRepository
-import app.twicast.tv.data.repository.HelixSearchRepository
-import app.twicast.tv.data.repository.HelixStreamsRepository
 import app.twicast.tv.data.repository.LanguageSettingsRepository
 import app.twicast.tv.data.repository.OptimizationSettingsRepository
 import app.twicast.tv.data.repository.LiveNotificationStateRepository
@@ -47,22 +51,28 @@ import java.util.Locale
 abstract class DataModule {
 
     @Binds
-    abstract fun bindStreamsRepository(impl: HelixStreamsRepository): StreamsRepository
+    abstract fun bindStreamsRepository(impl: GuestAwareStreamsRepository): StreamsRepository
 
     @Binds
-    abstract fun bindCategoriesRepository(impl: HelixCategoriesRepository): CategoriesRepository
+    abstract fun bindCategoriesRepository(impl: GuestAwareCategoriesRepository): CategoriesRepository
 
     @Binds
     abstract fun bindAuthRepository(impl: TwitchAuthRepository): AuthRepository
 
     @Binds
-    abstract fun bindChannelRepository(impl: HelixChannelRepository): ChannelRepository
+    abstract fun bindChannelRepository(impl: GuestAwareChannelRepository): ChannelRepository
 
     @Binds
     abstract fun bindFollowsRepository(impl: HelixFollowsRepository): FollowsRepository
 
     @Binds
-    abstract fun bindSearchRepository(impl: HelixSearchRepository): SearchRepository
+    abstract fun bindSearchRepository(impl: GuestAwareSearchRepository): SearchRepository
+
+    @Binds
+    abstract fun bindGuestChoiceRepository(impl: DataStoreGuestChoiceRepository): GuestChoiceRepository
+
+    @Binds
+    abstract fun bindSignedInCheck(impl: SessionSignedInCheck): SignedInCheck
 
     @Binds
     abstract fun bindPlayerSettingsRepository(impl: DataStorePlayerSettingsRepository): PlayerSettingsRepository

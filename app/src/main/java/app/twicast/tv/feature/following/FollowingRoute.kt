@@ -9,6 +9,7 @@ import app.twicast.tv.data.model.Stream
 
 @Composable
 fun FollowingRoute(
+    onSignIn: () -> Unit,
     onStreamClick: (Stream) -> Unit,
     onChannelClick: (FollowedChannel) -> Unit,
     viewModel: FollowingViewModel = hiltViewModel(),
@@ -19,5 +20,6 @@ fun FollowingRoute(
         onStreamClick = onStreamClick,
         onChannelClick = onChannelClick,
         onRetry = viewModel::onRetry,
+        onSignIn = onSignIn,
     )
 }
