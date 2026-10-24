@@ -43,6 +43,7 @@ import app.twicast.tv.core.designsystem.theme.TwiTheme
 import app.twicast.tv.data.model.ChannelPage
 import app.twicast.tv.data.model.Clip
 import app.twicast.tv.data.model.Video
+import app.twicast.tv.data.repository.WatchProgress
 import app.twicast.tv.feature.channel.components.ChannelBanner
 import app.twicast.tv.feature.channel.components.FollowQrDialog
 import app.twicast.tv.feature.common.appErrorMessage
@@ -78,7 +79,7 @@ fun ChannelScreen(
         ChannelUiState.Loading -> ChannelSkeleton(modifier)
         is ChannelUiState.Error -> ErrorState(appErrorMessage(state.error), onRetry, modifier.fillMaxSize())
         is ChannelUiState.Content -> {
-            ChannelContent(state.channel, onWatchLive, onVideoClick, onClipClick, onFollow, modifier)
+            ChannelContent(state.channel, state.watched, onWatchLive, onVideoClick, onClipClick, onFollow, modifier)
             if (state.followDialog) {
                 FollowQrDialog(
                     login = state.channel.login,
@@ -94,6 +95,7 @@ fun ChannelScreen(
 @Composable
 private fun ChannelContent(
     channel: ChannelPage,
+    watched: Map<String, WatchProgress>,
     onWatchLive: (ChannelPage) -> Unit,
     onVideoClick: (ChannelPage, Video) -> Unit,
     onClipClick: (ChannelPage, Clip) -> Unit,
@@ -120,6 +122,8 @@ private fun ChannelContent(
                 ChannelBanner(
                     channel = channel,
                     onWatch = onWatch,
+                    // Offline, the button plays the latest recording: from where the viewer stopped in it.
+                    continueFromMs = lastVideo?.let { watched[it.id]?.resumePositionMs }.takeIf { channel.stream == null },
                     onFollow = onFollow,
                     modifier = Modifier
                         .padding(start = TwiDimens.ContentStartPadding, end = TwiDimens.ContentEndPadding)
@@ -154,6 +158,7 @@ private fun ChannelContent(
                                 dense = true,
                                 live = false,
                                 showAvatar = false,
+                                watchedFraction = watched[video.id]?.watchedFraction,
                             )
                         }
                     }

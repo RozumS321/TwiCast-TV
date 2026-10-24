@@ -27,6 +27,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.Text
 import app.twicast.tv.R
+import app.twicast.tv.core.designsystem.format.formatPlaybackTime
 import app.twicast.tv.core.designsystem.theme.TwiDimens
 import app.twicast.tv.core.designsystem.theme.TwiShapes
 import app.twicast.tv.core.designsystem.theme.TwiTheme
@@ -64,6 +65,7 @@ fun PlayerScreen(
     onToggleChat: () -> Unit,
     onOpenChannel: () -> Unit,
     onSeekStep: (forward: Boolean, repeat: Int) -> Unit,
+    onRestart: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     /** The chat panel; composed (and connected) only while the chat is open. */
@@ -120,6 +122,7 @@ fun PlayerScreen(
                     controller = nativeController,
                     listener = listener,
                     modifier = video,
+                    startPositionMs = state.startPositionMs,
                 )
             !twiCast -> key(state.embedAttempt) {
                 Box(video) {
@@ -133,6 +136,7 @@ fun PlayerScreen(
                         controller = embedController,
                         listener = listener,
                         modifier = Modifier.fillMaxSize(),
+                        startPositionMs = state.startPositionMs,
                     )
                     // Until the stream plays: the warm player still shows the previous channel's last frame, and
                     // Twitch's page its own placeholder. Drawn by us, over the WebView, so Twitch's checks don't see it.
@@ -145,7 +149,7 @@ fun PlayerScreen(
             // The same chat for both players: our own, next to the video.
             if (state.chatVisible) chat(Modifier.width(TwiDimens.PlayerChatWidth).fillMaxHeight())
         }
-        if (state.status != PlaybackStatus.Playing || state.adBreak) {
+        if (state.status != PlaybackStatus.Playing || state.adBreak || state.resumeNotice) {
             StatusPlate(state, Modifier.align(Alignment.TopStart).padding(TwiDimens.PlayerOverlayPadding))
         }
         when (state.overlay) {
@@ -157,6 +161,7 @@ fun PlayerScreen(
                 onToggleChat = onToggleChat,
                 onOpenChannel = onOpenChannel,
                 onSeekStep = onSeekStep,
+                onRestart = onRestart,
                 modifier = Modifier.align(Alignment.BottomCenter).padding(TwiDimens.PlayerControlsInset),
             )
             PlayerOverlay.Seek -> state.progress?.let { progress ->
@@ -192,8 +197,11 @@ private fun StatusPlate(state: PlayerUiState, modifier: Modifier) {
             .padding(horizontal = TwiDimens.PlayerPlateHorizontalPadding, vertical = TwiDimens.PlayerPlateVerticalPadding),
     ) {
         Text(state.channel.channelName, style = TwiTheme.typography.channelName, color = TwiTheme.colors.onOverlay)
+        val resumedFrom = state.resumedFromMs
         Text(
-            text = stringResource(
+            text = if (state.resumeNotice && resumedFrom != null && state.status == PlaybackStatus.Playing && !state.adBreak) {
+                stringResource(R.string.player_resumed_from, formatPlaybackTime(resumedFrom))
+            } else stringResource(
                 when {
                     state.adBreak && state.status == PlaybackStatus.Playing -> R.string.player_ad_break
                     else -> when (state.status) {

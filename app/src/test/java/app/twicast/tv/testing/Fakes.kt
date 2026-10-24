@@ -1,5 +1,8 @@
 package app.twicast.tv.testing
 
+import app.twicast.tv.data.repository.WatchProgress
+import app.twicast.tv.data.repository.WatchProgressRepository
+import app.twicast.tv.data.repository.WatchProgressRules
 import app.twicast.tv.data.model.AppError
 import app.twicast.tv.data.model.AppResult
 import app.twicast.tv.data.model.AuthState
@@ -114,5 +117,18 @@ class FakeAuthRepository(
 
     override suspend fun signOut() {
         state.value = AuthState.SignedOut
+    }
+}
+
+/** Positions in recordings, in memory; [saved] records every write. */
+class FakeWatchProgressRepository(initial: Map<String, WatchProgress> = emptyMap()) : WatchProgressRepository {
+    override val progress = MutableStateFlow(initial)
+    val saved = mutableListOf<Triple<String, Long, Long>>()
+
+    override suspend fun get(videoId: String): WatchProgress? = progress.value[videoId]
+
+    override suspend fun save(videoId: String, positionMs: Long, durationMs: Long) {
+        saved += Triple(videoId, positionMs, durationMs)
+        progress.value = WatchProgressRules.updated(progress.value, videoId, WatchProgress(positionMs, durationMs, saved.size.toLong()))
     }
 }

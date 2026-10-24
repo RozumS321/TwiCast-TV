@@ -14,6 +14,8 @@ import app.twicast.tv.data.repository.PlayerSettingsRepository
 import kotlinx.coroutines.flow.first
 import org.json.JSONObject
 
+private const val MillisPerSecondLong = 1000L
+
 /** The activity's warm player, or null where it is not used (low-memory TVs). */
 val LocalWarmTwitchPlayer = staticCompositionLocalOf<WarmTwitchPlayer?> { null }
 
@@ -88,6 +90,7 @@ class WarmTwitchPlayer(
         videoId: String?,
         preferredQualityId: String?,
         maxVideoHeight: Int?,
+        startPositionMs: Long? = null,
     ): WebView {
         val view = webView ?: create(channelLogin)
         (view.parent as? ViewGroup)?.removeView(view)
@@ -100,6 +103,7 @@ class WarmTwitchPlayer(
             .put("video", videoId ?: JSONObject.NULL)
             .put("quality", preferredQualityId ?: JSONObject.NULL)
             .put("maxHeight", maxVideoHeight ?: 0)
+            .put("start", (startPositionMs ?: 0) / MillisPerSecondLong)
         // Twitch starts playback only in a visible, full-size player ("Autoplay disabled ... style visibility, size,
         // viewport visibility"): send the stream once the screen has attached and laid out the WebView.
         view.doOnAttach { attached ->

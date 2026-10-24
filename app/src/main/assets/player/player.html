@@ -45,6 +45,8 @@
   var preferredQuality = params.get('quality');
   // Instead of the live stream: a past broadcast (?video=<id>) or a clip (?clip=<slug>).
   var video = params.get('video');
+  // A recording resumed where the viewer stopped (?start=<seconds>).
+  var start = parseInt(params.get('start'), 10) || 0;
   var clip = params.get('clip');
   // Quality ceiling after a renderer crash (?maxHeight=720): decoding 1080p runs weak TV boxes out of memory.
   var maxHeight = parseInt(params.get("maxHeight"), 10) || 0;
@@ -102,6 +104,8 @@
     report('error');
   } else {
     var source = video ? { video: video } : { channel: channel };
+    // The embed takes a recording's start as "1h24m10s".
+    if (video && start) source.time = Math.floor(start / 3600) + 'h' + Math.floor(start % 3600 / 60) + 'm' + (start % 60) + 's';
     var player = new Twitch.Player('player', Object.assign(source, {
       parent: [location.hostname],
       width: '100%', height: '100%', autoplay: !warm, muted: warm,
@@ -155,7 +159,7 @@
         maxHeight = opts.maxHeight || 0;
         preferredQuality = maxHeight ? null : (opts.quality || null);
         removeChatFrame();
-        if (video) player.setVideo(video, 0); else player.setChannel(channel);
+        if (video) player.setVideo(video, opts.start || 0); else player.setChannel(channel);
         player.setMuted(false);
         player.play();
       },

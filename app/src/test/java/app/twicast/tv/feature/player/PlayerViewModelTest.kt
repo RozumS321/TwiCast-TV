@@ -10,6 +10,8 @@ import app.twicast.tv.data.repository.PlayerSettingsRepository
 import app.twicast.tv.feature.player.components.EmbedState
 import app.twicast.tv.feature.player.components.VideoQuality
 import app.twicast.tv.testing.FakeStreamsRepository
+import app.twicast.tv.testing.FakeWatchProgressRepository
+import app.twicast.tv.data.repository.WatchProgress
 import app.twicast.tv.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -55,11 +57,12 @@ class PlayerViewModelTest {
     private val settings = FakePlayerSettings()
     private val playback = FakePlayback()
     private val streams = FakeStreamsRepository()
+    private val watch = FakeWatchProgressRepository()
     private val device = object : DeviceProfile { override var isLowMemory = false }
     private val destination = PlayerDestination("sasavot", "sasavot", "Just Chatting", 15_300, null)
 
     private fun TestScope.viewModel(): PlayerViewModel =
-        PlayerViewModel(destination, settings, playback, streams, device).also { runCurrent() }
+        PlayerViewModel(destination, settings, playback, streams, watch, device).also { runCurrent() }
 
     @Test
     fun `preferred quality is loaded before the embed may be created`() = runTest(mainRule.dispatcher) {
@@ -198,7 +201,7 @@ class PlayerViewModelTest {
         settings.openChatWithStream.value = true
         assertTrue(viewModel().uiState.value.chatVisible)
 
-        val recording = PlayerViewModel(destination.copy(videoId = "123"), settings, playback, streams, device).also { runCurrent() }
+        val recording = PlayerViewModel(destination.copy(videoId = "123"), settings, playback, streams, watch, device).also { runCurrent() }
         assertFalse(recording.uiState.value.chatVisible)
     }
 
@@ -246,13 +249,13 @@ class PlayerViewModelTest {
 
     @Test
     fun `malformed login never reaches the embed`() = runTest(mainRule.dispatcher) {
-        val viewModel = PlayerViewModel(destination.copy(channelLogin = "a&b=c"), settings, playback, streams, device)
+        val viewModel = PlayerViewModel(destination.copy(channelLogin = "a&b=c"), settings, playback, streams, watch, device)
         assertFalse(viewModel.uiState.value.canPlay)
     }
 
     // A 7-hour recording, 1 hour in.
     private fun TestScope.recording(): PlayerViewModel =
-        PlayerViewModel(destination.copy(videoId = "2512345678"), settings, playback, streams, device).also {
+        PlayerViewModel(destination.copy(videoId = "2512345678"), settings, playback, streams, watch, device).also {
             runCurrent()
             it.onProgress(positionMs = 3_600_000, durationMs = 25_200_000)
         }
@@ -322,5 +325,81 @@ class PlayerViewModelTest {
         viewModel.onSeekStep(forward = true, repeat = 0)
         assertFalse(viewModel.uiState.value.canSeek)
         assertEquals(PlayerOverlay.Hidden, viewModel.uiState.value.overlay)
+    }
+
+    private fun TestScope.resumed(positionMs: Long): PlayerViewModel {
+        watch.progress.value = mapOf("2512345678" to WatchProgress(positionMs, durationMs = 25_200_000, updatedAtMillis = 1))
+        return PlayerViewModel(destination.copy(videoId = "2512345678"), settings, playback, streams, watch, device).also { runCurrent() }
+    }
+
+    @Test
+    fun `a started recording plays on from where the viewer stopped`() = runTest(mainRule.dispatcher) {
+        val state = resumed(positionMs = 5_050_000).uiState.value
+        assertTrue("known before the player is made", state.settingsLoaded)
+        assertEquals(5_050_000L, state.startPositionMs)
+        assertEquals(5_050_000L, state.resumedFromMs)
+        assertTrue(state.resumeNotice)
+    }
+
+    @Test
+    fun `a finished recording starts over`() = runTest(mainRule.dispatcher) {
+        val state = resumed(positionMs = 25_200_000 - 60_000).uiState.value
+        assertEquals(null, state.startPositionMs)
+        assertFalse(state.resumeNotice)
+    }
+
+    @Test
+    fun `the resume notice goes 5 s after the recording plays`() = runTest(mainRule.dispatcher) {
+        val viewModel = resumed(positionMs = 5_050_000)
+        advanceTimeBy(ResumeNoticeMillis * 2)
+        assertTrue("waits for the picture", viewModel.uiState.value.resumeNotice)
+
+        viewModel.onEmbedStateChanged(EmbedState.Playing)
+        advanceTimeBy(ResumeNoticeMillis + 1)
+        assertFalse(viewModel.uiState.value.resumeNotice)
+        assertEquals("«С начала» stays", 5_050_000L, viewModel.uiState.value.resumedFromMs)
+    }
+
+    @Test
+    fun `the position is saved at most every 10 s, and right after a seek`() = runTest(mainRule.dispatcher) {
+        val viewModel = recording()
+        runCurrent()
+        assertEquals(listOf(Triple("2512345678", 3_600_000L, 25_200_000L)), watch.saved)
+
+        viewModel.onProgress(3_601_000, 25_200_000)
+        runCurrent()
+        assertEquals(1, watch.saved.size)
+
+        advanceTimeBy(WatchProgressSaveMillis + 1)
+        viewModel.onProgress(3_611_000, 25_200_000)
+        runCurrent()
+        assertEquals(3_611_000L, watch.saved.last().second)
+
+        viewModel.onSeekStep(forward = true, repeat = 0)
+        advanceTimeBy(SeekCommitMillis + 1)
+        assertEquals(3_621_000L, watch.saved.last().second)
+    }
+
+    @Test
+    fun `from the start goes to 0 00 and forgets the position`() = runTest(mainRule.dispatcher) {
+        val viewModel = resumed(positionMs = 5_050_000)
+        val sent = sentSeeks(viewModel)
+        viewModel.onProgress(5_050_000, 25_200_000)
+        advanceTimeBy(WatchProgressSaveMillis + 1)
+
+        viewModel.onRestart()
+        runCurrent()
+        assertEquals(listOf(0L), sent)
+        assertEquals(null, viewModel.uiState.value.resumedFromMs)
+        assertEquals(0L, viewModel.uiState.value.shownPositionMs)
+        assertFalse("under 30 s is forgotten", "2512345678" in watch.progress.value)
+    }
+
+    @Test
+    fun `a live stream saves no position`() = runTest(mainRule.dispatcher) {
+        val viewModel = viewModel()
+        viewModel.onProgress(10_000, 20_000)
+        runCurrent()
+        assertTrue(watch.saved.isEmpty())
     }
 }

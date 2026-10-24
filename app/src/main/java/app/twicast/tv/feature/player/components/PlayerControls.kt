@@ -37,6 +37,7 @@ fun PlayerControls(
     onToggleChat: () -> Unit,
     onOpenChannel: () -> Unit,
     onSeekStep: (forward: Boolean, repeat: Int) -> Unit,
+    onRestart: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val progress = state.progress
@@ -61,7 +62,7 @@ fun PlayerControls(
                 Text(stringResource(R.string.seek_hint), style = TwiTheme.typography.bodySmall, color = TwiTheme.colors.onOverlayVariant)
             }
         }
-        ControlsRow(state, seekable, onTogglePause, onOpenQuality, onToggleChat, onOpenChannel)
+        ControlsRow(state, seekable, onTogglePause, onRestart, onOpenQuality, onToggleChat, onOpenChannel)
     }
 }
 
@@ -70,6 +71,7 @@ private fun ControlsRow(
     state: PlayerUiState,
     seekable: Boolean,
     onTogglePause: () -> Unit,
+    onRestart: () -> Unit,
     onOpenQuality: () -> Unit,
     onToggleChat: () -> Unit,
     onOpenChannel: () -> Unit,
@@ -101,6 +103,10 @@ private fun ControlsRow(
             // A recording's panel starts on its seek bar instead.
             modifier = if (seekable) Modifier else Modifier.requestInitialFocus(),
         )
+        // Resumed where the viewer stopped (mockup "Плеер · продолжаем с места").
+        if (state.resumedFromMs != null) {
+            TwiSecondaryButton(text = stringResource(R.string.player_restart), icon = TwiIcons.Restart, onClick = onRestart)
+        }
         TwiSecondaryButton(
             text = stringResource(R.string.player_quality_button, state.currentQualityLabel ?: stringResource(R.string.player_quality_auto)),
             icon = TwiIcons.Quality,
