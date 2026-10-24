@@ -28,4 +28,6 @@
     <string name="seek_delta_seconds">%1$s %2$d с</string>
     <string name="seek_delta_minutes">%1$s %2$d хв</string>
     <string name="seek_delta_minutes_seconds">%1$s %2$d хв %3$d с</string>
+    <string name="player_resumed_from">Продовжуємо з %s</string>
+    <string name="player_restart">З початку</string>
 </resources>

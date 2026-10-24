@@ -8,6 +8,8 @@ import app.twicast.tv.data.repository.ChannelRepository
 import app.twicast.tv.data.repository.parseTwitchDuration
 import app.twicast.tv.feature.channel.components.channelUrl
 import app.twicast.tv.testing.FakeAuthRepository
+import app.twicast.tv.testing.FakeWatchProgressRepository
+import app.twicast.tv.data.repository.WatchProgress
 import app.twicast.tv.testing.MainDispatcherRule
 import app.twicast.tv.testing.testUser
 import kotlinx.coroutines.test.runTest
@@ -34,11 +36,12 @@ class ChannelViewModelTest {
     val mainRule = MainDispatcherRule()
 
     private val auth = FakeAuthRepository(AuthState.SignedIn(testUser))
+    private val watch = FakeWatchProgressRepository()
 
     @Test
     fun `loads the channel as seen by the signed-in viewer`() = runTest {
         val repository = FakeChannelRepository(AppResult.Success(page))
-        val viewModel = ChannelViewModel("sasavot", auth, repository)
+        val viewModel = ChannelViewModel("sasavot", auth, repository, watch)
 
         assertEquals(ChannelUiState.Content(page), viewModel.uiState.value)
         assertEquals(listOf("sasavot" to testUser.id), repository.requests)
@@ -47,7 +50,7 @@ class ChannelViewModelTest {
     @Test
     fun `retry after an error loads again`() = runTest {
         val repository = FakeChannelRepository(AppResult.Failure(AppError.NotFound))
-        val viewModel = ChannelViewModel("sasavot", auth, repository)
+        val viewModel = ChannelViewModel("sasavot", auth, repository, watch)
         assertEquals(ChannelUiState.Error(AppError.NotFound), viewModel.uiState.value)
 
         repository.result = AppResult.Success(page)
@@ -72,7 +75,7 @@ class ChannelViewModelTest {
     @Test
     fun `the follow button opens the QR, and closing it reads the follow mark again`() = runTest {
         val repository = FakeChannelRepository(AppResult.Success(page.copy(isFollowedByViewer = false)))
-        val viewModel = ChannelViewModel("sasavot", auth, repository)
+        val viewModel = ChannelViewModel("sasavot", auth, repository, watch)
 
         viewModel.onFollowClick()
         assertEquals(true, (viewModel.uiState.value as ChannelUiState.Content).followDialog)
@@ -88,7 +91,7 @@ class ChannelViewModelTest {
     @Test
     fun `a failed refresh after the QR keeps the page`() = runTest {
         val repository = FakeChannelRepository(AppResult.Success(page))
-        val viewModel = ChannelViewModel("sasavot", auth, repository)
+        val viewModel = ChannelViewModel("sasavot", auth, repository, watch)
         viewModel.onFollowClick()
 
         repository.result = AppResult.Failure(AppError.Network)
@@ -100,5 +103,16 @@ class ChannelViewModelTest {
     @Test
     fun `the QR leads to the channel on twitch tv`() {
         assertEquals("https://www.twitch.tv/sasavot", channelUrl("sasavot"))
+    }
+
+    @Test
+    fun `recordings show where the viewer stopped, and follow new positions`() = runTest {
+        val started = WatchProgress(positionMs = 600_000, durationMs = 3_000_000, updatedAtMillis = 1)
+        watch.progress.value = mapOf("v1" to started)
+        val viewModel = ChannelViewModel("sasavot", auth, FakeChannelRepository(AppResult.Success(page)), watch)
+        assertEquals(mapOf("v1" to started), (viewModel.uiState.value as ChannelUiState.Content).watched)
+
+        watch.save("v2", positionMs = 90_000, durationMs = 1_000_000)
+        assertEquals(setOf("v1", "v2"), (viewModel.uiState.value as ChannelUiState.Content).watched.keys)
     }
 }

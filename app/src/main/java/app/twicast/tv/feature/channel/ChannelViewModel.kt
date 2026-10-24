@@ -11,6 +11,8 @@ import app.twicast.tv.data.model.AuthState
 import app.twicast.tv.data.model.ChannelPage
 import app.twicast.tv.data.repository.AuthRepository
 import app.twicast.tv.data.repository.ChannelRepository
+import app.twicast.tv.data.repository.WatchProgress
+import app.twicast.tv.data.repository.WatchProgressRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,9 +30,16 @@ sealed interface ChannelUiState {
     data object Loading : ChannelUiState
     data class Error(val error: AppError) : ChannelUiState
 
-    /** Mockups "Канал · в эфире" / "Канал · офлайн"; [followDialog]: "Канал · подписка через QR" on top. */
+    /**
+     * Mockups "Канал · в эфире" / "Канал · офлайн"; [followDialog]: "Канал · подписка через QR" on top;
+     * [watched]: the viewer's positions in recordings, by video id ("Канал · записи с прогрессом").
+     */
     @Immutable
-    data class Content(val channel: ChannelPage, val followDialog: Boolean = false) : ChannelUiState
+    data class Content(
+        val channel: ChannelPage,
+        val followDialog: Boolean = false,
+        val watched: Map<String, WatchProgress> = emptyMap(),
+    ) : ChannelUiState
 }
 
 @HiltViewModel
@@ -38,18 +47,33 @@ class ChannelViewModel internal constructor(
     private val login: String,
     private val authRepository: AuthRepository,
     private val repository: ChannelRepository,
+    private val watchProgress: WatchProgressRepository,
 ) : ViewModel() {
 
     // Hilt entry: the route comes from navigation. Tests use the primary constructor (no Android in JVM tests).
     @Inject
-    constructor(savedStateHandle: SavedStateHandle, authRepository: AuthRepository, repository: ChannelRepository) :
-        this(savedStateHandle.toRoute<ChannelDestination>().channelLogin, authRepository, repository)
+    constructor(
+        savedStateHandle: SavedStateHandle,
+        authRepository: AuthRepository,
+        repository: ChannelRepository,
+        watchProgress: WatchProgressRepository,
+    ) : this(savedStateHandle.toRoute<ChannelDestination>().channelLogin, authRepository, repository, watchProgress)
 
     private val _uiState = MutableStateFlow<ChannelUiState>(ChannelUiState.Loading)
     val uiState: StateFlow<ChannelUiState> = _uiState.asStateFlow()
 
+    /** Latest positions; kept here so a page loaded later starts with them. */
+    private var watched: Map<String, WatchProgress> = emptyMap()
+
     init {
         load()
+        // Back from a recording: its strip and «Продолжить» follow right away.
+        viewModelScope.launch {
+            watchProgress.progress.collect { positions ->
+                watched = positions
+                updateContent { it.copy(watched = positions) }
+            }
+        }
     }
 
     fun onRetry() = load()
@@ -79,7 +103,7 @@ class ChannelViewModel internal constructor(
             val viewerId = authRepository.authState.filterIsInstance<AuthState.SignedIn>().first().user.id
             _uiState.value = when (val result = repository.getChannel(login, viewerId)) {
                 is AppResult.Failure -> ChannelUiState.Error(result.error)
-                is AppResult.Success -> ChannelUiState.Content(result.value)
+                is AppResult.Success -> ChannelUiState.Content(result.value, watched = watched)
             }
         }
     }

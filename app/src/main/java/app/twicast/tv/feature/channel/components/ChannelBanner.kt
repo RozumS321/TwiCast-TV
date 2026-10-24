@@ -30,6 +30,7 @@ import app.twicast.tv.core.designsystem.component.LiveBadge
 import app.twicast.tv.core.designsystem.component.TwiPrimaryButton
 import app.twicast.tv.core.designsystem.component.TwiSecondaryButton
 import app.twicast.tv.core.designsystem.component.requestInitialFocus
+import app.twicast.tv.core.designsystem.format.formatPlaybackTime
 import app.twicast.tv.core.designsystem.format.formatViewerCount
 import app.twicast.tv.core.designsystem.format.formatViewersLabel
 import app.twicast.tv.core.designsystem.icon.TwiIcons
@@ -48,7 +49,14 @@ private const val OfflineSaturation = 0.4f
  * [onWatch] is null when there is nothing to play (offline and no recordings).
  */
 @Composable
-fun ChannelBanner(channel: ChannelPage, onWatch: (() -> Unit)?, onFollow: () -> Unit, modifier: Modifier = Modifier) {
+fun ChannelBanner(
+    channel: ChannelPage,
+    onWatch: (() -> Unit)?,
+    onFollow: () -> Unit,
+    modifier: Modifier = Modifier,
+    /** Offline, the latest recording was started: the button says where it goes on from. */
+    continueFromMs: Long? = null,
+) {
     val colors = TwiTheme.colors
     Box(
         contentAlignment = Alignment.BottomStart,
@@ -79,7 +87,11 @@ fun ChannelBanner(channel: ChannelPage, onWatch: (() -> Unit)?, onFollow: () -> 
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(TwiDimens.ButtonSpacing)) {
                 if (onWatch != null) {
                     TwiPrimaryButton(
-                        text = stringResource(if (channel.stream != null) R.string.channel_watch_live else R.string.channel_watch_last),
+                        text = when {
+                            channel.stream != null -> stringResource(R.string.channel_watch_live)
+                            continueFromMs != null -> stringResource(R.string.channel_watch_continue, formatPlaybackTime(continueFromMs))
+                            else -> stringResource(R.string.channel_watch_last)
+                        },
                         onClick = onWatch,
                         icon = TwiIcons.Play,
                         modifier = Modifier.requestInitialFocus(),

@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -37,6 +39,9 @@ import coil3.compose.AsyncImage
  * [dense] is the home-row variant (212 wide, tighter spacing, 30 avatar); [width] overrides it in grids.
  * [avatarRing] marks followed channels. Focus: scale 1.06, 3dp ring, soft primary shadow — all draw-phase.
  */
+/** Unwatched part of a recording's strip: the overlay text color, faint. */
+private const val WatchedTrackAlpha = 0.28f
+
 @Composable
 fun StreamCard(
     title: String,
@@ -52,6 +57,8 @@ fun StreamCard(
     /** Recordings and clips: no LIVE badge, and [viewerCountText] carries the duration. */
     live: Boolean = true,
     showAvatar: Boolean = true,
+    /** Recordings: the watched share, a strip along the thumbnail's bottom (mockup "Канал · записи с прогрессом"). */
+    watchedFraction: Float? = null,
 ) {
     val focusProgress = rememberFocusProgress()
     val interactionSource = remember { MutableInteractionSource() }
@@ -75,13 +82,13 @@ fun StreamCard(
             .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
             .padding(bottom = spacing),
     ) {
-        StreamThumbnail(thumbnailUrl, viewerCountText, live)
+        StreamThumbnail(thumbnailUrl, viewerCountText, live, watchedFraction)
         StreamCardInfo(title, subtitle, avatarUrl.takeIf { showAvatar }, dense, avatarRing, showAvatar)
     }
 }
 
 @Composable
-private fun StreamThumbnail(thumbnailUrl: String?, viewerCountText: String, live: Boolean) {
+private fun StreamThumbnail(thumbnailUrl: String?, viewerCountText: String, live: Boolean, watchedFraction: Float?) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -99,6 +106,18 @@ private fun StreamThumbnail(thumbnailUrl: String?, viewerCountText: String, live
         }
         if (live) LiveBadge(Modifier.align(Alignment.TopStart).padding(TwiDimens.BadgeInset))
         ViewerCountBadge(viewerCountText, Modifier.align(Alignment.BottomStart).padding(TwiDimens.BadgeInset))
+        if (watchedFraction != null) {
+            val colors = TwiTheme.colors
+            Box(
+                Modifier
+                    .align(Alignment.BottomStart)
+                    .fillMaxWidth()
+                    .height(TwiDimens.WatchedStripHeight)
+                    .background(colors.onOverlay.copy(alpha = WatchedTrackAlpha)),
+            ) {
+                Box(Modifier.fillMaxHeight().fillMaxWidth(watchedFraction).background(colors.primary))
+            }
+        }
     }
 }
 

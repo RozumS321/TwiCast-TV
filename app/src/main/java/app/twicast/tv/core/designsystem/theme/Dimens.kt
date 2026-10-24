@@ -114,6 +114,7 @@ object TwiDimens {
     val PlayerAvatarSize = 48.dp
     /** Recording seek bar (mockups "Плеер · запись, …"). */
     val SeekBarHeight = 28.dp
+    val WatchedStripHeight = 5.dp
     val SeekTrackHeight = 8.dp
     val SeekThumbSize = 24.dp
     val SeekThumbRing = 4.dp

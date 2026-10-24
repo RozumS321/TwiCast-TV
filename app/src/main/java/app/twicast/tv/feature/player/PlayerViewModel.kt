@@ -12,6 +12,7 @@ import app.twicast.tv.data.repository.PlaybackRepository
 import app.twicast.tv.data.repository.PlaybackSource
 import app.twicast.tv.data.repository.PlayerSettingsRepository
 import app.twicast.tv.data.repository.StreamsRepository
+import app.twicast.tv.data.repository.WatchProgressRepository
 import app.twicast.tv.data.repository.qualityCeiling
 import app.twicast.tv.feature.player.components.EmbedState
 import app.twicast.tv.feature.player.components.VideoQuality
@@ -68,6 +69,12 @@ const val StallCheckMillis = 8_000L
 /** Winding is sent to the player once the remote rests this long: one seek per gesture, not one per press. */
 const val SeekCommitMillis = 700L
 
+/** A recording's position is written at most this often while it plays (and right after a seek). */
+const val WatchProgressSaveMillis = 10_000L
+
+/** "Продолжаем с …" stays this long after the resumed recording starts playing. */
+const val ResumeNoticeMillis = 5_000L
+
 /** The bare-video seek bar stays this long after the winding was sent. */
 const val SeekOverlayMillis = 1_500L
 
@@ -88,6 +95,7 @@ class PlayerViewModel internal constructor(
     private val settings: PlayerSettingsRepository,
     private val playback: PlaybackRepository,
     private val streams: StreamsRepository,
+    private val watchProgress: WatchProgressRepository,
     device: DeviceProfile,
 ) : ViewModel() {
 
@@ -98,8 +106,9 @@ class PlayerViewModel internal constructor(
         settings: PlayerSettingsRepository,
         playback: PlaybackRepository,
         streams: StreamsRepository,
+        watchProgress: WatchProgressRepository,
         device: DeviceProfile,
-    ) : this(savedStateHandle.toRoute<PlayerDestination>(), settings, playback, streams, device)
+    ) : this(savedStateHandle.toRoute<PlayerDestination>(), settings, playback, streams, watchProgress, device)
 
     // Weak TVs start below 1080p right away instead of waiting for the renderer to crash.
     private val _uiState = MutableStateFlow(
@@ -110,6 +119,8 @@ class PlayerViewModel internal constructor(
     private var autoHideJob: Job? = null
     private var stallCheckJob: Job? = null
     private var seekCommitJob: Job? = null
+    private var progressSaveJob: Job? = null
+    private var resumeNoticeJob: Job? = null
 
     private val _seekRequests = Channel<Long>(Channel.CONFLATED)
 
@@ -124,11 +135,16 @@ class PlayerViewModel internal constructor(
             // A ceiling from Settings ("720p") is not a quality the player knows: it also caps the height (with the
             // low-memory cap, whichever is lower), and the TwiCast player picks the best quality under it.
             val ceiling = qualityCeiling(preferred)
+            // A recording plays on where the viewer stopped; the players take it when they are made.
+            val resumeFrom = destination.videoId?.let { watchProgress.get(it)?.resumePositionMs }
             _uiState.update {
                 it.copy(
                     preferredQualityId = preferred,
                     maxVideoHeight = lowerOf(it.maxVideoHeight, ceiling),
                     chatVisible = openChat && it.channel.isLive,
+                    startPositionMs = resumeFrom,
+                    resumedFromMs = resumeFrom,
+                    resumeNotice = resumeFrom != null,
                 )
             }
             if (engine == PlayerEngine.TwiCast && _uiState.value.canPlay) startTwiCast() else useTwitchPlayer()
@@ -183,6 +199,12 @@ class PlayerViewModel internal constructor(
             )
         }
         if (_uiState.value.status == PlaybackStatus.Ended) showEndedControls()
+        if (state == EmbedState.Playing && _uiState.value.resumeNotice && resumeNoticeJob == null) {
+            resumeNoticeJob = viewModelScope.launch {
+                delay(ResumeNoticeMillis)
+                _uiState.update { it.copy(resumeNotice = false) }
+            }
+        }
     }
 
     private val PlayerUiState.wasWatching: Boolean
@@ -233,7 +255,30 @@ class PlayerViewModel internal constructor(
 
     fun onProgress(positionMs: Long, durationMs: Long) {
         if (durationMs <= 0) return
-        _uiState.update { it.copy(progress = PlaybackProgress(positionMs.coerceIn(0, durationMs), durationMs)) }
+        val position = positionMs.coerceIn(0, durationMs)
+        _uiState.update { it.copy(progress = PlaybackProgress(position, durationMs)) }
+        // At most every 10 s: enough to come back close to where the viewer was.
+        if (progressSaveJob?.isActive != true) saveProgress(position, durationMs)
+    }
+
+    /** «С начала»: the resumed recording goes back to 0:00 (and is forgotten until watched again). */
+    fun onRestart() {
+        _seekRequests.trySend(0)
+        resumeNoticeJob?.cancel()
+        _uiState.update {
+            it.copy(progress = it.progress?.copy(positionMs = 0), resumedFromMs = null, resumeNotice = false)
+        }
+        _uiState.value.progress?.let { saveProgress(0, it.durationMs) }
+        restartAutoHide()
+    }
+
+    private fun saveProgress(positionMs: Long, durationMs: Long) {
+        val videoId = _uiState.value.channel.videoId ?: return
+        progressSaveJob?.cancel()
+        progressSaveJob = viewModelScope.launch {
+            watchProgress.save(videoId, positionMs, durationMs)
+            delay(WatchProgressSaveMillis)
+        }
     }
 
     /**
@@ -270,6 +315,7 @@ class PlayerViewModel internal constructor(
         _uiState.update {
             it.copy(progress = it.progress?.copy(positionMs = target), seekTargetMs = null, seekStartMs = null)
         }
+        _uiState.value.progress?.let { saveProgress(target, it.durationMs) }
         if (_uiState.value.overlay == PlayerOverlay.Seek) {
             autoHideJob = viewModelScope.launch {
                 delay(SeekOverlayMillis)

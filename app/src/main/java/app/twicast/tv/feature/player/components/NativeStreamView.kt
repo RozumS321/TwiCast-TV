@@ -139,6 +139,8 @@ fun NativeStreamView(
     controller: NativePlayerController,
     listener: TwitchEmbedListener,
     modifier: Modifier = Modifier,
+    /** A recording resumed where the viewer stopped. */
+    startPositionMs: Long? = null,
 ) {
     val context = LocalContext.current
     val currentListener = rememberUpdatedState(listener)
@@ -216,7 +218,7 @@ fun NativeStreamView(
             .apply { if (isHls) setMimeType(MimeTypes.APPLICATION_M3U8) }
             .build()
         Log.i(PerfTag, "native start")
-        player.setMediaItem(mediaItem)
+        if (startPositionMs != null) player.setMediaItem(mediaItem, startPositionMs) else player.setMediaItem(mediaItem)
         player.playWhenReady = true
         player.prepare()
         onDispose {

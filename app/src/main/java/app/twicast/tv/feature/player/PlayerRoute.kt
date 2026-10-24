@@ -59,6 +59,7 @@ fun PlayerRoute(onClose: () -> Unit, onOpenChannel: (String) -> Unit, viewModel:
         onToggleChat = viewModel::onToggleChat,
         onOpenChannel = { onOpenChannel(state.channel.channelLogin) },
         onSeekStep = viewModel::onSeekStep,
+        onRestart = viewModel::onRestart,
         onBack = { if (!viewModel.onBack()) onClose() },
         chat = { modifier ->
             val messages by chatViewModel.messages.collectAsStateWithLifecycle()

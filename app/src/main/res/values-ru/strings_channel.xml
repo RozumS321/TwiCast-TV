@@ -35,4 +35,5 @@
     <string name="follow_step_gone">Канал пропадёт из «Подписок» — обновим сами</string>
     <string name="follow_why">Twitch не даёт сторонним приложениям подписываться с телевизора</string>
     <string name="follow_done">Готово</string>
+    <string name="channel_watch_continue">Продолжить · %s</string>
 </resources>

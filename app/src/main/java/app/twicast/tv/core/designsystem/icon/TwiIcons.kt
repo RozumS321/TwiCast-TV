@@ -44,6 +44,7 @@ object TwiIcons {
     val Erase = strokeIcon("Erase", "M9 5h11v14H9l-6-7zM13 10l4 4M17 10l-4 4", strokeWidth = 2f)
     val SignOut = strokeIcon("SignOut", "M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5l5-5M5 12h11", strokeWidth = 2f)
     val Plus = strokeIcon("Plus", "M12 5v14M5 12h14", strokeWidth = 2.6f)
+    val Restart = strokeIcon("Restart", "M4 12a8 8 0 1 0 2.5-5.8M4 4v5h5", strokeWidth = 2f)
     val Check = strokeIcon("Check", "M5 12l5 5L19 7", strokeWidth = 2.6f)
     val ArrowUp = strokeIcon("ArrowUp", "M12 19V5M5 12l7-7l7 7", strokeWidth = 2.6f)
     val Microphone = strokeIcon("Microphone", "M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM5 11a7 7 0 0 0 14 0M12 18v3", strokeWidth = 2f)

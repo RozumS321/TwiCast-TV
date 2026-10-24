@@ -45,6 +45,12 @@ data class PlayerUiState(
     /** While the viewer winds: the position being dialled, and where the winding started (for "+ 1 мин"). */
     val seekTargetMs: Long? = null,
     val seekStartMs: Long? = null,
+    /** Where the player starts: a recording resumed where the viewer stopped; read before the player is made. */
+    val startPositionMs: Long? = null,
+    /** Set while the recording plays on from the viewer's last position: «С начала» is offered. */
+    val resumedFromMs: Long? = null,
+    /** "Продолжаем с 1:24:10" over the video for a few seconds once it plays. */
+    val resumeNotice: Boolean = false,
 ) {
     /** Only recordings wind; a live stream and a clip don't. */
     val canSeek: Boolean get() = channel.videoId != null && progress != null

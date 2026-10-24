@@ -31,4 +31,5 @@
     <string name="follow_step_gone">The channel leaves «Following» — we refresh it</string>
     <string name="follow_why">Twitch doesn\'t let third-party apps follow from a TV</string>
     <string name="follow_done">Done</string>
+    <string name="channel_watch_continue">Continue · %s</string>
 </resources>

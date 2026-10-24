@@ -122,6 +122,8 @@ fun TwitchEmbedView(
     controller: TwitchEmbedController,
     listener: TwitchEmbedListener,
     modifier: Modifier = Modifier,
+    /** A recording resumed where the viewer stopped. */
+    startPositionMs: Long? = null,
 ) {
     val currentListener = rememberUpdatedState(listener)
     val warmPlayer = LocalWarmTwitchPlayer.current.takeIf { clipSlug == null }
@@ -138,14 +140,16 @@ fun TwitchEmbedView(
                     currentListener.value.onProgress(positionMs, durationMs)
             }
             if (warmPlayer != null) {
-                warmPlayer.acquire(forwarding, channelLogin, videoId, preferredQualityId, maxVideoHeight)
+                warmPlayer.acquire(forwarding, channelLogin, videoId, preferredQualityId, maxVideoHeight, startPositionMs)
                     .also { controller.webView = it }
             } else {
                 val startedAt = SystemClock.elapsedRealtime()
                 createEmbedWebView(context, forwarding).also { webView ->
                     Log.i(PerfTag, "webview created in ${SystemClock.elapsedRealtime() - startedAt} ms")
                     controller.webView = webView
-                    webView.loadUrl(playerUrl(channelLogin, videoId, clipSlug, preferredQualityId, maxVideoHeight))
+                    webView.loadUrl(
+                        playerUrl(channelLogin, videoId, clipSlug, preferredQualityId, maxVideoHeight, startPositionMs = startPositionMs),
+                    )
                 }
             }
         },
@@ -173,6 +177,7 @@ internal fun playerUrl(
     preferredQualityId: String?,
     maxVideoHeight: Int?,
     warm: Boolean = false,
+    startPositionMs: Long? = null,
 ): String =
     Uri.parse(PlayerPageUrl).buildUpon()
         .appendQueryParameter("channel", channelLogin)
@@ -181,6 +186,7 @@ internal fun playerUrl(
         .apply { if (clipSlug != null) appendQueryParameter("clip", clipSlug) }
         .apply { if (preferredQualityId != null) appendQueryParameter("quality", preferredQualityId) }
         .apply { if (maxVideoHeight != null) appendQueryParameter("maxHeight", maxVideoHeight.toString()) }
+        .apply { if (startPositionMs != null) appendQueryParameter("start", (startPositionMs / MillisPerSecond).toLong().toString()) }
         .build()
         .toString()
 
