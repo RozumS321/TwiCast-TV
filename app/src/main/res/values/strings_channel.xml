@@ -32,4 +32,11 @@
     <string name="follow_why">Twitch doesn\'t let third-party apps follow from a TV</string>
     <string name="follow_done">Done</string>
     <string name="channel_watch_continue">Continue · %s</string>
+    <string name="channel_schedule">Schedule</string>
+    <string name="channel_schedule_hint">in your time</string>
+    <string name="schedule_today">Today</string>
+    <string name="schedule_tomorrow">Tomorrow</string>
+    <string name="schedule_when">%1$s · %2$s</string>
+    <string name="schedule_until">until %s</string>
+    <string name="channel_next_stream">next stream %1$s at %2$s</string>
 </resources>

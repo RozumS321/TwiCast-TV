@@ -121,7 +121,10 @@ private fun ChannelInfo(channel: ChannelPage, modifier: Modifier) {
     }
 }
 
-/** Live: "Категория · N зрителей · N подписчиков"; offline: "Офлайн · был в эфире вчера · N подписчиков". */
+/**
+ * Live: "Категория · N зрителей · N подписчиков"; offline: "Офлайн · следующий эфир завтра в 18:00 · N подписчиков",
+ * or "был в эфире вчера" without a schedule.
+ */
 @Composable
 private fun statusLine(channel: ChannelPage): String {
     val followers = channel.followerCount?.let { pluralStringResource(R.plurals.channel_followers, it, formatViewerCount(it)) }
@@ -129,7 +132,9 @@ private fun statusLine(channel: ChannelPage): String {
     val parts = if (stream != null) {
         listOf(stream.categoryName, formatViewersLabel(stream.viewerCount), followers)
     } else {
-        val lastLive = channel.videos.firstOrNull()?.createdAtMillis?.let { createdAt ->
+        // The next scheduled stream says more than the last one.
+        val next = channel.schedule.firstOrNull()?.let { nextStreamLabel(it) }
+        val lastLive = next ?: channel.videos.firstOrNull()?.createdAtMillis?.let { createdAt ->
             val relative = remember(createdAt) {
                 DateUtils.getRelativeTimeSpanString(createdAt, System.currentTimeMillis(), DateUtils.DAY_IN_MILLIS).toString().lowercase()
             }

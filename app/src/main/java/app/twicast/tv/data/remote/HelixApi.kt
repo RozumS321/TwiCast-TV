@@ -1,5 +1,6 @@
 package app.twicast.tv.data.remote
 
+import app.twicast.tv.data.remote.dto.ScheduleResponseDto
 import app.twicast.tv.data.remote.dto.ChannelInfoDto
 import app.twicast.tv.data.remote.dto.ClipDto
 import app.twicast.tv.data.remote.dto.FollowedChannelDto
@@ -93,6 +94,13 @@ interface HelixApi {
         @Query("first") first: Int,
         @Query("started_at") startedAt: String,
     ): HelixPage<ClipDto>
+
+    /** The channel's stream schedule, soonest first. */
+    @GET("schedule")
+    suspend fun getSchedule(
+        @Query("broadcaster_id") broadcasterId: String,
+        @Query("first") first: Int,
+    ): ScheduleResponseDto
 
     /** Up to 100 ids per call. */
     @GET("users")

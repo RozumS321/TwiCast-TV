@@ -116,3 +116,32 @@ data class ClipDto(
     val duration: Double,
     @SerialName("thumbnail_url") val thumbnailUrl: String,
 )
+
+/** /schedule: one object, not a list; 404 when the channel has no schedule. */
+@Serializable
+data class ScheduleResponseDto(val data: ScheduleDto)
+
+@Serializable
+data class ScheduleDto(
+    val segments: List<ScheduleSegmentDto>? = null,
+    val vacation: ScheduleVacationDto? = null,
+)
+
+@Serializable
+data class ScheduleSegmentDto(
+    @SerialName("start_time") val startTime: String,
+    @SerialName("end_time") val endTime: String? = null,
+    val title: String = "",
+    /** Set when the broadcaster cancelled this occurrence. */
+    @SerialName("canceled_until") val canceledUntil: String? = null,
+    val category: ScheduleCategoryDto? = null,
+)
+
+@Serializable
+data class ScheduleCategoryDto(val name: String = "")
+
+@Serializable
+data class ScheduleVacationDto(
+    @SerialName("start_time") val startTime: String,
+    @SerialName("end_time") val endTime: String,
+)

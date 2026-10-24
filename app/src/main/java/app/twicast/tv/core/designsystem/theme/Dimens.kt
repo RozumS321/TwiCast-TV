@@ -260,6 +260,11 @@ object TwiDimens {
     /** Mockup "Канал · подписка через QR". */
     val FollowDialogWidth = 860.dp
     val FollowQrSize = 232.dp
+    /** Mockup "Канал · расписание". */
+    val ScheduleCardWidth = 200.dp
+    val ScheduleCardSpacing = 4.dp
+    val ScheduleCardHorizontalPadding = 16.dp
+    val ScheduleCardVerticalPadding = 14.dp
 }
 
 object TwiShapes {
