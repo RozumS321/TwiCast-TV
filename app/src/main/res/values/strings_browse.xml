@@ -25,4 +25,9 @@
     <string name="search_offline">Offline</string>
     <string name="search_hint">Type a channel or category name — results show up right away.</string>
     <string name="search_no_results">Nothing found. Try a different spelling.</string>
+    <string name="search_recent">Recent</string>
+    <string name="search_recent_hint">searches and channels you looked for</string>
+    <string name="search_recent_clear">Clear history</string>
+    <string name="search_recent_channel">channel</string>
+    <string name="search_recent_query">search</string>
 </resources>

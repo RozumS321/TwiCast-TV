@@ -47,8 +47,37 @@ fun SearchRoute(
         onCloseLayoutMenu = viewModel::onCloseLayoutMenu,
         onLayoutSelected = viewModel::onLayoutSelected,
         onVoice = { voiceLauncher.launch(voiceIntent) },
-        onChannelClick = onChannelClick,
-        onCategoryClick = onCategoryClick,
+        onChannelClick = { channel ->
+            viewModel.onChannelOpened(channel)
+            onChannelClick(channel)
+        },
+        onCategoryClick = { category ->
+            viewModel.onCategoryOpened()
+            onCategoryClick(category)
+        },
         onRetry = viewModel::onRetry,
+        onHistoryClick = { item ->
+            val login = item.entry.channelLogin
+            if (login == null) {
+                viewModel.onHistoryQuery(item.entry)
+            } else {
+                // Opened again: back to the top of "Недавние", and live or not decides where it goes.
+                val channel = item.toChannel(login)
+                viewModel.onChannelOpened(channel)
+                onChannelClick(channel)
+            }
+        },
+        onClearHistory = viewModel::onClearHistory,
     )
 }
+
+/** A remembered channel as a search result: the app opens its stream if live, else its page. */
+private fun SearchHistoryItem.toChannel(login: String) = ChannelSearchResult(
+    id = "",
+    login = login,
+    displayName = entry.text,
+    avatarUrl = entry.avatarUrl,
+    isLive = live,
+    categoryName = entry.categoryName,
+    title = "",
+)

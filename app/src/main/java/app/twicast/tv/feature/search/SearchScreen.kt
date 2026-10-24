@@ -15,6 +15,7 @@ import app.twicast.tv.data.model.Category
 import app.twicast.tv.data.model.ChannelSearchResult
 import app.twicast.tv.feature.search.components.QueryField
 import app.twicast.tv.feature.search.components.SearchKeyboard
+import app.twicast.tv.feature.search.components.SearchHistory
 import app.twicast.tv.feature.search.components.SearchResults
 
 /** Mockup "Поиск": query and keyboard on the left, results on the right. */
@@ -33,6 +34,8 @@ fun SearchScreen(
     onCategoryClick: (Category) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    onHistoryClick: (SearchHistoryItem) -> Unit = {},
+    onClearHistory: () -> Unit = {},
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(TwiDimens.SearchColumnSpacing),
@@ -60,12 +63,17 @@ fun SearchScreen(
         }
         Box(Modifier.weight(1f)) {
             KeepFocusedVisibleScroll {
-                SearchResults(
-                    state = state.results,
-                    onChannelClick = onChannelClick,
-                    onCategoryClick = onCategoryClick,
-                    onRetry = onRetry,
-                )
+                // Nothing typed yet: what was searched before, instead of the hint.
+                if (state.query.isBlank() && state.history.isNotEmpty()) {
+                    SearchHistory(state.history, onHistoryClick, onClearHistory)
+                } else {
+                    SearchResults(
+                        state = state.results,
+                        onChannelClick = onChannelClick,
+                        onCategoryClick = onCategoryClick,
+                        onRetry = onRetry,
+                    )
+                }
             }
         }
     }
