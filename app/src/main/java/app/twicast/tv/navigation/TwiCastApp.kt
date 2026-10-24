@@ -1,5 +1,6 @@
 package app.twicast.tv.navigation
 
+import app.twicast.tv.data.repository.HistoryEntry
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -129,7 +130,13 @@ private fun SignedInShell(user: User) {
             exitTransition = { fadeOut(tween(TwiMotion.ScreenFadeMillis)) },
             modifier = Modifier.fillMaxSize(),
         ) {
-            composable<HomeDestination> { HomeRoute(onStreamClick = navController::openStream) }
+            composable<HomeDestination> {
+                HomeRoute(
+                    onStreamClick = navController::openStream,
+                    onRecordingClick = { entry -> navController.navigate(entry.playerDestination()) },
+                    onChannelClick = { login -> navController.navigate(ChannelDestination(login)) },
+                )
+            }
             composable<SearchDestination> {
                 SearchRoute(
                     onChannelClick = { channel ->
@@ -160,7 +167,11 @@ private fun SignedInShell(user: User) {
             composable<ChannelDestination> {
                 ChannelRoute(
                     onWatchLive = { channel -> channel.stream?.let(navController::openStream) },
-                    onVideoClick = { channel, video -> navController.navigate(channel.playerDestination(videoId = video.id)) },
+                    onVideoClick = { channel, video ->
+                        navController.navigate(
+                            channel.playerDestination(videoId = video.id).copy(title = video.title, thumbnailTemplate = video.thumbnailTemplate),
+                        )
+                    },
                     onClipClick = { channel, clip -> navController.navigate(channel.playerDestination(clipSlug = clip.id)) },
                 )
             }
@@ -176,6 +187,18 @@ private fun NavDestination.topLevel(): TopLevelDestination? = TopLevelDestinatio
 private fun NavHostController.openStream(stream: Stream) {
     navigate(PlayerDestination(stream.userLogin, stream.channelName, stream.categoryName, stream.viewerCount, stream.avatarUrl))
 }
+
+/** A recording from "Недавно смотрели": opened as it was last time (the player resumes where it stopped). */
+private fun HistoryEntry.playerDestination() = PlayerDestination(
+    channelLogin = channelLogin,
+    channelName = channelName,
+    categoryName = categoryName,
+    viewerCount = null,
+    avatarUrl = avatarUrl,
+    videoId = videoId,
+    title = title,
+    thumbnailTemplate = thumbnailTemplate,
+)
 
 /** A recording or clip of [this] channel. */
 private fun ChannelPage.playerDestination(videoId: String? = null, clipSlug: String? = null) = PlayerDestination(

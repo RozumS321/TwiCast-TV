@@ -15,15 +15,20 @@ import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.Text
 import app.twicast.tv.core.designsystem.component.StreamCard
 import app.twicast.tv.core.designsystem.component.requestInitialFocus
+import app.twicast.tv.core.designsystem.format.formatPlaybackTime
 import app.twicast.tv.core.designsystem.format.formatViewerCount
 import app.twicast.tv.core.designsystem.image.rememberTwitchImageUrl
 import app.twicast.tv.core.designsystem.theme.TwiAspect
 import app.twicast.tv.core.designsystem.theme.TwiDimens
 import app.twicast.tv.core.designsystem.theme.TwiTheme
+import app.twicast.tv.R
 import app.twicast.tv.data.model.Stream
+import app.twicast.tv.data.repository.HistoryEntry
+import app.twicast.tv.feature.home.RecentItem
 import kotlinx.collections.immutable.ImmutableList
 
 /** Below the title: 12 (mockup); bottom: room for the focused card's scale and shadow. */
@@ -79,6 +84,88 @@ fun StreamRow(
                     dense = true,
                     avatarRing = followed,
                     modifier = if (takesInitialFocus && index == 0) Modifier.requestInitialFocus() else Modifier,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * "Недавно смотрели" (mockup "Главная · недавно смотрели"): recordings with their strip and time left, channels
+ * live now (LIVE, viewers) or off air.
+ */
+@Composable
+fun RecentRow(
+    items: ImmutableList<RecentItem>,
+    onStreamClick: (Stream) -> Unit,
+    onRecordingClick: (HistoryEntry) -> Unit,
+    onChannelClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    takesInitialFocus: Boolean = false,
+) {
+    Column(modifier) {
+        RowHeader(stringResource(R.string.home_row_recent), stringResource(R.string.home_row_recent_hint))
+        LazyRow(
+            contentPadding = RowPadding,
+            horizontalArrangement = Arrangement.spacedBy(TwiDimens.HomeCardSpacing),
+            modifier = Modifier.padding(start = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset).focusRestorer(),
+        ) {
+            itemsIndexed(items, key = { _, it -> it.entry.key }, contentType = { _, it -> it::class }) { index, item ->
+                val focus = if (takesInitialFocus && index == 0) Modifier.requestInitialFocus() else Modifier
+                RecentCard(item, onStreamClick, onRecordingClick, onChannelClick, focus)
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecentCard(
+    item: RecentItem,
+    onStreamClick: (Stream) -> Unit,
+    onRecordingClick: (HistoryEntry) -> Unit,
+    onChannelClick: (String) -> Unit,
+    modifier: Modifier,
+) {
+    val entry = item.entry
+    when (item) {
+        is RecentItem.Recording -> StreamCard(
+            title = entry.title ?: entry.channelName,
+            subtitle = entry.channelName,
+            viewerCountText = item.remainingMs?.let { stringResource(R.string.home_recent_left, formatPlaybackTime(it)) }
+                ?: stringResource(R.string.home_recent_recording),
+            thumbnailUrl = entry.thumbnailTemplate?.let { rememberTwitchImageUrl(it, TwiDimens.StreamCardDenseWidth, TwiAspect.Thumbnail) },
+            avatarUrl = entry.avatarUrl,
+            onClick = { onRecordingClick(entry) },
+            dense = true,
+            live = false,
+            watchedFraction = item.watchedFraction,
+            modifier = modifier,
+        )
+        is RecentItem.Channel -> {
+            val stream = item.stream
+            if (stream != null) {
+                StreamCard(
+                    title = stream.title,
+                    subtitle = listOf(stream.channelName, stream.categoryName).filter { it.isNotEmpty() }.joinToString(" · "),
+                    viewerCountText = formatViewerCount(stream.viewerCount),
+                    thumbnailUrl = rememberTwitchImageUrl(stream.thumbnailTemplate, TwiDimens.StreamCardDenseWidth, TwiAspect.Thumbnail),
+                    avatarUrl = stream.avatarUrl,
+                    onClick = { onStreamClick(stream) },
+                    dense = true,
+                    modifier = modifier,
+                )
+            } else {
+                // Off air: nothing to play, the card leads to the channel's recordings.
+                StreamCard(
+                    title = entry.channelName,
+                    subtitle = entry.categoryName,
+                    viewerCountText = stringResource(R.string.home_recent_offline),
+                    thumbnailUrl = null,
+                    avatarUrl = entry.avatarUrl,
+                    onClick = { onChannelClick(entry.channelLogin) },
+                    dense = true,
+                    live = false,
+                    modifier = modifier,
                 )
             }
         }

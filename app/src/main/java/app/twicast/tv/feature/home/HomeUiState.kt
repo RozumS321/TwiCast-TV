@@ -3,7 +3,21 @@ package app.twicast.tv.feature.home
 import androidx.compose.runtime.Immutable
 import app.twicast.tv.data.model.AppError
 import app.twicast.tv.data.model.Stream
+import app.twicast.tv.data.repository.HistoryEntry
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+
+/** A card of "Недавно смотрели" (mockup "Главная · недавно смотрели"). */
+@Immutable
+sealed interface RecentItem {
+    val entry: HistoryEntry
+
+    /** A recording: how much is watched (strip) and what is left; null fraction when never got past 30 s. */
+    data class Recording(override val entry: HistoryEntry, val watchedFraction: Float?, val remainingMs: Long?) : RecentItem
+
+    /** A channel watched live: its stream when it broadcasts now, else null (off air). */
+    data class Channel(override val entry: HistoryEntry, val stream: Stream?) : RecentItem
+}
 
 sealed interface HomeUiState {
     data object Loading : HomeUiState
@@ -22,5 +36,7 @@ sealed interface HomeUiState {
         val followedLive: ImmutableList<Stream>,
         val recommended: ImmutableList<Stream>,
         val regional: ImmutableList<Stream>,
+        /** "Недавно смотрели", newest first; empty: no row. */
+        val recent: ImmutableList<RecentItem> = persistentListOf(),
     ) : HomeUiState
 }

@@ -1,5 +1,8 @@
 package app.twicast.tv.testing
 
+import app.twicast.tv.data.repository.HistoryEntry
+import app.twicast.tv.data.repository.WatchHistoryRepository
+import app.twicast.tv.data.repository.WatchHistoryRules
 import app.twicast.tv.data.repository.WatchProgress
 import app.twicast.tv.data.repository.WatchProgressRepository
 import app.twicast.tv.data.repository.WatchProgressRules
@@ -72,6 +75,12 @@ class FakeStreamsRepository(
 
     override suspend fun getFollowedStreams(userId: String, limit: Int): AppResult<List<Stream>> = followed
 
+    /** Live streams by login, for "Недавно смотрели". */
+    var liveStreams: AppResult<List<Stream>> = AppResult.Success(emptyList())
+
+    override suspend fun getLiveStreams(logins: List<String>): AppResult<List<Stream>> =
+        (liveStreams as? AppResult.Success)?.let { ok -> AppResult.Success(ok.value.filter { it.userLogin in logins }) } ?: liveStreams
+
     /** Category pages by cursor (null = first page). */
     var categoryPages: Map<String?, AppResult<Page<Stream>>> = emptyMap()
     var categoryRequests: List<Pair<String?, String?>> = emptyList()
@@ -130,5 +139,14 @@ class FakeWatchProgressRepository(initial: Map<String, WatchProgress> = emptyMap
     override suspend fun save(videoId: String, positionMs: Long, durationMs: Long) {
         saved += Triple(videoId, positionMs, durationMs)
         progress.value = WatchProgressRules.updated(progress.value, videoId, WatchProgress(positionMs, durationMs, saved.size.toLong()))
+    }
+}
+
+/** History in memory, newest first. */
+class FakeWatchHistoryRepository(initial: List<HistoryEntry> = emptyList()) : WatchHistoryRepository {
+    override val entries = MutableStateFlow(initial)
+
+    override suspend fun record(entry: HistoryEntry) {
+        entries.value = WatchHistoryRules.updated(entries.value, entry)
     }
 }

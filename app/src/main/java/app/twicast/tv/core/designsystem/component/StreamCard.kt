@@ -1,5 +1,6 @@
 package app.twicast.tv.core.designsystem.component
 
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -105,7 +106,9 @@ private fun StreamThumbnail(thumbnailUrl: String?, viewerCountText: String, live
             )
         }
         if (live) LiveBadge(Modifier.align(Alignment.TopStart).padding(TwiDimens.BadgeInset))
-        ViewerCountBadge(viewerCountText, Modifier.align(Alignment.BottomStart).padding(TwiDimens.BadgeInset))
+        // Above the watched strip, when there is one.
+        val badgeLift = if (watchedFraction != null) TwiDimens.WatchedStripHeight else 0.dp
+        ViewerCountBadge(viewerCountText, Modifier.align(Alignment.BottomStart).padding(TwiDimens.BadgeInset).padding(bottom = badgeLift))
         if (watchedFraction != null) {
             val colors = TwiTheme.colors
             Box(

@@ -7,7 +7,12 @@ import app.twicast.tv.data.model.AppResult
 import app.twicast.tv.data.model.AuthState
 import app.twicast.tv.data.model.Stream
 import app.twicast.tv.data.repository.AuthRepository
+import app.twicast.tv.data.repository.HistoryEntry
 import app.twicast.tv.data.repository.StreamsRepository
+import app.twicast.tv.data.repository.WatchHistoryRepository
+import app.twicast.tv.data.repository.WatchHistoryRules
+import app.twicast.tv.data.repository.WatchProgress
+import app.twicast.tv.data.repository.WatchProgressRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Job
@@ -16,6 +21,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -45,6 +52,8 @@ const val HomeAutoRefreshMillis = 3 * 60_000L
 class HomeViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val streamsRepository: StreamsRepository,
+    private val history: WatchHistoryRepository,
+    private val watchProgress: WatchProgressRepository,
     locale: Locale,
     private val clock: Clock,
 ) : ViewModel() {
@@ -57,8 +66,36 @@ class HomeViewModel @Inject constructor(
     private var autoRefreshJob: Job? = null
     private var loadedAtMillis: Long? = null
 
+    /** "Недавно смотрели" as last built; a reload of the other rows keeps it. */
+    private var recent: List<RecentItem> = emptyList()
+    private var historyEntries: List<HistoryEntry> = emptyList()
+    private var positions: Map<String, WatchProgress> = emptyMap()
+    private var recentJob: Job? = null
+
     init {
         load(quietly = false)
+        // Back from the player: the row changes at once, without waiting for the next refresh.
+        viewModelScope.launch {
+            combine(history.entries, watchProgress.progress, ::Pair).collect { (entries, progress) ->
+                historyEntries = entries
+                positions = progress
+                refreshRecent()
+            }
+        }
+    }
+
+    /** Rebuilds "Недавно смотрели": which watched channels broadcast now comes from one request. */
+    private fun refreshRecent() {
+        recentJob?.cancel()
+        recentJob = viewModelScope.launch {
+            val entries = historyEntries.take(WatchHistoryRules.RowSize)
+            val logins = entries.filterNot { it.isRecording }.map { it.channelLogin }
+            // Unknown (no network): channels show as off air rather than hiding the row.
+            val live = (streamsRepository.getLiveStreams(logins) as? AppResult.Success)?.value.orEmpty()
+                .associateBy { it.userLogin.lowercase() }
+            recent = recentItems(entries, positions, live)
+            _uiState.update { state -> if (state is HomeUiState.Content) state.copy(recent = recent.toImmutableList()) else state }
+        }
     }
 
     fun onRetry() = load(quietly = false)
@@ -111,6 +148,7 @@ class HomeViewModel @Inject constructor(
             val failure = (recommended as? AppResult.Failure)?.error ?: (regional as? AppResult.Failure)?.error
             if (failure != null && quietly && hasContent) return@launch
             loadedAtMillis = clock.nowMillis()
+            refreshRecent()
             _uiState.value = when {
                 recommended is AppResult.Failure -> HomeUiState.Error(recommended.error)
                 regional is AppResult.Failure -> HomeUiState.Error(regional.error)
@@ -153,6 +191,7 @@ class HomeViewModel @Inject constructor(
         val newChannels = recommended.filterNot { it.userId in followedIds }.take(RowSize)
         if (followed.isEmpty() && newChannels.isEmpty() && regional.isEmpty()) return HomeUiState.Empty(userName)
         return HomeUiState.Content(
+            recent = recent.toImmutableList(),
             userName = userName,
             languageCode = language,
             followedLive = followed.toImmutableList(),
@@ -160,5 +199,24 @@ class HomeViewModel @Inject constructor(
             // Rows do not repeat each other: followed channels are already in the first row.
             regional = regional.filterNot { it.userId in followedIds }.toImmutableList(),
         )
+    }
+}
+
+/** The "Недавно смотрели" cards: recordings with their strip and time left, channels live or off air. */
+internal fun recentItems(
+    entries: List<HistoryEntry>,
+    positions: Map<String, WatchProgress>,
+    liveByLogin: Map<String, Stream>,
+): List<RecentItem> = entries.map { entry ->
+    val videoId = entry.videoId
+    if (videoId != null) {
+        val progress = positions[videoId]
+        RecentItem.Recording(
+            entry = entry,
+            watchedFraction = progress?.watchedFraction,
+            remainingMs = progress?.takeUnless { it.isFinished }?.let { it.durationMs - it.positionMs },
+        )
+    } else {
+        RecentItem.Channel(entry, liveByLogin[entry.channelLogin.lowercase()])
     }
 }

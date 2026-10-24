@@ -29,4 +29,9 @@
     <string name="home_row_recommended_hint">based on your categories</string>
     <string name="home_row_regional">Popular in your region</string>
 
+    <string name="home_row_recent">Recently watched</string>
+    <string name="home_row_recent_hint">on this TV</string>
+    <string name="home_recent_left">%s left</string>
+    <string name="home_recent_recording">recording</string>
+    <string name="home_recent_offline">offline</string>
 </resources>

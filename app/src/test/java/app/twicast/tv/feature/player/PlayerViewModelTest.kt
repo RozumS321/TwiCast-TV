@@ -11,6 +11,7 @@ import app.twicast.tv.feature.player.components.EmbedState
 import app.twicast.tv.feature.player.components.VideoQuality
 import app.twicast.tv.testing.FakeStreamsRepository
 import app.twicast.tv.testing.FakeWatchProgressRepository
+import app.twicast.tv.testing.FakeWatchHistoryRepository
 import app.twicast.tv.data.repository.WatchProgress
 import app.twicast.tv.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,11 +59,12 @@ class PlayerViewModelTest {
     private val playback = FakePlayback()
     private val streams = FakeStreamsRepository()
     private val watch = FakeWatchProgressRepository()
+    private val history = FakeWatchHistoryRepository()
     private val device = object : DeviceProfile { override var isLowMemory = false }
     private val destination = PlayerDestination("sasavot", "sasavot", "Just Chatting", 15_300, null)
 
     private fun TestScope.viewModel(): PlayerViewModel =
-        PlayerViewModel(destination, settings, playback, streams, watch, device).also { runCurrent() }
+        PlayerViewModel(destination, settings, playback, streams, watch, history, device).also { runCurrent() }
 
     @Test
     fun `preferred quality is loaded before the embed may be created`() = runTest(mainRule.dispatcher) {
@@ -201,7 +203,7 @@ class PlayerViewModelTest {
         settings.openChatWithStream.value = true
         assertTrue(viewModel().uiState.value.chatVisible)
 
-        val recording = PlayerViewModel(destination.copy(videoId = "123"), settings, playback, streams, watch, device).also { runCurrent() }
+        val recording = PlayerViewModel(destination.copy(videoId = "123"), settings, playback, streams, watch, history, device).also { runCurrent() }
         assertFalse(recording.uiState.value.chatVisible)
     }
 
@@ -249,13 +251,13 @@ class PlayerViewModelTest {
 
     @Test
     fun `malformed login never reaches the embed`() = runTest(mainRule.dispatcher) {
-        val viewModel = PlayerViewModel(destination.copy(channelLogin = "a&b=c"), settings, playback, streams, watch, device)
+        val viewModel = PlayerViewModel(destination.copy(channelLogin = "a&b=c"), settings, playback, streams, watch, history, device)
         assertFalse(viewModel.uiState.value.canPlay)
     }
 
     // A 7-hour recording, 1 hour in.
     private fun TestScope.recording(): PlayerViewModel =
-        PlayerViewModel(destination.copy(videoId = "2512345678"), settings, playback, streams, watch, device).also {
+        PlayerViewModel(destination.copy(videoId = "2512345678"), settings, playback, streams, watch, history, device).also {
             runCurrent()
             it.onProgress(positionMs = 3_600_000, durationMs = 25_200_000)
         }
@@ -329,7 +331,7 @@ class PlayerViewModelTest {
 
     private fun TestScope.resumed(positionMs: Long): PlayerViewModel {
         watch.progress.value = mapOf("2512345678" to WatchProgress(positionMs, durationMs = 25_200_000, updatedAtMillis = 1))
-        return PlayerViewModel(destination.copy(videoId = "2512345678"), settings, playback, streams, watch, device).also { runCurrent() }
+        return PlayerViewModel(destination.copy(videoId = "2512345678"), settings, playback, streams, watch, history, device).also { runCurrent() }
     }
 
     @Test
@@ -401,5 +403,16 @@ class PlayerViewModelTest {
         viewModel.onProgress(10_000, 20_000)
         runCurrent()
         assertTrue(watch.saved.isEmpty())
+    }
+
+    @Test
+    fun `opening a stream or a recording puts it in the history, a clip does not`() = runTest(mainRule.dispatcher) {
+        viewModel()
+        PlayerViewModel(destination.copy(videoId = "v1", title = "Ранкед"), settings, playback, streams, watch, history, device)
+        PlayerViewModel(destination.copy(clipSlug = "Clip"), settings, playback, streams, watch, history, device)
+        runCurrent()
+        val entries = history.entries.value
+        assertEquals(listOf("v1", "live:sasavot"), entries.map { it.key })
+        assertEquals("Ранкед", entries.first().title)
     }
 }
