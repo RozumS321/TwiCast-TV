@@ -112,6 +112,11 @@ object TwiDimens {
     val PlayerControlsVerticalPadding = 20.dp
     val PlayerControlsSpacing = 16.dp
     val PlayerAvatarSize = 48.dp
+    /** Live count on "Подписки" in the sidebar (mockup "Сайдбар · эфиры в подписках"). */
+    val SidebarCountMinSize = 20.dp
+    val SidebarCountHorizontalPadding = 6.dp
+    val SidebarCountEndPadding = 14.dp
+    val SidebarDotInset = 6.dp
     /** Recording seek bar (mockups "Плеер · запись, …"). */
     val SeekBarHeight = 28.dp
     val WatchedStripHeight = 5.dp

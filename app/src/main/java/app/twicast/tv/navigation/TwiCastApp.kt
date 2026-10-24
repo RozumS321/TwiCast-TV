@@ -60,15 +60,16 @@ import kotlinx.collections.immutable.toPersistentList
 @Composable
 fun TwiCastApp(viewModel: AppViewModel = hiltViewModel()) {
     val authState by viewModel.authState.collectAsStateWithLifecycle()
+    val liveFollowedCount by viewModel.liveFollowedCount.collectAsStateWithLifecycle()
     Box(Modifier.fillMaxSize()) {
-        AuthGate(authState)
+        AuthGate(authState, liveFollowedCount)
         // Self-update panel over everything, sign-in included.
         UpdateRoute()
     }
 }
 
 @Composable
-private fun AuthGate(authState: AuthState) {
+private fun AuthGate(authState: AuthState, liveFollowedCount: Int) {
     // Animate by state type: the shell is not rebuilt when only the user's fields change.
     AnimatedContent(
         targetState = authState,
@@ -80,13 +81,13 @@ private fun AuthGate(authState: AuthState) {
         when (state) {
             AuthState.Loading -> Box(Modifier.fillMaxSize())
             AuthState.SignedOut -> LoginRoute()
-            is AuthState.SignedIn -> SignedInShell(state.user)
+            is AuthState.SignedIn -> SignedInShell(state.user, liveFollowedCount)
         }
     }
 }
 
 @Composable
-private fun SignedInShell(user: User) {
+private fun SignedInShell(user: User, liveFollowedCount: Int) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     // The section is the last top-level screen reached: a category, a channel or the player opened from
@@ -100,9 +101,10 @@ private fun SignedInShell(user: User) {
     val labels = TopLevelDestination.entries.map { destination ->
         if (destination == TopLevelDestination.Profile) user.displayName else stringResource(destination.labelRes)
     }
-    val (mainItems, profileItem) = remember(labels) {
+    val (mainItems, profileItem) = remember(labels, liveFollowedCount) {
         val items = TopLevelDestination.entries.mapIndexed { index, destination ->
-            SidebarItem(destination.name, labels[index], destination.icon)
+            val badge = if (destination == TopLevelDestination.Following) liveFollowedCount else 0
+            SidebarItem(destination.name, labels[index], destination.icon, badge)
         }
         items.filterNot { it.key == TopLevelDestination.Profile.name }.toPersistentList() to
             items.first { it.key == TopLevelDestination.Profile.name }
