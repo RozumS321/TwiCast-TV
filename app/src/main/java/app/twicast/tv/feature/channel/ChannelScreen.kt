@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -45,6 +46,7 @@ import app.twicast.tv.data.model.Clip
 import app.twicast.tv.data.model.Video
 import app.twicast.tv.data.repository.WatchProgress
 import app.twicast.tv.feature.channel.components.ChannelBanner
+import app.twicast.tv.feature.channel.components.ScheduleCard
 import app.twicast.tv.feature.channel.components.FollowQrDialog
 import app.twicast.tv.feature.common.appErrorMessage
 import java.text.NumberFormat
@@ -142,6 +144,15 @@ private fun ChannelContent(
                             bottom = TwiDimens.FocusOverflowPadding,
                         ),
                     )
+                }
+            }
+            if (channel.schedule.isNotEmpty()) {
+                item(key = "schedule") {
+                    MediaRow(stringResource(R.string.channel_schedule), stringResource(R.string.channel_schedule_hint)) {
+                        itemsIndexed(channel.schedule, key = { _, it -> it.startMillis }) { index, stream ->
+                            ScheduleCard(stream, next = index == 0)
+                        }
+                    }
                 }
             }
             if (channel.videos.isNotEmpty()) {

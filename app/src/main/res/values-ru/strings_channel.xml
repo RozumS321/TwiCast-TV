@@ -36,4 +36,11 @@
     <string name="follow_why">Twitch не даёт сторонним приложениям подписываться с телевизора</string>
     <string name="follow_done">Готово</string>
     <string name="channel_watch_continue">Продолжить · %s</string>
+    <string name="channel_schedule">Расписание</string>
+    <string name="channel_schedule_hint">по вашему времени</string>
+    <string name="schedule_today">Сегодня</string>
+    <string name="schedule_tomorrow">Завтра</string>
+    <string name="schedule_when">%1$s · %2$s</string>
+    <string name="schedule_until">до %s</string>
+    <string name="channel_next_stream">следующий эфир %1$s в %2$s</string>
 </resources>

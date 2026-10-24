@@ -5,10 +5,12 @@ import app.twicast.tv.data.model.AppError
 import app.twicast.tv.data.model.AppResult
 import app.twicast.tv.data.model.ChannelPage
 import app.twicast.tv.data.model.Clip
+import app.twicast.tv.data.model.ScheduledStream
 import app.twicast.tv.data.model.Video
 import app.twicast.tv.data.model.runCatchingRemote
 import app.twicast.tv.data.remote.HelixApi
 import app.twicast.tv.data.remote.dto.ClipDto
+import app.twicast.tv.data.remote.dto.ScheduleDto
 import app.twicast.tv.data.remote.dto.VideoDto
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -26,6 +28,8 @@ private const val VideoLimit = 20
 private const val ClipLimit = 20
 /** "Популярные клипы · за 30 дней" (mockup). */
 private const val ClipPeriodDays = 30L
+/** "Расписание": the next few streams. */
+private const val ScheduleLimit = 5
 private val DurationPart = Regex("(\\d+)([hms])")
 private const val SecondsInMinute = 60L
 private const val SecondsInHour = 3600L
@@ -49,6 +53,11 @@ class HelixChannelRepository @Inject constructor(
                 val following = async { api.getFollowedChannels(viewerId, first = 1, broadcasterId = user.id).data.isNotEmpty() }
                 val videos = async { api.getVideos(user.id, VideoLimit).data.map { it.toModel() } }
                 val clips = async { api.getClips(user.id, ClipLimit, clipsSince()).data.map { it.toModel() } }
+                // Most channels have no schedule (Twitch answers 404): the page shows without it, as on any failure.
+                val schedule = async {
+                    val result = runCatchingRemote { upcomingStreams(api.getSchedule(user.id, ScheduleLimit * 2).data, clock.nowMillis()) }
+                    (result as? AppResult.Success)?.value.orEmpty()
+                }
                 ChannelPage(
                     id = user.id,
                     login = user.login,
@@ -62,6 +71,7 @@ class HelixChannelRepository @Inject constructor(
                     videos = videos.await(),
                     // Helix returns clips by views already; keep that order.
                     clips = clips.await(),
+                    schedule = schedule.await(),
                 )
             }
         }
@@ -79,6 +89,22 @@ private fun VideoDto.toModel() = Video(
     viewCount = viewCount,
     thumbnailTemplate = thumbnailUrl,
 )
+
+/** Upcoming, not cancelled, soonest first, at most [ScheduleLimit]; ones in the vacation are dropped. */
+internal fun upcomingStreams(schedule: ScheduleDto, nowMillis: Long): List<ScheduledStream> {
+    val vacation = schedule.vacation?.let { parseInstant(it.startTime)?.rangeTo(parseInstant(it.endTime) ?: Long.MAX_VALUE) }
+    return schedule.segments.orEmpty()
+        .filter { it.canceledUntil == null }
+        .mapNotNull { segment ->
+            val start = parseInstant(segment.startTime) ?: return@mapNotNull null
+            ScheduledStream(start, segment.endTime?.let(::parseInstant), segment.title, segment.category?.name.orEmpty())
+        }
+        .filter { (it.endMillis ?: it.startMillis) > nowMillis && (vacation == null || it.startMillis !in vacation) }
+        .sortedBy { it.startMillis }
+        .take(ScheduleLimit)
+}
+
+private fun parseInstant(value: String): Long? = runCatching { Instant.parse(value).toEpochMilli() }.getOrNull()
 
 private fun ClipDto.toModel() = Clip(id, title, viewCount, duration.toLong(), thumbnailUrl)
 

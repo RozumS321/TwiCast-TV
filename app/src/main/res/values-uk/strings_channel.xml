@@ -36,4 +36,11 @@
     <string name="follow_why">Twitch не дозволяє стороннім застосункам підписуватися з телевізора</string>
     <string name="follow_done">Готово</string>
     <string name="channel_watch_continue">Продовжити · %s</string>
+    <string name="channel_schedule">Розклад</string>
+    <string name="channel_schedule_hint">за вашим часом</string>
+    <string name="schedule_today">Сьогодні</string>
+    <string name="schedule_tomorrow">Завтра</string>
+    <string name="schedule_when">%1$s · %2$s</string>
+    <string name="schedule_until">до %s</string>
+    <string name="channel_next_stream">наступний ефір %1$s о %2$s</string>
 </resources>

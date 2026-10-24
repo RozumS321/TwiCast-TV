@@ -111,7 +111,12 @@ data class ChannelPage(
     val stream: Stream?,
     val videos: List<Video>,
     val clips: List<Clip>,
+    /** The next streams from the channel's Twitch schedule, soonest first (mockup "Канал · расписание"). */
+    val schedule: List<ScheduledStream> = emptyList(),
 )
+
+/** One upcoming stream from a channel's schedule; times in epoch millis, shown in the viewer's time zone. */
+data class ScheduledStream(val startMillis: Long, val endMillis: Long?, val title: String, val categoryName: String)
 
 /** The player that opens streams: our own (ExoPlayer on Twitch's HLS) or the official Twitch embed. */
 enum class PlayerEngine { TwiCast, Twitch }
