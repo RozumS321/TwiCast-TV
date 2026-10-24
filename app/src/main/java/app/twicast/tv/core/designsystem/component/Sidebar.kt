@@ -1,5 +1,6 @@
 package app.twicast.tv.core.designsystem.component
 
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.foundation.background
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.layout.defaultMinSize
@@ -327,16 +328,23 @@ private fun SidebarItemRow(
 /** Red pill with a number ("4"); "99+" beyond. */
 @Composable
 private fun SidebarCount(count: Int, modifier: Modifier = Modifier) {
-    Text(
-        text = if (count > MaxShownCount) "$MaxShownCount+" else count.toString(),
-        style = TwiTheme.typography.count,
-        color = TwiTheme.colors.onPrimary,
-        maxLines = 1,
-        textAlign = TextAlign.Center,
+    // The number sits in the middle of the circle: a bare Text with a min size would hug the top.
+    Box(
+        contentAlignment = Alignment.Center,
         modifier = modifier
             .defaultMinSize(minWidth = TwiDimens.SidebarCountMinSize, minHeight = TwiDimens.SidebarCountMinSize)
             .background(TwiTheme.colors.live, CircleShape)
             .padding(horizontal = TwiDimens.SidebarCountHorizontalPadding),
-    )
+    ) {
+        Text(
+            text = if (count > MaxShownCount) "$MaxShownCount+" else count.toString(),
+            style = TwiTheme.typography.count.copy(
+                lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.Both),
+            ),
+            color = TwiTheme.colors.onPrimary,
+            maxLines = 1,
+            textAlign = TextAlign.Center,
+        )
+    }
 }
 
