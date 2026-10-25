@@ -1,5 +1,8 @@
 package app.twicast.tv.feature.following
 
+import app.twicast.tv.core.designsystem.component.leftToSidebar
+import app.twicast.tv.core.designsystem.component.isFirstInRow
+import app.twicast.tv.core.designsystem.component.LocalSidebarFocus
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -98,6 +101,7 @@ private fun ChannelsGrid(
     onStreamClick: (Stream) -> Unit,
     onChannelClick: (FollowedChannel) -> Unit,
 ) {
+    val sidebar = LocalSidebarFocus.current
     LazyVerticalGrid(
         columns = GridCells.Fixed(GridColumns),
         contentPadding = PaddingValues(
@@ -134,6 +138,7 @@ private fun ChannelsGrid(
                 liveViewers = formatViewersLabel(stream.viewerCount),
                 first = index == 0,
                 onClick = { onStreamClick(stream) },
+                modifier = Modifier.leftToSidebar(sidebar, isFirstInRow(index, GridColumns / LiveSpan)),
             )
         }
         if (state.offline.isNotEmpty()) {
@@ -160,6 +165,7 @@ private fun ChannelsGrid(
                 // Nobody live: the first offline channel takes the initial focus.
                 first = state.live.isEmpty() && index == 0,
                 onClick = { onChannelClick(channel) },
+                modifier = Modifier.leftToSidebar(sidebar, isFirstInRow(index, GridColumns / OfflineSpan)),
             )
         }
     }
@@ -180,13 +186,21 @@ private fun SectionTitle(title: String, count: Int, live: Boolean, modifier: Mod
 }
 
 @Composable
-private fun ChannelCardItem(name: String, avatarUrl: String?, subtitle: String, liveViewers: String?, first: Boolean, onClick: () -> Unit) {
+private fun ChannelCardItem(
+    name: String,
+    avatarUrl: String?,
+    subtitle: String,
+    liveViewers: String?,
+    first: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     ChannelCard(
         name = name,
         avatarUrl = avatarUrl,
         subtitle = subtitle,
         liveViewers = liveViewers,
         onClick = onClick,
-        modifier = if (first) Modifier.requestInitialFocus() else Modifier,
+        modifier = if (first) modifier.requestInitialFocus() else modifier,
     )
 }
