@@ -94,7 +94,8 @@ app/src/main/java/app/twicast/tv/
 
 ## Support the project
 
-TwiCast TV is free and shows no ads of its own. If it's useful to you, you can support development with crypto:
+TwiCast TV is free and shows no ads of its own. If it's useful to you, please support development: every donation
+keeps the updates coming — new features and fixes for whatever breaks. Crypto is welcome:
 
 | Network | Address |
 |---------|---------|
