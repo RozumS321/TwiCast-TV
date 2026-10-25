@@ -1,5 +1,16 @@
 package app.twicast.tv.feature.player.components
 
+import app.twicast.tv.core.designsystem.component.trackFocus
+import app.twicast.tv.core.designsystem.component.rememberFocusProgress
+import app.twicast.tv.core.designsystem.component.focusRing
+import app.twicast.tv.core.designsystem.component.focusBackground
+import androidx.tv.material3.Icon
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -81,27 +92,17 @@ private fun ControlsRow(
         horizontalArrangement = Arrangement.spacedBy(TwiDimens.PlayerControlsSpacing),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        RingedAvatar(state.channel.avatarUrl, TwiDimens.PlayerAvatarSize)
-        Column(Modifier.weight(1f)) {
-            Text(state.channel.channelName, style = TwiTheme.typography.channelName, color = TwiTheme.colors.onOverlay, maxLines = 1)
-            Text(
-                text = listOfNotNull(
-                    state.channel.categoryName.ifEmpty { null },
-                    state.channel.viewerCount?.let { formatViewersLabel(it) },
-                ).joinToString(" · "),
-                style = TwiTheme.typography.bodySmall,
-                color = TwiTheme.colors.onOverlayVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        val ended = state.status == PlaybackStatus.Ended
+        // The channel's avatar and name open its page (no separate «Канал» button); after the broadcast ended it
+        // takes the focus, the way on to the recordings.
+        ChannelButton(state, onOpenChannel, if (ended) Modifier.weight(1f).requestInitialFocus() else Modifier.weight(1f))
         val paused = state.status == PlaybackStatus.Paused
         TwiSecondaryButton(
             text = stringResource(if (paused) R.string.player_resume else R.string.player_pause),
             icon = if (paused) TwiIcons.Play else TwiIcons.Pause,
             onClick = onTogglePause,
             // A recording's panel starts on its seek bar instead.
-            modifier = if (seekable) Modifier else Modifier.requestInitialFocus(),
+            modifier = if (seekable || ended) Modifier else Modifier.requestInitialFocus(),
         )
         // Resumed where the viewer stopped (mockup "Плеер · продолжаем с места").
         if (state.resumedFromMs != null) {
@@ -119,6 +120,50 @@ private fun ControlsRow(
                 onClick = onToggleChat,
             )
         }
-        TwiSecondaryButton(text = stringResource(R.string.player_channel), icon = TwiIcons.Profile, onClick = onOpenChannel)
     }
 }
+
+/** Avatar, name and "category · viewers" as one focusable block that opens the channel page. */
+@Composable
+private fun ChannelButton(state: PlayerUiState, onOpenChannel: () -> Unit, modifier: Modifier) {
+    val colors = TwiTheme.colors
+    val focusProgress = rememberFocusProgress()
+    val interactionSource = remember { MutableInteractionSource() }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(TwiDimens.PlayerControlsSpacing),
+        modifier = modifier
+            .semantics { contentDescription = state.channel.channelName }
+            .focusBackground(focusProgress, colors.onOverlay.copy(alpha = ChannelFocusAlpha), TwiShapes.Card)
+            .focusRing(focusProgress, colors.primary, TwiShapes.Card, TwiDimens.FocusBorderWidth)
+            .trackFocus(focusProgress)
+            .clickable(interactionSource = interactionSource, indication = null, onClick = onOpenChannel)
+            .padding(TwiDimens.PlayerChannelPadding),
+    ) {
+        RingedAvatar(state.channel.avatarUrl, TwiDimens.PlayerAvatarSize)
+        Column(Modifier.weight(1f, fill = false)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(state.channel.channelName, style = TwiTheme.typography.channelName, color = colors.onOverlay, maxLines = 1)
+                Icon(
+                    TwiIcons.ChevronRight,
+                    contentDescription = null,
+                    tint = colors.onOverlayVariant,
+                    modifier = Modifier.padding(start = TwiDimens.KeySpacing).size(TwiDimens.NotesBadgeIconSize),
+                )
+            }
+            Text(
+                text = listOfNotNull(
+                    state.channel.categoryName.ifEmpty { null },
+                    state.channel.viewerCount?.let { formatViewersLabel(it) },
+                ).joinToString(" · "),
+                style = TwiTheme.typography.bodySmall,
+                color = colors.onOverlayVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+/** The focused channel block: a faint light plate under the ring. */
+private const val ChannelFocusAlpha = 0.12f

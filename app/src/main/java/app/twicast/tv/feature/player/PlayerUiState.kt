@@ -51,6 +51,8 @@ data class PlayerUiState(
     val resumedFromMs: Long? = null,
     /** "Продолжаем с 1:24:10" over the video for a few seconds once it plays. */
     val resumeNotice: Boolean = false,
+    /** Over the video with the controls (mockup "Плеер · панель управления"); null while unknown. */
+    val streamTitle: String? = null,
 ) {
     /** Only recordings wind; a live stream and a clip don't. */
     val canSeek: Boolean get() = channel.videoId != null && progress != null

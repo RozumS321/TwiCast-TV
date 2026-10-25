@@ -419,4 +419,24 @@ class PlayerViewModelTest {
         assertEquals(listOf("v1", "live:sasavot"), entries.map { it.key })
         assertEquals("Ранкед", entries.first().title)
     }
+
+    @Test
+    fun `the title comes with the stream when the opener knows it`() = runTest(mainRule.dispatcher) {
+        val viewModel = PlayerViewModel(destination.copy(title = "Утренний кофе"), settings, playback, streams, watch, history, device)
+        runCurrent()
+        assertEquals("Утренний кофе", viewModel.uiState.value.streamTitle)
+    }
+
+    @Test
+    fun `a live stream opened without a title asks Twitch for it`() = runTest(mainRule.dispatcher) {
+        streams.liveStreams = AppResult.Success(listOf(app.twicast.tv.testing.stream("x").copy(userLogin = "sasavot", title = "Разбор сетапов")))
+        val viewModel = viewModel()
+        assertEquals("Разбор сетапов", viewModel.uiState.value.streamTitle)
+    }
+
+    @Test
+    fun `an offline channel or a failed request leaves no title`() = runTest(mainRule.dispatcher) {
+        streams.liveStreams = AppResult.Failure(AppError.Network)
+        assertEquals(null, viewModel().uiState.value.streamTitle)
+    }
 }

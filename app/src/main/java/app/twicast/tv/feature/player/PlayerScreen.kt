@@ -36,6 +36,7 @@ import app.twicast.tv.feature.player.components.NativePlayerController
 import app.twicast.tv.feature.player.components.NativeStreamView
 import app.twicast.tv.feature.player.components.PlaybackController
 import app.twicast.tv.feature.player.components.PlayerControls
+import app.twicast.tv.feature.player.components.PlayerTitleBar
 import app.twicast.tv.feature.player.components.QualityPanel
 import app.twicast.tv.feature.player.components.SeekBar
 import app.twicast.tv.feature.player.components.TwitchEmbedController
@@ -149,8 +150,15 @@ fun PlayerScreen(
             // The same chat for both players: our own, next to the video.
             if (state.chatVisible) chat(Modifier.width(TwiDimens.PlayerChatWidth).fillMaxHeight())
         }
+        val controlsUp = state.overlay == PlayerOverlay.Controls
+        val title = state.streamTitle
+        if (controlsUp && title != null) {
+            PlayerTitleBar(title, live = state.channel.isLive, modifier = Modifier.align(Alignment.TopCenter))
+        }
         if (state.status != PlaybackStatus.Playing || state.adBreak || state.resumeNotice) {
-            StatusPlate(state, Modifier.align(Alignment.TopStart).padding(TwiDimens.PlayerOverlayPadding))
+            // With the title across the top the plate steps to the right corner.
+            val corner = if (controlsUp && title != null) Alignment.TopEnd else Alignment.TopStart
+            StatusPlate(state, Modifier.align(corner).padding(TwiDimens.PlayerOverlayPadding))
         }
         when (state.overlay) {
             PlayerOverlay.Hidden -> Unit

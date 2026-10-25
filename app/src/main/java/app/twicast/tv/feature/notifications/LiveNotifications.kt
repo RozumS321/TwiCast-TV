@@ -22,6 +22,7 @@ private const val ExtraLogin = "twicast.live.login"
 private const val ExtraName = "twicast.live.name"
 private const val ExtraCategory = "twicast.live.category"
 private const val ExtraAvatar = "twicast.live.avatar"
+private const val ExtraTitle = "twicast.live.title"
 
 /** System notifications "X в эфире"; a tap opens that stream in TwiCast. */
 object LiveNotifications {
@@ -57,6 +58,7 @@ object LiveNotifications {
             .putExtra(ExtraName, stream.channelName)
             .putExtra(ExtraCategory, stream.categoryName)
             .putExtra(ExtraAvatar, stream.avatarUrl)
+            .putExtra(ExtraTitle, stream.title)
         val text = listOf(stream.categoryName, stream.title).filter { it.isNotBlank() }.joinToString(" · ")
         return id to NotificationCompat.Builder(context, ChannelId)
             .setSmallIcon(R.drawable.ic_notification)
@@ -91,6 +93,7 @@ object LiveNotifications {
             categoryName = intent.getStringExtra(ExtraCategory).orEmpty(),
             viewerCount = null,
             avatarUrl = intent.getStringExtra(ExtraAvatar),
+            title = intent.getStringExtra(ExtraTitle),
         )
     }
 }
