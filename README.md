@@ -9,23 +9,30 @@ A light, fast Twitch client for Android TV, built for the remote and for low-end
 
 ## Features
 
-- **Home**: live channels you follow, recommendations from your categories, popular streams in your language.
-  Refreshes itself when you come back and every few minutes on screen.
+- **Home**: live channels you follow, "Recently watched", recommendations from your categories, popular streams in
+  your language. Cards show how long a stream has been live. Refreshes itself when you come back and every few minutes
+  on screen.
+- **No sign-in needed**: watch as a guest — popular streams, categories, search and channels. Signing in only adds
+  your follows.
 - **Categories** with filters, and the live streams of each category by language.
-- **Search** for channels and categories with an on-screen keyboard (LAT / РУС / УКР layouts) and voice input.
-- **Following**: live and offline channels on one screen.
-- **Channel page**: the live stream, past broadcasts and popular clips. **Follow / unfollow** through a QR code:
+- **Search** for channels and categories with an on-screen keyboard (LAT / РУС / УКР layouts), voice input, recent
+  searches and channels.
+- **Following**: live and offline channels on one screen; the sidebar shows how many of them are live now.
+- **Go-live notifications**, even with TwiCast closed: a pop-up on top of any app that opens the stream. Checked every
+  15 minutes, turned off in Settings · System.
+- **Channel page**: the live stream, the stream schedule, past broadcasts and popular clips. **Follow / unfollow** through a QR code:
   Twitch doesn't let third-party apps follow, so you scan it and tap Follow in the Twitch app on your phone.
 - **Player**: the TwiCast player (ExoPlayer, starts fast and stays light on weak boxes) or the official Twitch embed
-  as a fallback. Quality menu, read-only chat next to the video, a plate during Twitch ad breaks, a notice when the
-  broadcast ends. **Seeking in past broadcasts**: ← → by 10 seconds (hold to go faster), ⏪ ⏩ on the remote, a seek
-  bar in the controls. Playback stops when the app goes to the background and resumes when you come back.
+  as a fallback. The stream title on top, the channel opens from its avatar. Quality menu, read-only chat next to the
+  video (scrolls smoothly to new messages), a plate during Twitch ad breaks, a notice when the broadcast ends. **Seeking in past broadcasts**: ← → by 10 seconds (hold to go faster), ⏪ ⏩ on the remote, a seek
+  bar in the controls; a broadcast resumes where you left off, or "From the start". Playback stops when the app goes to the background and resumes when you come back.
 - **Sign in from your phone** with the Twitch device code flow: a QR code and a short code, no typing passwords with
   the remote.
 - **Settings** in three sections: **Player** (player, default quality, chat with the stream), **System**
   (light / dark / system theme, interface language: English, Українська, Русский), **Optimization** (faster stream
   start with the Twitch player, about 250 MB of memory; freeing memory when the app is in the background).
-- **Self-update** from GitHub Releases, with a "What's new" list covering every skipped version.
+- **Self-update** from GitHub Releases, with a "What's new" list covering every skipped version, and "What's new" in
+  the sidebar: the history of every update by date.
 
 ## Install
 
@@ -76,7 +83,8 @@ to the card) and the code conventions are in [docs/twicast_tv.md](docs/twicast_t
 app/src/main/java/app/twicast/tv/
 ├─ core/        design system, DI, network, device profile, locale
 ├─ data/        models, Twitch API, repositories, updates
-├─ feature/     home, categories, search, following, profile, channel, player, auth, settings, update
+├─ feature/     home, categories, search, following, profile, channel, player, auth, settings, update,
+│              changelog, notifications
 └─ navigation/  app shell with the sidebar
 ```
 
