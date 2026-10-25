@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- Runs the live-start check on demand (see LiveCheckReceiver). Debug builds only. -->
+        <receiver
+            android:name=".feature.notifications.LiveCheckReceiver"
+            android:exported="true"
+            tools:ignore="ExportedReceiver"
+            xmlns:tools="http://schemas.android.com/tools" />
+    </application>
+</manifest>
