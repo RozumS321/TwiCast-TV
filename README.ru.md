@@ -91,3 +91,15 @@ app/src/main/java/app/twicast/tv/
 ## Лицензия
 
 [Apache License 2.0](LICENSE).
+
+## Поддержать проект
+
+TwiCast TV бесплатный и без рекламы от себя. Если приложение вам пригодилось, можно поддержать разработку криптой:
+
+| Сеть | Адрес |
+|------|-------|
+| USDT (сеть Tron, TRC20) | `TGBihhBhECrx2ztCG5avN7icRDvbSofiHM` |
+| ETH (сеть Ethereum) | `0x5aF3A76Fa56F0dfb77D6ECdc140646437e12278d` |
+| BTC (сеть Bitcoin) | `bc1q0ff3p0y7mntn7qe90twppskqzhq00akw49rt8n` |
+
+Отправляйте на каждый адрес только монеты его сети: перевод в другой сети потеряется. Спасибо!
