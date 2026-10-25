@@ -1,5 +1,8 @@
 package app.twicast.tv.feature.categories
 
+import app.twicast.tv.core.designsystem.component.leftToSidebar
+import app.twicast.tv.core.designsystem.component.isFirstInRow
+import app.twicast.tv.core.designsystem.component.LocalSidebarFocus
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -96,6 +99,7 @@ private fun CategoriesGrid(
     // item key, so going back to "Все" landed next to the category last seen in the filtered list.
     val gridState = rememberSaveable(state.filter, saver = LazyGridState.Saver) { LazyGridState() }
     gridState.LoadMoreWhenNearEnd(LoadMoreThreshold, onLoadMore)
+    val sidebar = LocalSidebarFocus.current
     LazyVerticalGrid(
         columns = GridCells.Fixed(Columns),
         state = gridState,
@@ -120,7 +124,9 @@ private fun CategoriesGrid(
                 coverUrl = rememberTwitchImageUrl(item.category.boxArtTemplate, TwiDimens.CategoryCardWidth, TwiAspect.Cover),
                 onClick = { onCategoryClick(item.category) },
                 rank = item.rank,
-                modifier = if (index == 0) Modifier.requestInitialFocus() else Modifier,
+                modifier = Modifier
+                    .leftToSidebar(sidebar, isFirstInRow(index, Columns))
+                    .then(if (index == 0) Modifier.requestInitialFocus() else Modifier),
             )
         }
     }

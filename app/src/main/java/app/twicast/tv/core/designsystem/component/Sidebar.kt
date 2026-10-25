@@ -1,5 +1,7 @@
 package app.twicast.tv.core.designsystem.component
 
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.foundation.background
 import androidx.compose.ui.text.style.TextAlign
@@ -95,6 +97,19 @@ fun rememberSidebarState(): SidebarState {
  * Screen shell: content offset by the collapsed rail (88), the sidebar drawn on top.
  * The sidebar expands to 264 over the content with a scrim — content width never changes, so no relayout.
  */
+/** The sidebar's current section, for screens that send focus to it themselves; null where it is hidden. */
+val LocalSidebarFocus = staticCompositionLocalOf<FocusRequester?> { null }
+
+/** In a grid row of [perRow] items, whether item [index] (counted from the section start) is the leftmost. */
+fun isFirstInRow(index: Int, perRow: Int): Boolean = perRow > 0 && index % perRow == 0
+
+/**
+ * "Влево" from a grid's first column goes to the sidebar. A lazy grid otherwise moves to the previous item by
+ * index — the end of the row above, or (scrolled down) a card somewhere above — instead of leaving the grid.
+ */
+fun Modifier.leftToSidebar(sidebar: FocusRequester?, firstColumn: Boolean): Modifier =
+    if (sidebar != null && firstColumn) focusProperties { left = sidebar } else this
+
 @Composable
 fun SidebarLayout(
     items: ImmutableList<SidebarItem>,
@@ -106,11 +121,14 @@ fun SidebarLayout(
     content: @Composable () -> Unit,
 ) {
     val state = rememberSidebarState()
+    val selectedRequester = remember { FocusRequester() }
     val scrimColor = TwiTheme.colors.scrim
     Box(modifier.fillMaxSize()) {
         // Full-screen screens (player) hide the sidebar; content then takes the whole width.
         val contentStart = if (showSidebar) TwiDimens.SidebarCollapsedWidth else 0.dp
-        Box(Modifier.fillMaxSize().padding(start = contentStart)) { content() }
+        Box(Modifier.fillMaxSize().padding(start = contentStart)) {
+            CompositionLocalProvider(LocalSidebarFocus provides selectedRequester.takeIf { showSidebar }, content = content)
+        }
         if (!showSidebar) return@Box
         Box(
             Modifier.fillMaxSize().drawBehind {
@@ -118,7 +136,7 @@ fun SidebarLayout(
                 if (fraction > 0f) drawRect(scrimColor, alpha = fraction)
             },
         )
-        Sidebar(items, bottomItem, selectedKey, onItemClick, state)
+        Sidebar(items, bottomItem, selectedKey, onItemClick, state, selectedRequester)
     }
 }
 
@@ -129,8 +147,8 @@ private fun Sidebar(
     selectedKey: String,
     onItemClick: (SidebarItem) -> Unit,
     state: SidebarState,
+    selectedRequester: FocusRequester,
 ) {
-    val selectedRequester = remember { FocusRequester() }
     Box(
         modifier = Modifier
             .width(TwiDimens.SidebarExpandedWidth)

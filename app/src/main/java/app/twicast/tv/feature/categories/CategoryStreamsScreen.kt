@@ -1,5 +1,8 @@
 package app.twicast.tv.feature.categories
 
+import app.twicast.tv.core.designsystem.component.leftToSidebar
+import app.twicast.tv.core.designsystem.component.isFirstInRow
+import app.twicast.tv.core.designsystem.component.LocalSidebarFocus
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -116,6 +119,7 @@ private fun CategoryHeader(state: CategoryStreamsUiState, onBack: () -> Unit, on
 private fun StreamsGrid(grid: StreamsGridState.Content, onStreamClick: (Stream) -> Unit, onLoadMore: () -> Unit) {
     val gridState = rememberLazyGridState()
     gridState.LoadMoreWhenNearEnd(LoadMoreThreshold, onLoadMore)
+    val sidebar = LocalSidebarFocus.current
     LazyVerticalGrid(
         columns = GridCells.Fixed(Columns),
         state = gridState,
@@ -142,7 +146,9 @@ private fun StreamsGrid(grid: StreamsGridState.Content, onStreamClick: (Stream) 
                 onClick = { onStreamClick(stream) },
                 width = TwiDimens.StreamCardGridWidth,
                 uptimeText = stream.startedAtMillis?.let { formatUptimeShort(it, System.currentTimeMillis()) },
-                modifier = if (index == 0) Modifier.requestInitialFocus() else Modifier,
+                modifier = Modifier
+                    .leftToSidebar(sidebar, isFirstInRow(index, Columns))
+                    .then(if (index == 0) Modifier.requestInitialFocus() else Modifier),
             )
         }
     }
