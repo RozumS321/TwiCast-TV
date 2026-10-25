@@ -13,7 +13,6 @@
     <string name="player_quality_auto">Авто</string>
     <string name="player_chat_show">Чат</string>
     <string name="player_chat_hide">Скрыть чат</string>
-    <string name="player_channel">Канал</string>
 
     <string name="player_quality_title">Качество</string>
     <string name="player_quality_hint">Запомним для следующих стримов</string>
@@ -39,4 +38,5 @@
         <item quantity="many">%1$s и ещё %2$d в эфире</item>
         <item quantity="other">%1$s и ещё %2$d в эфире</item>
     </plurals>
+    <string name="player_recording_badge">ЗАПИСЬ</string>
 </resources>

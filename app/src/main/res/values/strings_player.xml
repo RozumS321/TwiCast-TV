@@ -13,7 +13,6 @@
     <string name="player_quality_auto">Auto</string>
     <string name="player_chat_show">Chat</string>
     <string name="player_chat_hide">Hide chat</string>
-    <string name="player_channel">Channel</string>
 
     <string name="player_quality_title">Quality</string>
     <string name="player_quality_hint">Remembered for the next streams</string>
@@ -37,4 +36,5 @@
         <item quantity="one">%1$s and %2$d more is live</item>
         <item quantity="other">%1$s and %2$d more are live</item>
     </plurals>
+    <string name="player_recording_badge">RECORDING</string>
 </resources>

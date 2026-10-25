@@ -112,6 +112,13 @@ object TwiDimens {
     val PlayerControlsVerticalPadding = 20.dp
     val PlayerControlsSpacing = 16.dp
     val PlayerAvatarSize = 48.dp
+    /** The stream's title over the video (mockup "Плеер · панель управления"). */
+    val PlayerTitleGap = 14.dp
+    val PlayerTitleTopPadding = 30.dp
+    val PlayerTitleBottomPadding = 64.dp
+    val PlayerTitleBadgeOffset = 4.dp
+    val PlayerTitleMaxWidth = 980.dp
+    val PlayerChannelPadding = 6.dp
     /** Live count on "Подписки" in the sidebar (mockup "Сайдбар · эфиры в подписках"). */
     val SidebarCountMinSize = 20.dp
     val SidebarCountHorizontalPadding = 6.dp

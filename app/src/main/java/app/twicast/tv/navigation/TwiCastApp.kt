@@ -218,7 +218,10 @@ private fun Shell(
                         // Live: straight to the stream; offline: the channel page with its recordings.
                         if (channel.isLive) {
                             navController.navigate(
-                                PlayerDestination(channel.login, channel.displayName, channel.categoryName, viewerCount = null, channel.avatarUrl),
+                                PlayerDestination(
+                                    channel.login, channel.displayName, channel.categoryName, viewerCount = null, channel.avatarUrl,
+                                    title = channel.title.ifEmpty { null },
+                                ),
                             )
                         } else {
                             navController.navigate(ChannelDestination(channel.login))
@@ -250,7 +253,7 @@ private fun Shell(
                             channel.playerDestination(videoId = video.id).copy(title = video.title, thumbnailTemplate = video.thumbnailTemplate),
                         )
                     },
-                    onClipClick = { channel, clip -> navController.navigate(channel.playerDestination(clipSlug = clip.id)) },
+                    onClipClick = { channel, clip -> navController.navigate(channel.playerDestination(clipSlug = clip.id).copy(title = clip.title)) },
                 )
             }
             composable<PlayerDestination> {
@@ -263,7 +266,9 @@ private fun Shell(
 private fun NavDestination.topLevel(): TopLevelDestination? = TopLevelDestination.entries.firstOrNull { hasRoute(it.route::class) }
 
 private fun NavHostController.openStream(stream: Stream) {
-    navigate(PlayerDestination(stream.userLogin, stream.channelName, stream.categoryName, stream.viewerCount, stream.avatarUrl))
+    navigate(
+        PlayerDestination(stream.userLogin, stream.channelName, stream.categoryName, stream.viewerCount, stream.avatarUrl, title = stream.title),
+    )
 }
 
 /** A recording from "Недавно смотрели": opened as it was last time (the player resumes where it stopped). */

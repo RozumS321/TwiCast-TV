@@ -48,8 +48,9 @@ data class PlayerDestination(
     val videoId: String? = null,
     /** Clip slug to play instead of the live stream. */
     val clipSlug: String? = null,
-    /** A recording's title and thumbnail template: for "Недавно смотрели" on home. */
+    /** The stream's or recording's title, shown over the video with the controls; null if the opener had none. */
     val title: String? = null,
+    /** A recording's thumbnail template: for "Недавно смотрели" on home. */
     val thumbnailTemplate: String? = null,
 ) {
     /** Live stream (not a recording): only then the chat makes sense. */
@@ -119,7 +120,11 @@ class PlayerViewModel internal constructor(
 
     // Weak TVs start below 1080p right away instead of waiting for the renderer to crash.
     private val _uiState = MutableStateFlow(
-        PlayerUiState(channel = destination, maxVideoHeight = RecoveryMaxVideoHeight.takeIf { device.isLowMemory }),
+        PlayerUiState(
+            channel = destination,
+            maxVideoHeight = RecoveryMaxVideoHeight.takeIf { device.isLowMemory },
+            streamTitle = destination.title?.ifBlank { null },
+        ),
     )
     val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
 
@@ -149,6 +154,14 @@ class PlayerViewModel internal constructor(
                         thumbnailTemplate = destination.thumbnailTemplate,
                     ),
                 )
+            }
+        }
+        // Opened without the title (a notification, the channel page's button): Twitch tells what is on now.
+        if (destination.title == null && destination.isLive && _uiState.value.canPlay) {
+            viewModelScope.launch {
+                val live = streams.getLiveStreams(listOf(destination.channelLogin))
+                val title = (live as? AppResult.Success)?.value?.firstOrNull()?.title?.ifBlank { null }
+                if (title != null) _uiState.update { it.copy(streamTitle = title) }
             }
         }
         viewModelScope.launch {
