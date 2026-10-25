@@ -97,10 +97,10 @@ app/src/main/java/app/twicast/tv/
 TwiCast TV is free and shows no ads of its own. If it's useful to you, please support development: every donation
 keeps the updates coming — new features and fixes for whatever breaks. Crypto is welcome:
 
-| Network | Address |
-|---------|---------|
-| USDT (Tron network, TRC20) | `TGBihhBhECrx2ztCG5avN7icRDvbSofiHM` |
-| ETH (Ethereum network) | `0x5aF3A76Fa56F0dfb77D6ECdc140646437e12278d` |
-| BTC (Bitcoin network) | `bc1q0ff3p0y7mntn7qe90twppskqzhq00akw49rt8n` |
+| Network | Address | QR |
+|---------|---------|----|
+| USDT (Tron network, TRC20) | `TGBihhBhECrx2ztCG5avN7icRDvbSofiHM` | <img src="docs/donate/usdt-tron.png" width="140" alt="QR usdt-tron"> |
+| ETH (Ethereum network) | `0x5aF3A76Fa56F0dfb77D6ECdc140646437e12278d` | <img src="docs/donate/eth.png" width="140" alt="QR eth"> |
+| BTC (Bitcoin network) | `bc1q0ff3p0y7mntn7qe90twppskqzhq00akw49rt8n` | <img src="docs/donate/btc.png" width="140" alt="QR btc"> |
 
 Send each address only coins of its own network: a transfer over another network is lost. Thank you!

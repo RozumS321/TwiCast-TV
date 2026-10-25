@@ -97,10 +97,10 @@ app/src/main/java/app/twicast/tv/
 TwiCast TV бесплатный и без рекламы от себя. Если приложение вам пригодилось, поддержите разработку: каждый донат
 мотивирует чаще выпускать обновления, добавлять новые функции и чинить то, что сломалось. Принимаю криптой:
 
-| Сеть | Адрес |
-|------|-------|
-| USDT (сеть Tron, TRC20) | `TGBihhBhECrx2ztCG5avN7icRDvbSofiHM` |
-| ETH (сеть Ethereum) | `0x5aF3A76Fa56F0dfb77D6ECdc140646437e12278d` |
-| BTC (сеть Bitcoin) | `bc1q0ff3p0y7mntn7qe90twppskqzhq00akw49rt8n` |
+| Сеть | Адрес | QR |
+|------|-------|----|
+| USDT (сеть Tron, TRC20) | `TGBihhBhECrx2ztCG5avN7icRDvbSofiHM` | <img src="docs/donate/usdt-tron.png" width="140" alt="QR usdt-tron"> |
+| ETH (сеть Ethereum) | `0x5aF3A76Fa56F0dfb77D6ECdc140646437e12278d` | <img src="docs/donate/eth.png" width="140" alt="QR eth"> |
+| BTC (сеть Bitcoin) | `bc1q0ff3p0y7mntn7qe90twppskqzhq00akw49rt8n` | <img src="docs/donate/btc.png" width="140" alt="QR btc"> |
 
 Отправляйте на каждый адрес только монеты его сети: перевод в другой сети потеряется. Спасибо!
