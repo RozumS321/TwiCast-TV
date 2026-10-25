@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,8 +60,14 @@ fun ChatPanel(messages: ImmutableList<ChatMessage>, modifier: Modifier = Modifie
         if (messages.isEmpty()) {
             Text(stringResource(R.string.player_chat_connecting), style = TwiTheme.typography.bodySmall, color = colors.onSurfaceVariant)
         }
-        // Bottom-anchored like any chat: the newest line sits at the bottom and pushes the rest up.
+        // Bottom-anchored like any chat: the newest line sits at the bottom and pushes the rest up. Inserted at
+        // the start, keyed lines would keep the list on the line seen last and new ones would land off screen:
+        // each new batch slides the list down to the newest (the read-only chat has no scrolling of its own).
+        val listState = rememberLazyListState()
+        val newest = messages.firstOrNull()?.id
+        LaunchedEffect(newest) { if (newest != null) listState.animateScrollToItem(0) }
         LazyColumn(
+            state = listState,
             reverseLayout = true,
             verticalArrangement = Arrangement.spacedBy(TwiDimens.PlayerChatSpacing),
             contentPadding = PaddingValues(bottom = TwiDimens.PlayerChatSpacing),
