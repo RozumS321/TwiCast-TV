@@ -192,11 +192,18 @@ private fun SidebarPanelBackground(state: SidebarState) {
                 translationX = -hiddenWidth * (1f - state.expandProgress)
             }
             .drawBehind {
-                // Over the effects background glass must still read as a panel: the dense glass, not card glass.
-                drawRect(if (effects) colors.surfaceOverlay else colors.surface)
-                val lineWidth = TwiDimens.OutlineWidth.toPx()
-                drawRect(colors.outlineVariant, Offset(size.width - lineWidth, 0f), Size(lineWidth, size.height))
                 val fraction = state.expandProgress
+                val lineWidth = TwiDimens.OutlineWidth.toPx()
+                if (effects) {
+                    // Glass (canvas: "Стекло"): the light shows through the rail; opened over the screen it gets
+                    // denser so the content below does not compete with the labels. A highlight at the top, a rim.
+                    drawRect(SidebarGlass.copy(alpha = SidebarGlassAlpha + (SidebarGlassOpenAlpha - SidebarGlassAlpha) * fraction))
+                    drawRect(Brush.verticalGradient(0f to Color.White.copy(alpha = SidebarHighlightAlpha), SidebarHighlightEnd to Color.Transparent))
+                    drawRect(Color.White.copy(alpha = SidebarRimAlpha), Offset(size.width - lineWidth, 0f), Size(lineWidth, size.height))
+                } else {
+                    drawRect(colors.surface)
+                    drawRect(colors.outlineVariant, Offset(size.width - lineWidth, 0f), Size(lineWidth, size.height))
+                }
                 if (fraction > 0f && TwiThemeConfig.focus.shadows) {
                     // Cheap edge shadow: a short gradient instead of a blurred shadow.
                     val shadowWidth = TwiDimens.SidebarEdgeShadowWidth.toPx()
@@ -216,6 +223,13 @@ private fun SidebarPanelBackground(state: SidebarState) {
 }
 
 private const val EdgeShadowAlpha = 0.12f
+
+private val SidebarGlass = Color(0xFF2C2B30)
+private const val SidebarGlassAlpha = 0.5f
+private const val SidebarGlassOpenAlpha = 0.9f
+private const val SidebarHighlightAlpha = 0.08f
+private const val SidebarHighlightEnd = 0.35f
+private const val SidebarRimAlpha = 0.18f
 
 private val NavigationItemShape = RoundedCornerShape(TwiDimens.NavigationItemRadius)
 
