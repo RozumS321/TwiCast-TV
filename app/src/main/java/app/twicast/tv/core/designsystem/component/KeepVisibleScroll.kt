@@ -17,13 +17,17 @@ import kotlin.math.abs
  * title above a card (and the screen header above the first row) or the list's end padding stayed cut off.
  */
 @OptIn(ExperimentalFoundationApi::class)
-private class KeepVisibleBringIntoViewSpec(private val edgeMarginPx: Float) : BringIntoViewSpec {
+private class KeepVisibleBringIntoViewSpec(
+    private val edgeMarginPx: Float,
+    /** Room the focused element needs past its bounds (scale 1.04 + ring): a card flush with the edge was cut. */
+    private val focusRoomPx: Float,
+) : BringIntoViewSpec {
     override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float {
         val trailingEdge = offset + size
         // Never so much margin that the element itself would not fit.
         val margin = edgeMarginPx.coerceAtMost(((containerSize - size) / 2).coerceAtLeast(0f))
         return when {
-            offset >= 0f && trailingEdge <= containerSize -> 0f
+            offset >= 0f && trailingEdge <= containerSize - focusRoomPx -> 0f
             // Taller than the viewport, or cut at the top: align the leading edge.
             size > containerSize || offset < 0f -> offset - margin
             else -> trailingEdge - containerSize + margin
@@ -35,6 +39,6 @@ private class KeepVisibleBringIntoViewSpec(private val edgeMarginPx: Float) : Br
 @Composable
 fun KeepFocusedVisibleScroll(content: @Composable () -> Unit) {
     val density = LocalDensity.current
-    val spec = remember(density) { KeepVisibleBringIntoViewSpec(with(density) { TwiDimens.ScrollEdgeMargin.toPx() }) }
+    val spec = remember(density) { with(density) { KeepVisibleBringIntoViewSpec(TwiDimens.ScrollEdgeMargin.toPx(), TwiDimens.FocusOverflowPadding.toPx()) } }
     CompositionLocalProvider(LocalBringIntoViewSpec provides spec, content = content)
 }
