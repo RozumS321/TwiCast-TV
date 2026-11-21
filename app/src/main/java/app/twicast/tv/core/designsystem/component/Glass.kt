@@ -1,5 +1,12 @@
 package app.twicast.tv.core.designsystem.component
 
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.addOutline
+import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.ShaderBrush
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.ImageShader
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.runtime.Composable
@@ -27,6 +34,7 @@ fun Modifier.glassOverVideo(shape: Shape): Modifier {
         base
     }
     return lit
+        .frostGrain(shape)
         .border(TwiDimens.OutlineWidth, Color.White.copy(alpha = tokens.glassRimAlpha), shape)
 }
 
@@ -53,5 +61,17 @@ fun Modifier.twiSurface(shape: Shape): Modifier {
         base
     }
     return lit
+        .frostGrain(shape)
         .border(TwiDimens.OutlineWidth, Color.White.copy(alpha = tokens.glassRimAlpha), shape)
+}
+
+/** Grain inside glass: frosted glass is matte, not clear. Drawn from one shared tiled noise bitmap. */
+private const val FrostGrainAlpha = 0.16f
+private val sharedGrain by lazy { grainBitmap() }
+
+@Composable
+private fun Modifier.frostGrain(shape: Shape): Modifier = drawWithCache {
+    val brush = ShaderBrush(ImageShader(sharedGrain, TileMode.Repeated, TileMode.Repeated))
+    val path = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@drawWithCache)) }
+    onDrawBehind { clipPath(path) { drawRect(brush, alpha = FrostGrainAlpha) } }
 }

@@ -1,5 +1,8 @@
 package app.twicast.tv.core.designsystem.component
 
+import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.ShaderBrush
+import androidx.compose.ui.graphics.ImageShader
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.text.style.LineHeightStyle
@@ -184,6 +187,8 @@ private fun SidebarPanelBackground(state: SidebarState) {
     val colors = TwiTheme.colors
     val effects = TwiTheme.effects
     val shadowColor = colors.shadow
+    // Frosted glass is matte: the same film grain as the background, inside the panel.
+    val grainBrush = remember { ShaderBrush(ImageShader(grainBitmap(), TileMode.Repeated, TileMode.Repeated)) }
     Box(
         Modifier
             .fillMaxSize()
@@ -196,9 +201,10 @@ private fun SidebarPanelBackground(state: SidebarState) {
                 val lineWidth = TwiDimens.OutlineWidth.toPx()
                 if (effects) {
                     // Glass (canvas: "Стекло"): the light shows through the rail; opened over the screen it gets
-                    // denser so the content below does not compete with the labels. A highlight at the top, a rim.
+                    // denser so the content below does not compete with the labels. Grain and a hairline rim.
                     drawRect(Color.White.copy(alpha = SidebarFrostAlpha))
                     if (fraction > 0f) drawRect(SidebarGlass.copy(alpha = SidebarGlassOpenAlpha * fraction))
+                    drawRect(grainBrush, alpha = SidebarGrainAlpha)
                     drawRect(Color.White.copy(alpha = SidebarRimAlpha), Offset(size.width - lineWidth, 0f), Size(lineWidth, size.height))
                 } else {
                     drawRect(colors.surface)
@@ -230,6 +236,7 @@ private const val SidebarFrostAlpha = 0.06f
 /** Opened over the screen: darker, so the labels read over whatever is below. */
 private const val SidebarGlassOpenAlpha = 0.86f
 private const val SidebarRimAlpha = 0.10f
+private const val SidebarGrainAlpha = 0.16f
 
 private val NavigationItemShape = RoundedCornerShape(TwiDimens.NavigationItemRadius)
 

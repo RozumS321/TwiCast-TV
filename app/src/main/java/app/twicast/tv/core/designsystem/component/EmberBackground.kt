@@ -141,7 +141,7 @@ private fun DrawScope.drawBloom(tokens: TwiEffectsTokens, wave: Float, centerX: 
 }
 
 /** Grey noise with transparent gaps: light and dark specks over whatever is below. */
-private fun grainBitmap(): ImageBitmap {
+internal fun grainBitmap(): ImageBitmap {
     val random = Random(GrainSize)
     val pixels = IntArray(GrainSize * GrainSize) {
         val value = random.nextInt(256)
