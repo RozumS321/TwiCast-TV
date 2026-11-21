@@ -66,7 +66,7 @@ fun Modifier.twiSurface(shape: Shape): Modifier {
 }
 
 /** Grain inside glass: frosted glass is matte, not clear. Drawn from one shared tiled noise bitmap. */
-private const val FrostGrainAlpha = 0.16f
+private const val FrostGrainAlpha = 0.06f
 private val sharedGrain by lazy { grainBitmap() }
 
 @Composable

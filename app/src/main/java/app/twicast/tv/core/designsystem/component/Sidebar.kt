@@ -232,11 +232,11 @@ private const val EdgeShadowAlpha = 0.12f
 
 private val SidebarGlass = Color(0xFF1C1B1F)
 /** Collapsed: frost the background's light passes through. */
-private const val SidebarFrostAlpha = 0.06f
+private const val SidebarFrostAlpha = 0.09f
 /** Opened over the screen: darker, so the labels read over whatever is below. */
 private const val SidebarGlassOpenAlpha = 0.86f
 private const val SidebarRimAlpha = 0.10f
-private const val SidebarGrainAlpha = 0.16f
+private const val SidebarGrainAlpha = 0.06f
 
 private val NavigationItemShape = RoundedCornerShape(TwiDimens.NavigationItemRadius)
 
