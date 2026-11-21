@@ -1,5 +1,8 @@
 package app.twicast.tv.feature.home
 
+import androidx.compose.runtime.CompositionLocalProvider
+import app.twicast.tv.core.designsystem.component.FocusColumnAnchor
+import app.twicast.tv.core.designsystem.component.LocalFocusColumnAnchor
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,10 +15,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,7 +30,6 @@ import app.twicast.tv.core.designsystem.theme.TwiDimens
 import app.twicast.tv.core.designsystem.theme.TwiTheme
 import app.twicast.tv.data.model.Stream
 import app.twicast.tv.feature.common.appErrorMessage
-import app.twicast.tv.feature.home.components.HomeHero
 import app.twicast.tv.feature.home.components.HomeSkeleton
 import app.twicast.tv.feature.home.components.RecentRow
 import app.twicast.tv.feature.home.components.SignInBanner
@@ -87,89 +86,81 @@ private fun HomeContent(
         state.recommended.isNotEmpty() -> "recommended"
         else -> "regional"
     }
-    // The hero shows the card in focus; before any focus, the first stream of the first row.
-    val firstStream = when (firstRowKey) {
-        "followed" -> state.followedLive.firstOrNull()
-        "worldwide" -> state.worldwide.firstOrNull()
-        "recommended" -> state.recommended.firstOrNull()
-        else -> null
-    } ?: (state.followedLive + state.recommended + state.regional + state.worldwide).firstOrNull()
-    // Written on every focus step but read only inside the hero, so moving along a row recomposes nothing else.
-    val focusedStream = remember(firstStream?.id) { mutableStateOf(firstStream) }
-    val onStreamFocused: (Stream) -> Unit = remember(focusedStream) { { focusedStream.value = it } }
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-    LazyColumn(
-        state = listState,
-        contentPadding = PaddingValues(top = TwiDimens.ScreenTopPadding, bottom = TwiDimens.SectionSpacing),
-        modifier = modifier.fillMaxSize(),
-    ) {
-        item(key = "header", contentType = ContentType.HEADER) {
-            Column(
-                horizontalAlignment = Alignment.End,
-                // Focus on the hero's buttons (Up from the first row) brings the whole list back to the very top.
-                modifier = Modifier.scrollToTopOnFocus(listState, scope).padding(start = TwiDimens.ContentStartPadding, end = TwiDimens.ContentEndPadding, bottom = TwiDimens.HeroBottomSpacing),
-            ) {
-                // A guest (mockup "Главная · гость"): a quiet line on what signing in gives.
-                if (state.guest) SignInBanner(onSignIn, Modifier.padding(bottom = TwiDimens.HomeSectionSpacing))
-                HomeHero(focusedStream)
-            }
-        }
-        val scrollToTop = Modifier.scrollToTopOnFocus(listState, scope)
-        val topModifier = { key: String -> if (key == firstRowKey) scrollToTop else Modifier }
-        row("followed", state.followedLive, topModifier) { key, streams ->
-            StreamRow(
-                title = stringResource(R.string.home_row_followed),
-                hint = stringResource(R.string.home_row_followed_hint),
-                streams = streams,
-                onStreamClick = onStreamClick,
-                followed = true,
-                takesInitialFocus = key == firstRowKey,
-                onStreamFocused = onStreamFocused,
-            )
-        }
-        if (state.recent.isNotEmpty()) {
-            item(key = "recent", contentType = ContentType.ROW) {
-                Box(topModifier("recent")) {
-                    RecentRow(
-                        items = state.recent,
-                        onStreamClick = onStreamClick,
-                        onRecordingClick = onRecordingClick,
-                        onChannelClick = onChannelClick,
-                        takesInitialFocus = firstRowKey == "recent",
-                    )
+    // One column anchor for all rows: Up/Down keep the column instead of drifting while the list scrolls.
+    val columnAnchor = remember { FocusColumnAnchor() }
+    CompositionLocalProvider(LocalFocusColumnAnchor provides columnAnchor) {
+        LazyColumn(
+            state = listState,
+            contentPadding = PaddingValues(top = TwiDimens.ScreenTopPadding, bottom = TwiDimens.SectionSpacing),
+            modifier = modifier.fillMaxSize(),
+        ) {
+            // A guest (mockup "Главная · гость"): a quiet line on what signing in gives. No hero: a stream shown
+            // up there could not be opened from it.
+            if (state.guest) {
+                item(key = "header", contentType = ContentType.HEADER) {
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        // Focus on «Войти» (Up from the first row) brings the whole list back to the very top.
+                        modifier = Modifier.scrollToTopOnFocus(listState, scope).padding(start = TwiDimens.ContentStartPadding, end = TwiDimens.ContentEndPadding, bottom = TwiDimens.HomeSectionSpacing),
+                    ) {
+                        SignInBanner(onSignIn)
+                    }
                 }
             }
-        }
-        row("recommended", state.recommended, topModifier) { key, streams ->
-            StreamRow(
-                title = stringResource(R.string.home_row_recommended),
-                hint = stringResource(R.string.home_row_recommended_hint),
-                streams = streams,
-                onStreamClick = onStreamClick,
-                takesInitialFocus = key == firstRowKey,
-                onStreamFocused = onStreamFocused,
-            )
-        }
-        row("regional", state.regional, topModifier) { key, streams ->
-            StreamRow(
-                title = stringResource(R.string.home_row_regional),
-                hint = languageLabel,
-                streams = streams,
-                onStreamClick = onStreamClick,
-                takesInitialFocus = key == firstRowKey,
-                onStreamFocused = onStreamFocused,
-            )
-        }
-        row("worldwide", state.worldwide, topModifier) { key, streams ->
-            StreamRow(
-                title = stringResource(R.string.home_row_worldwide),
-                hint = stringResource(R.string.home_row_worldwide_hint),
-                streams = streams,
-                onStreamClick = onStreamClick,
-                takesInitialFocus = key == firstRowKey,
-                onStreamFocused = onStreamFocused,
-            )
+            val scrollToTop = Modifier.scrollToTopOnFocus(listState, scope)
+            val topModifier = { key: String -> if (key == firstRowKey) scrollToTop else Modifier }
+            row("followed", state.followedLive, topModifier) { key, streams ->
+                StreamRow(
+                    title = stringResource(R.string.home_row_followed),
+                    hint = stringResource(R.string.home_row_followed_hint),
+                    streams = streams,
+                    onStreamClick = onStreamClick,
+                    followed = true,
+                    takesInitialFocus = key == firstRowKey,
+                )
+            }
+            if (state.recent.isNotEmpty()) {
+                item(key = "recent", contentType = ContentType.ROW) {
+                    Box(topModifier("recent")) {
+                        RecentRow(
+                            items = state.recent,
+                            onStreamClick = onStreamClick,
+                            onRecordingClick = onRecordingClick,
+                            onChannelClick = onChannelClick,
+                            takesInitialFocus = firstRowKey == "recent",
+                        )
+                    }
+                }
+            }
+            row("recommended", state.recommended, topModifier) { key, streams ->
+                StreamRow(
+                    title = stringResource(R.string.home_row_recommended),
+                    hint = stringResource(R.string.home_row_recommended_hint),
+                    streams = streams,
+                    onStreamClick = onStreamClick,
+                    takesInitialFocus = key == firstRowKey,
+                )
+            }
+            row("regional", state.regional, topModifier) { key, streams ->
+                StreamRow(
+                    title = stringResource(R.string.home_row_regional),
+                    hint = languageLabel,
+                    streams = streams,
+                    onStreamClick = onStreamClick,
+                    takesInitialFocus = key == firstRowKey,
+                )
+            }
+            row("worldwide", state.worldwide, topModifier) { key, streams ->
+                StreamRow(
+                    title = stringResource(R.string.home_row_worldwide),
+                    hint = stringResource(R.string.home_row_worldwide_hint),
+                    streams = streams,
+                    onStreamClick = onStreamClick,
+                    takesInitialFocus = key == firstRowKey,
+                )
+            }
         }
     }
 }

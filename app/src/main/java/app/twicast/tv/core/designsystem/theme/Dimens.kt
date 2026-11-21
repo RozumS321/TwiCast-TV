@@ -249,7 +249,6 @@ object TwiDimens {
 
     val HomeSectionSpacing = 22.dp
     /** Between the hero (the stream in focus) and the first row. */
-    val HeroBottomSpacing = 36.dp
     val ScrollEdgeMargin = 140.dp
     val HomeRowTitleSpacing = 12.dp
     val HomeCardSpacing = 22.dp

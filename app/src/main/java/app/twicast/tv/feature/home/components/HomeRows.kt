@@ -1,5 +1,12 @@
 package app.twicast.tv.feature.home.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.lazy.LazyListPrefetchStrategy
+import androidx.compose.foundation.lazy.LazyListState
+import app.twicast.tv.core.designsystem.component.LocalFocusColumnAnchor
+import app.twicast.tv.core.designsystem.component.enterAtFocusColumn
+import app.twicast.tv.core.designsystem.component.focusColumnItem
+import app.twicast.tv.core.designsystem.component.rememberRowFocusTargets
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,7 +21,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.Text
 import app.twicast.tv.core.designsystem.component.StreamCard
@@ -35,6 +41,17 @@ import kotlinx.collections.immutable.ImmutableList
 /** Below the title: 12 (mockup); bottom: room for the focused card's scale and shadow. */
 // The row itself starts just short of the content line and clips there: scrolled cards leave a gap to the sidebar
 // instead of sliding up to it, and the inset is room for the first card's focus scale.
+/**
+ * A row coming up from below the screen is composed ahead with all the cards it shows (about six), not just the
+ * default two: otherwise the rest were built in the frame it scrolled in, and that frame stuttered.
+ */
+private const val RowPrefetchCards = 6
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun rememberHomeRowState(): LazyListState =
+    rememberLazyListState(prefetchStrategy = remember { LazyListPrefetchStrategy(nestedPrefetchItemCount = RowPrefetchCards) })
+
 private val RowPadding = PaddingValues(
     start = TwiDimens.GridFocusInset,
     end = TwiDimens.ContentEndPadding,
@@ -55,10 +72,9 @@ fun StreamRow(
     modifier: Modifier = Modifier,
     followed: Boolean = false,
     takesInitialFocus: Boolean = false,
-    /** The card that took focus: the hero above shows it. */
-    onStreamFocused: (Stream) -> Unit = {},
 ) {
-    val listState = rememberLazyListState()
+    val listState = rememberHomeRowState()
+    val focusTargets = rememberRowFocusTargets(listState)
     // A refresh can reorder the cards, and a lazy row keeps following its old first card. A row the viewer had
     // not scrolled stays at its start instead. Read without observation: scrolling must not recompose the row.
     val startReset = remember(streams) {
@@ -74,7 +90,9 @@ fun StreamRow(
             contentPadding = RowPadding,
             horizontalArrangement = Arrangement.spacedBy(TwiDimens.HomeCardSpacing),
             // No focusRestorer: Down/Up must land on the card right under/over the focused one, not the row's last.
-            modifier = Modifier.padding(start = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset),
+            modifier = Modifier
+                .padding(start = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset)
+                .enterAtFocusColumn(focusTargets, LocalFocusColumnAnchor.current),
         ) {
             itemsIndexed(streams, key = { _, it -> it.id }, contentType = { _, _ -> "stream" }) { index, stream ->
                 // Mockup "Главная": the channel and its category under the card; the title is in the hero above.
@@ -89,7 +107,7 @@ fun StreamRow(
                     showAvatar = false,
                     uptimeText = stream.startedAtMillis?.let { formatUptimeShort(it, System.currentTimeMillis()) },
                     modifier = (if (takesInitialFocus && index == 0) Modifier.requestInitialFocus() else Modifier)
-                        .onFocusChanged { if (it.isFocused) onStreamFocused(stream) },
+                        .focusColumnItem(focusTargets, stream.id),
                 )
             }
         }
@@ -109,15 +127,21 @@ fun RecentRow(
     modifier: Modifier = Modifier,
     takesInitialFocus: Boolean = false,
 ) {
+    val listState = rememberHomeRowState()
+    val focusTargets = rememberRowFocusTargets(listState)
     Column(modifier) {
         RowHeader(stringResource(R.string.home_row_recent), stringResource(R.string.home_row_recent_hint))
         LazyRow(
+            state = listState,
             contentPadding = RowPadding,
             horizontalArrangement = Arrangement.spacedBy(TwiDimens.HomeCardSpacing),
-            modifier = Modifier.padding(start = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset),
+            modifier = Modifier
+                .padding(start = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset)
+                .enterAtFocusColumn(focusTargets, LocalFocusColumnAnchor.current),
         ) {
             itemsIndexed(items, key = { _, it -> it.entry.key }, contentType = { _, it -> it::class }) { index, item ->
-                val focus = if (takesInitialFocus && index == 0) Modifier.requestInitialFocus() else Modifier
+                val focus = (if (takesInitialFocus && index == 0) Modifier.requestInitialFocus() else Modifier)
+                    .focusColumnItem(focusTargets, item.entry.key)
                 RecentCard(item, onStreamClick, onRecordingClick, onChannelClick, focus)
             }
         }

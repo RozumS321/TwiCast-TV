@@ -36,7 +36,6 @@
     <string name="following_guest_title">Sign in to see who you follow</string>
     <string name="following_guest_text">Your Following list, its live channels and notifications of streams starting come from your Twitch account.</string>
     <string name="following_guest_sign_in">Sign in</string>
-    <string name="home_hero_live">Live</string>
     <string name="home_sign_in_quiet">Sign in to see your follows</string>
     <string name="home_sign_in_title">Sign in to Twitch for the full experience</string>
     <string name="home_sign_in_text">Following, notifications when streams start, and steady work. Without signing in some features may stop working for a while.</string>
