@@ -42,7 +42,12 @@ object TwiTheme {
  */
 @Composable
 fun TwiCastTheme(darkTheme: Boolean, effects: Boolean = false, content: @Composable () -> Unit) {
-    val colors = if (darkTheme) DarkTwiColorScheme else LightTwiColorScheme
+    // Effects draw warm light on a dark room: they always use the dark palette, with glass surfaces.
+    val colors = when {
+        effects -> DarkTwiColorScheme.withGlass(TwiThemeConfig.effects)
+        darkTheme -> DarkTwiColorScheme
+        else -> LightTwiColorScheme
+    }
     val windowWidthPx = LocalWindowInfo.current.containerSize.width
     val systemDensity = LocalDensity.current
     val canvasDensity = remember(windowWidthPx, systemDensity) {

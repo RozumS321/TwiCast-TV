@@ -89,3 +89,18 @@ fun twiColorScheme(palette: TwiPalette, isDark: Boolean) = TwiColorScheme(
 val LightTwiColorScheme = twiColorScheme(TwiThemeConfig.light, isDark = false)
 
 val DarkTwiColorScheme = twiColorScheme(TwiThemeConfig.dark, isDark = true)
+
+/** Glass over the Ember Bloom background ("Эффекты интерфейса"): surfaces turn translucent with a light rim. */
+fun TwiColorScheme.withGlass(tokens: TwiEffectsTokens) = copy(
+    background = tokens.emberBase,
+    surface = GlassTint.copy(alpha = tokens.glassAlpha),
+    surfaceVariant = White.copy(alpha = GlassRaisedAlpha),
+    outline = White.copy(alpha = tokens.glassRimAlpha),
+    outlineVariant = White.copy(alpha = tokens.glassRimAlpha),
+    surfaceOverlay = GlassTint.copy(alpha = DenseGlassAlpha),
+)
+
+private val GlassTint = Color(0xFF1E1E22)
+private const val GlassRaisedAlpha = 0.10f
+/** Sidebar and panels over the effects background: glass, but dense enough to read as a surface. */
+private const val DenseGlassAlpha = 0.94f

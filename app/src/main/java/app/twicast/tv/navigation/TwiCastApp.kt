@@ -43,6 +43,7 @@ import androidx.navigation.toRoute
 import app.twicast.tv.R
 import app.twicast.tv.core.designsystem.component.SidebarItem
 import app.twicast.tv.core.designsystem.component.SidebarLayout
+import app.twicast.tv.core.designsystem.component.EmberBackground
 import app.twicast.tv.core.designsystem.theme.TwiMotion
 import app.twicast.tv.core.designsystem.theme.TwiTheme
 import app.twicast.tv.data.model.AuthState
@@ -115,12 +116,16 @@ private fun AuthGate(
         guestChosen == true -> Gate.Shell(user = null)
         else -> Gate.FirstStart
     }
+    // "Эффекты интерфейса": the living background under every screen; otherwise the plain background color.
+    val effects = TwiTheme.effects
+    Box(Modifier.fillMaxSize()) {
+    if (effects) EmberBackground(Modifier.fillMaxSize())
     // Animate by gate type: the shell is not rebuilt when only the user's fields change.
     AnimatedContent(
         targetState = gate,
         contentKey = { (it as? Gate.Shell)?.user?.id ?: it::class },
         transitionSpec = { fadeIn(tween(TwiMotion.ScreenFadeMillis)) togetherWith fadeOut(tween(TwiMotion.ScreenFadeMillis)) },
-        modifier = Modifier.fillMaxSize().background(TwiTheme.colors.background),
+        modifier = if (effects) Modifier.fillMaxSize() else Modifier.fillMaxSize().background(TwiTheme.colors.background),
         label = "auth",
     ) { state ->
         when (state) {
@@ -129,6 +134,7 @@ private fun AuthGate(
             Gate.FirstStart -> LoginRoute(onContinueAsGuest = onContinueAsGuest)
             is Gate.Shell -> Shell(state.user, liveFollowedCount, openStream, onStreamOpened, askNotificationPermission, onShowUpdate)
         }
+    }
     }
 }
 

@@ -17,7 +17,7 @@ object TwiDimens {
     val SidebarEdgeShadowWidth = 24.dp
     val NavigationIconSize = 22.dp
     val NavigationLabelGap = 12.dp
-    val NavigationItemRadius = 16.dp
+    val NavigationItemRadius = TwiThemeConfig.radius.button
     val SidebarLogoBottomSpacing = 20.dp
     val LogoMarkSize = 36.dp
 
