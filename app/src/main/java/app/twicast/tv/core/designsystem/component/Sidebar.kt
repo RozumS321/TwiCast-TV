@@ -61,6 +61,8 @@ import app.twicast.tv.core.designsystem.theme.TwiTheme
 import app.twicast.tv.core.designsystem.theme.TwiThemeConfig
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 @Immutable
@@ -74,6 +76,9 @@ data class SidebarItem(
 
 /** Expansion progress of the sidebar. Values are read only in draw-phase lambdas. */
 @Stable
+/** A focus shorter than this is a screen taking its first focus, not the viewer opening the menu. */
+private const val ExpandDelayMillis = 220L
+
 class SidebarState internal constructor(private val scope: CoroutineScope) {
     private val expansion = Animatable(0f)
     private val labels = Animatable(0f)
@@ -81,10 +86,18 @@ class SidebarState internal constructor(private val scope: CoroutineScope) {
     val expandProgress: Float get() = expansion.value
     val labelAlpha: Float get() = labels.value
 
+    private var pending: Job? = null
+
     internal fun onFocusChanged(hasFocus: Boolean) {
-        val target = if (hasFocus) 1f else 0f
-        scope.launch { expansion.animateTo(target, TwiMotion.sidebar()) }
-        scope.launch { labels.animateTo(target, if (hasFocus) TwiMotion.sidebarLabelIn() else TwiMotion.sidebarLabelOut()) }
+        pending?.cancel()
+        pending = scope.launch {
+            // Opening a screen hands the focus to the sidebar for a moment until the screen's own first card is
+            // ready: open only when the focus stays, so passing through never flashes the menu open and shut.
+            if (hasFocus) delay(ExpandDelayMillis)
+            val target = if (hasFocus) 1f else 0f
+            launch { expansion.animateTo(target, TwiMotion.sidebar()) }
+            launch { labels.animateTo(target, if (hasFocus) TwiMotion.sidebarLabelIn() else TwiMotion.sidebarLabelOut()) }
+        }
     }
 }
 

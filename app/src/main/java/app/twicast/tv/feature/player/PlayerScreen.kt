@@ -156,8 +156,16 @@ fun PlayerScreen(
                 }
             }
             }
-            // The same chat for both players: our own, next to the video.
-            if (state.chatVisible) chat(Modifier.width(TwiDimens.PlayerChatWidth).fillMaxHeight())
+        }
+        // The same chat for both players: our own, a dark glass panel floating over the right of the video.
+        if (state.chatVisible) {
+            chat(
+                Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(TwiDimens.PlayerOverlayPadding)
+                    .width(TwiDimens.PlayerChatWidth)
+                    .fillMaxHeight(),
+            )
         }
         val controlsUp = state.overlay == PlayerOverlay.Controls
         val title = state.streamTitle

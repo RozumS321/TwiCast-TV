@@ -25,9 +25,10 @@ private const val HighlightEnd = 0.4f
  * a light rim and a soft highlight at the top — no blur, so it looks the same on Android 11.
  */
 @Composable
-fun Modifier.glassOverVideo(shape: Shape): Modifier {
+fun Modifier.glassOverVideo(shape: Shape, alpha: Float? = null): Modifier {
     val tokens = TwiThemeConfig.effects
-    val base = background(TwiTheme.colors.overlay, shape)
+    val tint = TwiTheme.colors.overlay
+    val base = background(if (alpha != null) tint.copy(alpha = alpha) else tint, shape)
     val lit = if (tokens.glassHighlightAlpha > 0f) {
         base.background(Brush.verticalGradient(0f to Color.White.copy(alpha = tokens.glassHighlightAlpha), HighlightEnd to Color.Transparent), shape)
     } else {

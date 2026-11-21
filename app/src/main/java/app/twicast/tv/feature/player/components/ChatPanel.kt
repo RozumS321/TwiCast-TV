@@ -1,5 +1,7 @@
 package app.twicast.tv.feature.player.components
 
+import app.twicast.tv.core.designsystem.theme.TwiShapes
+import app.twicast.tv.core.designsystem.component.glassOverVideo
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -49,16 +51,17 @@ fun ChatPanel(messages: ImmutableList<ChatMessage>, modifier: Modifier = Modifie
     val colors = TwiTheme.colors
     Column(
         modifier = modifier
-            .background(colors.surface)
+            // Dark glass over the video (mockup "Плеер · чат"): a bit denser than the island so lines read.
+            .glassOverVideo(TwiShapes.Panel, ChatGlassAlpha)
             .padding(horizontal = TwiDimens.PlayerChatHorizontalPadding, vertical = TwiDimens.PlayerChatVerticalPadding),
         verticalArrangement = Arrangement.spacedBy(TwiDimens.PlayerChatSpacing),
     ) {
         Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.player_chat_title), style = TwiTheme.typography.listTitle, color = colors.onSurface, modifier = Modifier.weight(1f))
-            Text(stringResource(R.string.player_chat_read_only), style = TwiTheme.typography.caption, color = colors.onSurfaceVariant)
+            Text(stringResource(R.string.player_chat_title), style = TwiTheme.typography.listTitle, color = colors.onOverlay, modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.player_chat_read_only), style = TwiTheme.typography.caption, color = colors.onOverlayVariant)
         }
         if (messages.isEmpty()) {
-            Text(stringResource(R.string.player_chat_connecting), style = TwiTheme.typography.bodySmall, color = colors.onSurfaceVariant)
+            Text(stringResource(R.string.player_chat_connecting), style = TwiTheme.typography.bodySmall, color = colors.onOverlayVariant)
         }
         // Bottom-anchored like any chat: the newest line sits at the bottom and pushes the rest up. Inserted at
         // the start, keyed lines would keep the list on the line seen last and new ones would land off screen:
@@ -81,7 +84,7 @@ fun ChatPanel(messages: ImmutableList<ChatMessage>, modifier: Modifier = Modifie
 @Composable
 private fun ChatLine(message: ChatMessage) {
     val colors = TwiTheme.colors
-    val nameColor = nameColor(message, onDarkPanel = colors.isDark)
+    val nameColor = nameColor(message, onDarkPanel = true)
     Text(
         text = buildAnnotatedString {
             withStyle(SpanStyle(color = nameColor, fontWeight = FontWeight.ExtraBold)) { append(message.author) }
@@ -89,7 +92,7 @@ private fun ChatLine(message: ChatMessage) {
             append(message.text)
         },
         style = TwiTheme.typography.bodySmall,
-        color = colors.onSurfaceSecondary,
+        color = colors.onOverlay,
     )
 }
 
@@ -105,3 +108,6 @@ internal fun readableNameColor(color: Color, onDarkPanel: Boolean): Color = when
     !onDarkPanel && color.luminance() > MaxNameLuminance -> lerp(color, Color.Black, AdjustFraction)
     else -> color
 }
+
+/** Chat lines over a moving picture: denser than the island (0.78). */
+private const val ChatGlassAlpha = 0.86f
