@@ -16,11 +16,12 @@
     html, body { margin: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
     body { display: flex; }
     #player { flex: 1; min-width: 0; height: 100%; }
-    #chat { display: none; width: 30%; height: 100%; flex-direction: column; background: #fff;
-      border-left: 1px solid #E8E5F0; font-family: system-ui, sans-serif; }
+    /* Colors from TwiThemeConfig.dark: the chat matches the app around it. */
+    #chat { display: none; width: 30%; height: 100%; flex-direction: column; background: #141415;
+      border-left: 1px solid rgba(237, 237, 237, 0.08); font-family: system-ui, sans-serif; }
     #chat header { display: flex; align-items: baseline; justify-content: space-between; padding: 20px 20px 12px; }
-    #chat h2 { margin: 0; font-size: 20px; font-weight: 800; color: #17151F; }
-    #chat span { font-size: 13px; color: #5F5A6E; }
+    #chat h2 { margin: 0; font-size: 18px; font-weight: 500; color: #EDEDED; }
+    #chat span { font-size: 13px; color: #85858B; }
     /* The chat embed brings its own header and message box (useless without a twitch.tv login in the WebView):
        the frame is clipped so only the message list shows. Offsets follow Twitch's current layout. */
     #chat .frame { flex: 1; position: relative; overflow: hidden; }
@@ -189,7 +190,7 @@
         if (visible && !frameBox.querySelector('iframe')) {
           // Created on first show: no chat traffic for viewers who never open it.
           var frame = document.createElement('iframe');
-          frame.src = 'https://www.twitch.tv/embed/' + encodeURIComponent(channel) + '/chat?parent=' + location.hostname;
+          frame.src = 'https://www.twitch.tv/embed/' + encodeURIComponent(channel) + '/chat?darkpopout&parent=' + location.hostname;
           frameBox.appendChild(frame);
         }
         document.getElementById('chat-title').textContent = title || '';

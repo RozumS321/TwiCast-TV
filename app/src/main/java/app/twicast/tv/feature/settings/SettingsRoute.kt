@@ -16,6 +16,7 @@ fun SettingsRoute(viewModel: SettingsViewModel = hiltViewModel()) {
         onPlayerSelected = viewModel::onPlayerSelected,
         onDefaultQualitySelected = viewModel::onDefaultQualitySelected,
         onThemeSelected = viewModel::onThemeSelected,
+        onEffectsChanged = viewModel::onEffectsChanged,
         // Resources are picked when the activity is created: recreating it redraws everything in the new language.
         onLanguageSelected = { if (viewModel.onLanguageSelected(it)) activity?.recreate() },
         onOpenChatChanged = viewModel::onOpenChatChanged,

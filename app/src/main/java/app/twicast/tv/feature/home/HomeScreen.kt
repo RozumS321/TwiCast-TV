@@ -12,12 +12,14 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.Text
 import app.twicast.tv.R
@@ -28,6 +30,7 @@ import app.twicast.tv.core.designsystem.theme.TwiDimens
 import app.twicast.tv.core.designsystem.theme.TwiTheme
 import app.twicast.tv.data.model.Stream
 import app.twicast.tv.feature.common.appErrorMessage
+import app.twicast.tv.feature.home.components.HomeHero
 import app.twicast.tv.feature.home.components.HomeSkeleton
 import app.twicast.tv.feature.home.components.RecentRow
 import app.twicast.tv.feature.home.components.SignInBanner
@@ -57,10 +60,7 @@ fun HomeScreen(
     when (state) {
         HomeUiState.Loading -> HomeSkeleton(modifier)
         is HomeUiState.Error -> ErrorState(appErrorMessage(state.error), onRetry, modifier)
-        is HomeUiState.Empty -> Column(modifier.fillMaxSize()) {
-            Greeting(state.userName, liveFollowedCount = 0, Modifier.padding(top = TwiDimens.ScreenTopPadding))
-            EmptyState(stringResource(R.string.empty_streams))
-        }
+        is HomeUiState.Empty -> EmptyState(stringResource(R.string.empty_streams), modifier)
         is HomeUiState.Content -> KeepFocusedVisibleScroll {
             HomeContent(state, onStreamClick, onRecordingClick, onChannelClick, onSignIn, onDismissSignInBanner, modifier)
         }
@@ -87,6 +87,15 @@ private fun HomeContent(
         state.recommended.isNotEmpty() -> "recommended"
         else -> "regional"
     }
+    // The hero shows the card in focus; before any focus, the first stream of the first row.
+    val firstStream = when (firstRowKey) {
+        "followed" -> state.followedLive.firstOrNull()
+        "worldwide" -> state.worldwide.firstOrNull()
+        "recommended" -> state.recommended.firstOrNull()
+        else -> null
+    } ?: (state.followedLive + state.recommended + state.regional + state.worldwide).firstOrNull()
+    var heroStream by remember(firstStream?.id) { mutableStateOf(firstStream) }
+    val onStreamFocused: (Stream) -> Unit = { heroStream = it }
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     LazyColumn(
@@ -95,12 +104,15 @@ private fun HomeContent(
         modifier = modifier.fillMaxSize(),
     ) {
         item(key = "header", contentType = ContentType.HEADER) {
-            when {
-                // A guest (mockup "Главная · гость"): what signing in gives, instead of the greeting.
-                state.guest && state.signInBanner ->
-                    SignInBanner(onSignIn, onDismissSignInBanner, Modifier.padding(bottom = TwiDimens.HomeSectionSpacing))
-                state.guest -> Unit
-                else -> Greeting(state.userName, state.followedLive.size, Modifier.padding(bottom = TwiDimens.HomeSectionSpacing))
+            Column(
+                horizontalAlignment = Alignment.End,
+                modifier = Modifier.padding(start = TwiDimens.ContentStartPadding, end = TwiDimens.ContentEndPadding, bottom = TwiDimens.HeroBottomSpacing),
+            ) {
+                // A guest (mockup "Главная · гость"): a quiet line on what signing in gives.
+                if (state.guest) SignInBanner(onSignIn, Modifier.padding(bottom = TwiDimens.HomeSectionSpacing))
+                heroStream?.let { stream ->
+                    HomeHero(stream, onWatch = { onStreamClick(stream) }, onChannel = { onChannelClick(stream.userLogin) })
+                }
             }
         }
         val scrollToTop = Modifier.scrollToTopOnFocus(listState, scope)
@@ -113,6 +125,7 @@ private fun HomeContent(
                 onStreamClick = onStreamClick,
                 followed = true,
                 takesInitialFocus = key == firstRowKey,
+                onStreamFocused = onStreamFocused,
             )
         }
         if (state.recent.isNotEmpty()) {
@@ -135,6 +148,7 @@ private fun HomeContent(
                 streams = streams,
                 onStreamClick = onStreamClick,
                 takesInitialFocus = key == firstRowKey,
+                onStreamFocused = onStreamFocused,
             )
         }
         row("regional", state.regional, topModifier) { key, streams ->
@@ -144,6 +158,7 @@ private fun HomeContent(
                 streams = streams,
                 onStreamClick = onStreamClick,
                 takesInitialFocus = key == firstRowKey,
+                onStreamFocused = onStreamFocused,
             )
         }
         row("worldwide", state.worldwide, topModifier) { key, streams ->
@@ -153,6 +168,7 @@ private fun HomeContent(
                 streams = streams,
                 onStreamClick = onStreamClick,
                 takesInitialFocus = key == firstRowKey,
+                onStreamFocused = onStreamFocused,
             )
         }
     }
@@ -178,32 +194,6 @@ private fun LazyListScope.row(
  */
 private fun Modifier.scrollToTopOnFocus(listState: LazyListState, scope: CoroutineScope): Modifier = onFocusChanged {
     if (it.hasFocus && listState.canScrollBackward) scope.launch { listState.animateScrollToItem(0) }
-}
-
-@Composable
-private fun Greeting(userName: String, liveFollowedCount: Int, modifier: Modifier = Modifier) {
-    Row(
-        verticalAlignment = Alignment.Bottom,
-        horizontalArrangement = Arrangement.spacedBy(TwiDimens.HomeHeaderSpacing),
-        modifier = modifier.padding(horizontal = TwiDimens.ContentStartPadding),
-    ) {
-        Text(
-            text = stringResource(R.string.home_greeting, userName),
-            style = TwiTheme.typography.greeting,
-            color = TwiTheme.colors.onSurface,
-            modifier = Modifier.alignByBaseline(),
-        )
-        Text(
-            text = if (liveFollowedCount > 0) {
-                pluralStringResource(R.plurals.home_followed_live, liveFollowedCount, liveFollowedCount)
-            } else {
-                stringResource(R.string.home_followed_none)
-            },
-            style = TwiTheme.typography.body,
-            color = TwiTheme.colors.onSurfaceVariant,
-            modifier = Modifier.alignByBaseline(),
-        )
-    }
 }
 
 /** "ru" → "Русский" in the device language. Twitch gives no region, so the hint names the language. */

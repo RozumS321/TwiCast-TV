@@ -123,6 +123,21 @@ fun AboutSection(versionName: String) {
     }
 }
 
+/** "Интерфейс": "Эффекты интерфейса" — living background and glass, off by default for weak TVs. */
+@Composable
+fun EffectsSection(effects: Boolean?, onEffectsChanged: (Boolean) -> Unit) {
+    SettingsSection(R.string.settings_interface, hint = null) {
+        if (effects == null) return@SettingsSection
+        SwitchCard(
+            title = stringResource(R.string.settings_effects),
+            text = stringResource(R.string.settings_effects_hint),
+            checked = effects,
+            width = TwiDimens.SettingsWideToggleWidth,
+            onToggle = { onEffectsChanged(!effects) },
+        )
+    }
+}
+
 /** "Уведомления": "Сообщать о начале эфиров" — system notifications, checked in the background. */
 @Composable
 fun NotificationsSection(notify: Boolean?, onNotifyChanged: (Boolean) -> Unit) {
@@ -251,6 +266,7 @@ private fun SwitchCard(
 }
 
 private const val DisabledAlpha = 0.55f
+private const val SwitchOffTrackAlpha = 0.24f
 
 @Composable
 private fun Switch(checked: Boolean) {
@@ -259,7 +275,8 @@ private fun Switch(checked: Boolean) {
         contentAlignment = Alignment.CenterStart,
         modifier = Modifier
             .size(TwiDimens.SettingsSwitchWidth, TwiDimens.SettingsSwitchHeight)
-            .background(if (checked) colors.primary else colors.outline, CircleShape),
+            // Off: a clearly visible grey track with a light knob, on any surface (plain or glass).
+            .background(if (checked) colors.primary else colors.onSurface.copy(alpha = SwitchOffTrackAlpha), CircleShape),
     ) {
         Box(
             Modifier
@@ -269,7 +286,7 @@ private fun Switch(checked: Boolean) {
                     translationX = TwiDimens.SettingsSwitchKnobInset.toPx() + if (checked) travel else 0f
                 }
                 .size(TwiDimens.SettingsSwitchKnob)
-                .background(colors.onPrimary, CircleShape),
+                .background(if (checked) colors.onPrimary else colors.onSurface, CircleShape),
         )
     }
 }

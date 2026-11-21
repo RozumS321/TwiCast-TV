@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.twicast.tv.core.designsystem.theme.TwiMotion
+import app.twicast.tv.core.designsystem.theme.TwiThemeConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -67,7 +68,7 @@ fun Modifier.focusTransform(
     val scale = 1f + (focusedScale - 1f) * fraction
     scaleX = scale
     scaleY = scale
-    if (shadowElevation != null) {
+    if (shadowElevation != null && TwiThemeConfig.focus.shadows) {
         this.shape = shape
         val rest = restShadowElevation.toPx()
         this.shadowElevation = rest + (shadowElevation.toPx() - rest) * fraction

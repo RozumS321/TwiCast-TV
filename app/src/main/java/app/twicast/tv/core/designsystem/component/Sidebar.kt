@@ -48,9 +48,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
@@ -58,6 +55,7 @@ import app.twicast.tv.R
 import app.twicast.tv.core.designsystem.theme.TwiDimens
 import app.twicast.tv.core.designsystem.theme.TwiMotion
 import app.twicast.tv.core.designsystem.theme.TwiTheme
+import app.twicast.tv.core.designsystem.theme.TwiThemeConfig
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -184,6 +182,7 @@ private fun Sidebar(
 @Composable
 private fun SidebarPanelBackground(state: SidebarState) {
     val colors = TwiTheme.colors
+    val effects = TwiTheme.effects
     val shadowColor = colors.shadow
     Box(
         Modifier
@@ -193,11 +192,12 @@ private fun SidebarPanelBackground(state: SidebarState) {
                 translationX = -hiddenWidth * (1f - state.expandProgress)
             }
             .drawBehind {
-                drawRect(colors.surface)
+                // Over the effects background glass must still read as a panel: the dense glass, not card glass.
+                drawRect(if (effects) colors.surfaceOverlay else colors.surface)
                 val lineWidth = TwiDimens.OutlineWidth.toPx()
                 drawRect(colors.outlineVariant, Offset(size.width - lineWidth, 0f), Size(lineWidth, size.height))
                 val fraction = state.expandProgress
-                if (fraction > 0f) {
+                if (fraction > 0f && TwiThemeConfig.focus.shadows) {
                     // Cheap edge shadow: a short gradient instead of a blurred shadow.
                     val shadowWidth = TwiDimens.SidebarEdgeShadowWidth.toPx()
                     drawRect(
@@ -234,14 +234,12 @@ private fun SidebarLogo(state: SidebarState, modifier: Modifier = Modifier) {
             Image(
                 painter = painterResource(R.drawable.ic_logo_mark),
                 contentDescription = null,
-                modifier = Modifier.size(TwiDimens.LogoMarkSize),
+                modifier = Modifier.size(TwiDimens.LogoMarkSize).shine(),
             )
         }
         Text(
-            text = buildAnnotatedString {
-                append(wordStart)
-                withStyle(SpanStyle(color = colors.primary)) { append(wordEnd) }
-            },
+            // The wordmark is one color: the product name in the interface family, no accent split.
+            text = wordStart + wordEnd,
             style = TwiTheme.typography.logo,
             color = colors.onSurface,
             maxLines = 1,
@@ -263,19 +261,19 @@ private fun SidebarItemRow(
     val colors = TwiTheme.colors
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
+    // Focus: a light pill with dark text; the current section: a raised surface plus the accent bar.
     val pillColor = when {
-        isFocused -> colors.primary
-        isSelected -> colors.primaryContainer
+        isFocused -> colors.inverseSurface
+        isSelected -> colors.surfaceVariant
         else -> Color.Transparent
     }
     val iconColor = when {
-        isFocused -> colors.onPrimary
-        isSelected -> colors.primary
+        isFocused -> colors.inverseOnSurface
+        isSelected -> colors.onSurface
         else -> colors.onSurfaceVariant
     }
     val labelColor = when {
-        isFocused -> colors.onPrimary
-        isSelected -> colors.primaryStrong
+        isFocused -> colors.inverseOnSurface
         else -> colors.onSurface
     }
     val showIndicator = isSelected && !isFocused
@@ -287,11 +285,9 @@ private fun SidebarItemRow(
             .fillMaxWidth()
             .height(TwiDimens.SidebarItemHeight)
             .graphicsLayer {
-                // Soft primary shadow under the focused pill only; it grows in with the expansion.
+                // A soft shadow under the focused pill only where the theme allows shadows at all.
                 shape = NavigationItemShape
-                shadowElevation = if (isFocused) TwiDimens.ButtonShadowElevation.toPx() * state.expandProgress else 0f
-                ambientShadowColor = colors.primary
-                spotShadowColor = colors.primary
+                shadowElevation = if (isFocused && TwiThemeConfig.focus.shadows) TwiDimens.ButtonShadowElevation.toPx() * state.expandProgress else 0f
             }
             .drawBehind {
                 // Pill grows from the icon square (52) to the full row width in the draw phase only.

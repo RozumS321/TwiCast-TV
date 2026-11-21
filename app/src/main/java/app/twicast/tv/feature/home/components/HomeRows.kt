@@ -15,6 +15,7 @@ import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.Text
 import app.twicast.tv.core.designsystem.component.StreamCard
@@ -55,6 +56,8 @@ fun StreamRow(
     modifier: Modifier = Modifier,
     followed: Boolean = false,
     takesInitialFocus: Boolean = false,
+    /** The card that took focus: the hero above shows it. */
+    onStreamFocused: (Stream) -> Unit = {},
 ) {
     val listState = rememberLazyListState()
     // A refresh can reorder the cards, and a lazy row keeps following its old first card. A row the viewer had
@@ -85,7 +88,8 @@ fun StreamRow(
                     dense = true,
                     avatarRing = followed,
                     uptimeText = stream.startedAtMillis?.let { formatUptimeShort(it, System.currentTimeMillis()) },
-                    modifier = if (takesInitialFocus && index == 0) Modifier.requestInitialFocus() else Modifier,
+                    modifier = (if (takesInitialFocus && index == 0) Modifier.requestInitialFocus() else Modifier)
+                        .onFocusChanged { if (it.isFocused) onStreamFocused(stream) },
                 )
             }
         }

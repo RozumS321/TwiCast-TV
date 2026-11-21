@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.player.components
 
+import app.twicast.tv.core.designsystem.component.glassOverVideo
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -40,9 +41,11 @@ fun QualityPanel(
     Column(
         verticalArrangement = Arrangement.spacedBy(TwiDimens.QualityRowSpacing),
         modifier = modifier
+            // A floating glass panel over the video (mockup "Плеер · качество"), not a solid side sheet.
+            .padding(TwiDimens.PlayerOverlayPadding)
             .width(TwiDimens.QualityPanelWidth)
             .fillMaxHeight()
-            .background(TwiTheme.colors.surface)
+            .glassOverVideo(TwiShapes.Panel)
             .padding(horizontal = TwiDimens.QualityPanelHorizontalPadding, vertical = TwiDimens.QualityPanelVerticalPadding),
     ) {
         Text(stringResource(R.string.player_quality_title), style = TwiTheme.typography.rowTitle, color = TwiTheme.colors.onSurface)
@@ -72,14 +75,14 @@ private fun QualityRow(quality: VideoQuality, selected: Boolean, onClick: () -> 
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
     val colors = TwiTheme.colors
-    val textColor = if (focused) colors.onPrimary else colors.onSurface
+    val textColor = if (focused) colors.inverseOnSurface else colors.onSurface
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = modifier
             .fillMaxWidth()
             .height(TwiDimens.QualityRowHeight)
-            .background(if (focused) colors.primary else Color.Transparent, TwiShapes.Button)
+            .background(if (focused) colors.inverseSurface else Color.Transparent, TwiShapes.Button)
             .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
             .padding(horizontal = TwiDimens.QualityRowPadding),
     ) {
@@ -92,7 +95,7 @@ private fun QualityRow(quality: VideoQuality, selected: Boolean, onClick: () -> 
             Text(
                 text = stringResource(R.string.player_quality_selected),
                 style = TwiTheme.typography.tag,
-                color = if (focused) colors.onPrimary else colors.onSurfaceVariant,
+                color = if (focused) colors.inverseOnSurface else colors.onSurfaceVariant,
             )
         }
     }

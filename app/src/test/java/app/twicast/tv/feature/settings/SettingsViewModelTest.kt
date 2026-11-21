@@ -43,6 +43,11 @@ private class FakeAppearance : AppearanceSettingsRepository {
     override suspend fun setThemeMode(mode: ThemeMode) {
         themeMode.value = mode
     }
+
+    override val effects = MutableStateFlow(false)
+    override suspend fun setEffects(enabled: Boolean) {
+        effects.value = enabled
+    }
 }
 
 private class FakeLanguages : LanguageSettingsRepository {
@@ -157,5 +162,17 @@ class SettingsViewModelTest {
         viewModel.onNotifyLiveStartsChanged(false)
         assertEquals(false, settings.notifyLiveStarts.value)
         assertEquals(false, viewModel.uiState.value.notifyLiveStarts)
+    }
+
+    @Test
+    fun `interface effects are off by default and can be turned on`() = runTest(mainRule.dispatcher) {
+        val appearance = FakeAppearance()
+        val viewModel = SettingsViewModel(FakeSettings(), appearance, FakeLanguages(), FakeOptimization(), bigDevice)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+
+        assertEquals(false, viewModel.uiState.value.effects)
+        viewModel.onEffectsChanged(true)
+        assertEquals(true, appearance.effects.value)
+        assertEquals(true, viewModel.uiState.value.effects)
     }
 }

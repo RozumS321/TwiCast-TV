@@ -40,6 +40,8 @@ data class SettingsUiState(
     val openChatWithStream: Boolean? = null,
     /** "Сообщать о начале эфиров"; null while loading. */
     val notifyLiveStarts: Boolean? = null,
+    /** "Эффекты интерфейса"; null until read. */
+    val effects: Boolean? = null,
     /** Read synchronously (it is what the screen is drawn in), so never null. */
     val language: AppLanguage,
     /** The screen was just redrawn in a new language: the focus goes back to the language chips. */
