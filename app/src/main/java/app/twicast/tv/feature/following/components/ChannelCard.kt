@@ -90,7 +90,8 @@ fun ChannelCard(
         if (liveViewers != null) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChannelCardSpacing)) {
                 Box(Modifier.size(TwiDimens.LiveDotSize).background(colors.live, CircleShape))
-                Text(liveViewers, style = TwiTheme.typography.liveCount, color = colors.live)
+                // Only the lamp is red: the number is quiet text, like everywhere else.
+                Text(liveViewers, style = TwiTheme.typography.caption.copy(fontFeatureSettings = "tnum"), color = colors.onSurfaceSecondary)
             }
         }
         Text(subtitle, style = TwiTheme.typography.captionDense, color = colors.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)

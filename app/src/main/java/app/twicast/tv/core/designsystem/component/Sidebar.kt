@@ -317,7 +317,7 @@ private fun SidebarItemRow(
                     item.badgeCount,
                     Modifier
                         .align(Alignment.TopEnd)
-                        .padding(top = TwiDimens.SidebarDotInset, end = TwiDimens.SidebarDotInset)
+                        .padding(top = TwiDimens.SidebarDotInset)
                         .graphicsLayer { alpha = 1f - state.labelAlpha },
                 )
             }
@@ -339,26 +339,34 @@ private fun SidebarItemRow(
     }
 }
 
-/** Red pill with a number ("4"); "99+" beyond. */
+/** "● 4": the live lamp and how many follows are on air, on a dark capsule; "99+" beyond. */
 @Composable
 private fun SidebarCount(count: Int, modifier: Modifier = Modifier) {
-    // The number sits in the middle of the circle: a bare Text with a min size would hug the top.
-    Box(
-        contentAlignment = Alignment.Center,
+    val colors = TwiTheme.colors
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(CountLampGap),
         modifier = modifier
-            .defaultMinSize(minWidth = TwiDimens.SidebarCountMinSize, minHeight = TwiDimens.SidebarCountMinSize)
-            .background(TwiTheme.colors.live, CircleShape)
-            .padding(horizontal = TwiDimens.SidebarCountHorizontalPadding),
+            .background(CountCapsule, CircleShape)
+            .padding(horizontal = CountHorizontalPadding, vertical = CountVerticalPadding),
     ) {
+        Box(Modifier.size(CountLampSize).background(colors.live, CircleShape))
         Text(
             text = if (count > MaxShownCount) "$MaxShownCount+" else count.toString(),
             style = TwiTheme.typography.count.copy(
                 lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.Both),
             ),
-            color = TwiTheme.colors.onPrimary,
+            color = CountText,
             maxLines = 1,
-            textAlign = TextAlign.Center,
         )
     }
 }
+
+/** Fixed, not themed: the capsule must read the same on the rail, a light focused pill and glass. */
+private val CountCapsule = Color(0xE6141415)
+private val CountText = Color(0xFFEDEDED)
+private val CountLampSize = 6.dp
+private val CountLampGap = 4.dp
+private val CountHorizontalPadding = 6.dp
+private val CountVerticalPadding = 3.dp
 
