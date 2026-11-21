@@ -249,16 +249,17 @@ private val SidebarGlass = Color(0xFF1C1B1F)
 /** Collapsed: frost the background's light passes through. */
 private const val SidebarFrostAlpha = 0.09f
 /** Opened over the screen: darker, so the labels read over whatever is below. */
-private const val SidebarGlassOpenAlpha = 0.86f
+private const val SidebarGlassOpenAlpha = 0.45f
 private const val SidebarRimAlpha = 0.10f
 private const val SidebarGrainAlpha = 0.06f
 
 private val NavigationItemShape = RoundedCornerShape(TwiDimens.NavigationItemRadius)
 
-/** Brand mark "Две сферы" in the icon column; the wordmark Twi·Cast fades in with the item labels. Not focusable. */
+/** Aurora mark in the icon column; the wordmark fades in with the item labels, flowing with the mark. Not focusable. */
 @Composable
 private fun SidebarLogo(state: SidebarState, modifier: Modifier = Modifier) {
     val colors = TwiTheme.colors
+    val auroraSeconds = rememberAuroraSeconds()
     val wordStart = stringResource(R.string.brand_word_start)
     val wordEnd = stringResource(R.string.brand_word_end)
     Row(
@@ -267,15 +268,15 @@ private fun SidebarLogo(state: SidebarState, modifier: Modifier = Modifier) {
         modifier = modifier.height(TwiDimens.SidebarItemHeight),
     ) {
         Box(Modifier.size(TwiDimens.SidebarItemHeight), contentAlignment = Alignment.Center) {
-            AuroraLogo(Modifier.size(TwiDimens.LogoMarkSize))
+            AuroraLogo(Modifier.size(TwiDimens.LogoMarkSize), seconds = auroraSeconds)
         }
         Text(
-            // The wordmark is one color: the product name in the interface family, no accent split.
+            // The wordmark flows with the same colour as the mark (canvas: "Логотип · Aurora").
             text = wordStart + wordEnd,
             style = TwiTheme.typography.logo,
             color = colors.onSurface,
             maxLines = 1,
-            modifier = Modifier.graphicsLayer { alpha = state.labelAlpha },
+            modifier = Modifier.graphicsLayer { alpha = state.labelAlpha }.auroraText(auroraSeconds),
         )
     }
 }

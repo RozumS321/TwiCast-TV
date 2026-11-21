@@ -3,17 +3,20 @@ package app.twicast.tv.core.designsystem.component
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipPath
@@ -56,8 +59,12 @@ internal fun auroraPatches(tokens: TwiLogoTokens, seconds: Float, box: Rect): Li
  *
  * @param animated false shows the still frame (the same one the launcher icon and the banner use).
  */
+/**
+ * Seconds on the Aurora clock: ticks [TwiLogoTokens.framesPerSecond] times a second while [animated]; the frame
+ * clock stops it while the app is in the background. Read it only while drawing: it never recomposes anything.
+ */
 @Composable
-fun AuroraLogo(modifier: Modifier = Modifier, animated: Boolean = true) {
+fun rememberAuroraSeconds(animated: Boolean = true): State<Float> {
     val tokens = TwiThemeConfig.logo
     val seconds = remember { mutableFloatStateOf(AuroraRestSeconds) }
     if (animated) {
@@ -73,6 +80,18 @@ fun AuroraLogo(modifier: Modifier = Modifier, animated: Boolean = true) {
             }
         }
     }
+    return seconds
+}
+
+/**
+ * The TwiCast mark: a dark tile with colour flowing inside the play. Plain radial gradients added together and
+ * clipped to the play — no shader, so it runs on Android 11. Animated only in its own layer's draw phase.
+ *
+ * @param seconds the Aurora clock; pass the wordmark's to keep both flowing together.
+ */
+@Composable
+fun AuroraLogo(modifier: Modifier = Modifier, animated: Boolean = true, seconds: State<Float> = rememberAuroraSeconds(animated)) {
+    val tokens = TwiThemeConfig.logo
     Spacer(
         modifier
             .graphicsLayer()
@@ -82,11 +101,39 @@ fun AuroraLogo(modifier: Modifier = Modifier, animated: Boolean = true) {
                 val window = Rect(side * 0.3f, side * 0.2f, side * 0.8f, side * 0.8f)
                 onDrawBehind {
                     drawRoundRect(tokens.tile, cornerRadius = CornerRadius(side * TileCornerFraction))
-                    clipPath(play) { drawAurora(tokens, seconds.floatValue, window) }
+                    clipPath(play) { drawAurora(tokens, seconds.value, window) }
                 }
             },
     )
 }
+
+/** How far the wordmark's flow runs ahead of the mark's, so the two never show the same colour at once. */
+private const val WordmarkOffsetSeconds = 1.7f
+
+/**
+ * Fills whatever this draws (the "TwiCast" wordmark) with the same flowing colour as the mark: the glyphs become
+ * the window. Base colour replaces the text colour (SrcIn), then the patches of light lie only on the glyphs (SrcAtop).
+ */
+fun Modifier.auroraText(seconds: State<Float>): Modifier = graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+    .drawWithContent {
+        val tokens = TwiThemeConfig.logo
+        drawContent()
+        drawRect(tokens.base, blendMode = BlendMode.SrcIn)
+        val box = Rect(Offset.Zero, size)
+        for (patch in auroraPatches(tokens, seconds.value + WordmarkOffsetSeconds, box)) {
+            drawCircle(
+                brush = Brush.radialGradient(
+                    0f to patch.color.copy(alpha = patch.alpha.coerceAtMost(1f)),
+                    1f to patch.color.copy(alpha = 0f),
+                    center = patch.center,
+                    radius = patch.radius,
+                ),
+                radius = patch.radius,
+                center = patch.center,
+                blendMode = BlendMode.SrcAtop,
+            )
+        }
+    }
 
 private fun DrawScope.drawAurora(tokens: TwiLogoTokens, seconds: Float, box: Rect) {
     drawRect(tokens.base, topLeft = box.topLeft, size = box.size)
