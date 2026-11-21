@@ -148,7 +148,8 @@ val TwiThemeConfig = TwiThemeTokens(
         bloomLoopMillis = 10_000,
         grainAlpha = 0.09f,
         glassAlpha = 0.07f,
-        glassRimAlpha = 0.16f,
-        glassHighlightAlpha = 0.08f,
+        glassRimAlpha = 0.10f,
+        // No glossy highlight: it made glass look like 3D buttons from the 2000s. Flat frost and a hairline.
+        glassHighlightAlpha = 0f,
     ),
 )

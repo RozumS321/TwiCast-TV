@@ -199,7 +199,6 @@ private fun SidebarPanelBackground(state: SidebarState) {
                     // denser so the content below does not compete with the labels. A highlight at the top, a rim.
                     drawRect(Color.White.copy(alpha = SidebarFrostAlpha))
                     if (fraction > 0f) drawRect(SidebarGlass.copy(alpha = SidebarGlassOpenAlpha * fraction))
-                    drawRect(Brush.verticalGradient(0f to Color.White.copy(alpha = SidebarHighlightAlpha), SidebarHighlightEnd to Color.Transparent))
                     drawRect(Color.White.copy(alpha = SidebarRimAlpha), Offset(size.width - lineWidth, 0f), Size(lineWidth, size.height))
                 } else {
                     drawRect(colors.surface)
@@ -230,9 +229,7 @@ private val SidebarGlass = Color(0xFF1C1B1F)
 private const val SidebarFrostAlpha = 0.06f
 /** Opened over the screen: darker, so the labels read over whatever is below. */
 private const val SidebarGlassOpenAlpha = 0.86f
-private const val SidebarHighlightAlpha = 0.08f
-private const val SidebarHighlightEnd = 0.35f
-private const val SidebarRimAlpha = 0.18f
+private const val SidebarRimAlpha = 0.10f
 
 private val NavigationItemShape = RoundedCornerShape(TwiDimens.NavigationItemRadius)
 

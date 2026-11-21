@@ -20,12 +20,13 @@ private const val HighlightEnd = 0.4f
 @Composable
 fun Modifier.glassOverVideo(shape: Shape): Modifier {
     val tokens = TwiThemeConfig.effects
-    return this
-        .background(TwiTheme.colors.overlay, shape)
-        .background(
-            Brush.verticalGradient(0f to Color.White.copy(alpha = tokens.glassHighlightAlpha), HighlightEnd to Color.Transparent),
-            shape,
-        )
+    val base = background(TwiTheme.colors.overlay, shape)
+    val lit = if (tokens.glassHighlightAlpha > 0f) {
+        base.background(Brush.verticalGradient(0f to Color.White.copy(alpha = tokens.glassHighlightAlpha), HighlightEnd to Color.Transparent), shape)
+    } else {
+        base
+    }
+    return lit
         .border(TwiDimens.OutlineWidth, Color.White.copy(alpha = tokens.glassRimAlpha), shape)
 }
 
@@ -34,22 +35,23 @@ private const val SurfaceHighlightBoost = 1.6f
 private const val SurfaceHighlightEnd = 0.45f
 
 /**
- * A card or panel of the app (canvas: "Стекло"). Plain: the solid surface. With "Эффекты интерфейса": glass —
- * a translucent tint, a soft highlight at the top and a light rim, so it reads as glass over the living background.
+ * A card or panel of the app (canvas: "Стекло"). Plain: the solid surface. With "Эффекты интерфейса": flat frosted
+ * glass — a faint tint the background shows through and a hairline rim ([TwiThemeConfig] can add a highlight).
  */
 @Composable
 fun Modifier.twiSurface(shape: Shape): Modifier {
     val colors = TwiTheme.colors
     if (!TwiTheme.effects) return background(colors.surface, shape)
     val tokens = TwiThemeConfig.effects
-    return this
-        .background(colors.surface, shape)
-        .background(
-            Brush.verticalGradient(
-                0f to Color.White.copy(alpha = tokens.glassHighlightAlpha * SurfaceHighlightBoost),
-                SurfaceHighlightEnd to Color.Transparent,
-            ),
+    val base = background(colors.surface, shape)
+    val lit = if (tokens.glassHighlightAlpha > 0f) {
+        base.background(
+            Brush.verticalGradient(0f to Color.White.copy(alpha = tokens.glassHighlightAlpha * SurfaceHighlightBoost), SurfaceHighlightEnd to Color.Transparent),
             shape,
         )
+    } else {
+        base
+    }
+    return lit
         .border(TwiDimens.OutlineWidth, Color.White.copy(alpha = tokens.glassRimAlpha), shape)
 }
