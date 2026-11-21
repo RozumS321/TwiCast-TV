@@ -1,14 +1,12 @@
 package app.twicast.tv.core.designsystem.component
 
 import android.graphics.Bitmap
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -26,6 +24,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import app.twicast.tv.core.designsystem.theme.TwiEffectsTokens
 import app.twicast.tv.core.designsystem.theme.TwiThemeConfig
+import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.random.Random
@@ -51,13 +50,16 @@ private const val MinBloomAlpha = 0.7f
 @Composable
 fun EmberBackground(modifier: Modifier = Modifier) {
     val tokens = TwiThemeConfig.effects
-    val transition = rememberInfiniteTransition(label = "ember")
-    val phase = transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(tokens.bloomLoopMillis, easing = LinearEasing), RepeatMode.Restart),
-        label = "ember-phase",
-    )
+    val phase = remember { Animatable(0f) }
+    // The first seconds after launch are the busiest (home, images, the Twitch player): an animation there would
+    // stutter. The light stands still until the app has settled, then starts breathing from rest — no jump.
+    LaunchedEffect(phase) {
+        delay(StartDelayMillis)
+        while (true) {
+            phase.animateTo(1f, tween(tokens.bloomLoopMillis, easing = LinearEasing))
+            phase.snapTo(0f)
+        }
+    }
     val steps = tokens.bloomLoopMillis * BloomFramesPerSecond / MillisPerSecond
     // Changes only at each step, so the draw below is invalidated 12 times a second, not 60.
     val step = remember(phase) { derivedStateOf { (phase.value * steps).toInt() } }
@@ -90,6 +92,7 @@ fun EmberBackground(modifier: Modifier = Modifier) {
 }
 
 private const val MillisPerSecond = 1000
+private const val StartDelayMillis = 3_000L
 
 /** 0 → 1 → 0 over one loop, eased at both ends. */
 private fun wave(t: Float): Float = ((1 - cos(2 * PI * (t % 1f))) / 2).toFloat()
