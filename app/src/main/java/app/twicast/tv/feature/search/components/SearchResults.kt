@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.search.components
 
+import app.twicast.tv.core.designsystem.component.twiSurface
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.relocation.BringIntoViewRequester
@@ -117,7 +118,7 @@ private fun ChannelRow(channel: ChannelSearchResult, onClick: () -> Unit) {
             .fillMaxWidth()
             .height(TwiDimens.ChannelRowHeight)
             .focusTransform(focusProgress, TwiScale.ButtonFocused, TwiShapes.Card)
-            .background(colors.surface, TwiShapes.Card)
+            .twiSurface(TwiShapes.Card)
             .focusRing(focusProgress, colors.primary, TwiShapes.Card, TwiDimens.FocusBorderWidth)
             .trackFocus(focusProgress)
             .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)

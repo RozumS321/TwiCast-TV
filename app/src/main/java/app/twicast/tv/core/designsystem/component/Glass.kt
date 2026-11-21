@@ -28,3 +28,28 @@ fun Modifier.glassOverVideo(shape: Shape): Modifier {
         )
         .border(TwiDimens.OutlineWidth, Color.White.copy(alpha = tokens.glassRimAlpha), shape)
 }
+
+/** The highlight of app glass is a bit stronger than over video: it has to read against a dark room. */
+private const val SurfaceHighlightBoost = 1.6f
+private const val SurfaceHighlightEnd = 0.45f
+
+/**
+ * A card or panel of the app (canvas: "Стекло"). Plain: the solid surface. With "Эффекты интерфейса": glass —
+ * a translucent tint, a soft highlight at the top and a light rim, so it reads as glass over the living background.
+ */
+@Composable
+fun Modifier.twiSurface(shape: Shape): Modifier {
+    val colors = TwiTheme.colors
+    if (!TwiTheme.effects) return background(colors.surface, shape)
+    val tokens = TwiThemeConfig.effects
+    return this
+        .background(colors.surface, shape)
+        .background(
+            Brush.verticalGradient(
+                0f to Color.White.copy(alpha = tokens.glassHighlightAlpha * SurfaceHighlightBoost),
+                SurfaceHighlightEnd to Color.Transparent,
+            ),
+            shape,
+        )
+        .border(TwiDimens.OutlineWidth, Color.White.copy(alpha = tokens.glassRimAlpha), shape)
+}

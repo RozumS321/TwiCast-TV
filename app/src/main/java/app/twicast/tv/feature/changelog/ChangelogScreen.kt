@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.changelog
 
+import app.twicast.tv.core.designsystem.component.twiSurface
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -175,7 +176,7 @@ private fun ReleaseCard(release: AppRelease, installed: Boolean, modifier: Modif
         horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChangelogCardGap),
         modifier = modifier
             .fillMaxWidth()
-            .background(colors.surface, TwiShapes.Card)
+            .twiSurface(TwiShapes.Card)
             .focusRing(focusProgress, colors.primary, TwiShapes.Card, TwiDimens.FocusBorderWidth)
             .trackFocus(focusProgress)
             .focusable()

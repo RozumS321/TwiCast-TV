@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.channel
 
+import app.twicast.tv.core.designsystem.component.twiSurface
 import android.text.format.DateUtils
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -209,7 +210,7 @@ private fun AboutBlock(channel: ChannelPage, modifier: Modifier) {
         verticalArrangement = Arrangement.spacedBy(TwiDimens.ChannelAboutSpacing),
         modifier = modifier
             .fillMaxWidth()
-            .background(colors.surface, TwiShapes.Card)
+            .twiSurface(TwiShapes.Card)
             .padding(TwiDimens.ChannelAboutPadding),
     ) {
         Text(stringResource(R.string.channel_about), style = TwiTheme.typography.rowTitleDense, color = colors.onSurface)

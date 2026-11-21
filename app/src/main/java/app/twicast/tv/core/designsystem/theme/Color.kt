@@ -107,7 +107,8 @@ fun TwiColorScheme.withGlass(tokens: TwiEffectsTokens) = copy(
     dialogInset = GlassDialogInset,
 )
 
-private val GlassTint = Color(0xFF1E1E22)
+/** Lighter than the dark room behind it, so glass reads as a frosted pane, not a hole. */
+private val GlassTint = Color(0xFF2C2B30)
 private val GlassDialog = Color(0xFF1A1A1D)
 private val GlassDialogInset = Color(0xFF232326)
 private const val GlassRaisedAlpha = 0.10f
