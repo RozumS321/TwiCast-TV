@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The coral "play" on the graphite background, inside the 66dp safe zone of the 108dp adaptive icon. -->
+<!-- The white "play" on the Twitch-purple background, inside the 66dp safe zone of the 108dp adaptive icon. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
     <path
-        android:fillColor="#FF7A59"
-        android:strokeColor="#FF7A59"
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#FFFFFF"
         android:strokeWidth="4"
         android:strokeLineJoin="round"
         android:pathData="M45,38v32l26,-16z" />

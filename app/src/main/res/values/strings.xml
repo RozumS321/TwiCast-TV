@@ -11,8 +11,6 @@
     <string name="nav_profile">Profile</string>
 
     <string name="badge_live">LIVE</string>
-    <string name="action_watch">Watch</string>
-    <string name="action_channel">Channel</string>
     <string name="action_retry">Retry</string>
     <string name="action_back">Back</string>
     <string name="action_sign_out">Sign out</string>

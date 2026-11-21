@@ -8,8 +8,6 @@
     <string name="nav_profile">Профиль</string>
 
     <string name="badge_live">LIVE</string>
-    <string name="action_watch">Смотреть</string>
-    <string name="action_channel">Канал</string>
     <string name="action_retry">Повторить</string>
     <string name="action_back">Назад</string>
     <string name="action_sign_out">Выйти из аккаунта</string>

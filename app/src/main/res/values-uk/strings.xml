@@ -7,8 +7,6 @@
     <string name="nav_profile">Профіль</string>
 
     <string name="badge_live">LIVE</string>
-    <string name="action_watch">Дивитися</string>
-    <string name="action_channel">Канал</string>
     <string name="action_retry">Повторити</string>
     <string name="action_back">Назад</string>
     <string name="action_sign_out">Вийти з акаунта</string>

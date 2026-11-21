@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Brand mark: a coral "play" on a dark tile, flat and static. Fixed brand colors, not theme tokens. -->
+<!-- Brand mark: a white "play" on a Twitch-purple tile, flat and static. Fixed brand colors, not theme tokens. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="48dp"
     android:height="48dp"
     android:viewportWidth="48"
     android:viewportHeight="48">
     <path
-        android:fillColor="#1F1F22"
+        android:fillColor="#9147FF"
         android:pathData="M12,0h24a12,12 0,0 1,12 12v24a12,12 0,0 1,-12 12h-24a12,12 0,0 1,-12 -12v-24a12,12 0,0 1,12 -12z" />
     <path
-        android:fillColor="#FF7A59"
-        android:strokeColor="#FF7A59"
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#FFFFFF"
         android:strokeWidth="2.5"
         android:strokeLineJoin="round"
         android:pathData="M19,15v18l14,-9z" />
