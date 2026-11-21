@@ -78,15 +78,16 @@ fun StreamRow(
             modifier = Modifier.padding(start = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset).focusRestorer(),
         ) {
             itemsIndexed(streams, key = { _, it -> it.id }, contentType = { _, _ -> "stream" }) { index, stream ->
+                // Mockup "Главная": the channel and its category under the card; the title is in the hero above.
                 StreamCard(
-                    title = stream.title,
-                    subtitle = listOf(stream.channelName, stream.categoryName).filter { it.isNotEmpty() }.joinToString(" · "),
+                    title = stream.channelName,
+                    subtitle = stream.categoryName,
                     viewerCountText = formatViewerCount(stream.viewerCount),
                     thumbnailUrl = rememberTwitchImageUrl(stream.thumbnailTemplate, TwiDimens.StreamCardDenseWidth, TwiAspect.Thumbnail),
                     avatarUrl = stream.avatarUrl,
                     onClick = { onStreamClick(stream) },
                     dense = true,
-                    avatarRing = followed,
+                    showAvatar = false,
                     uptimeText = stream.startedAtMillis?.let { formatUptimeShort(it, System.currentTimeMillis()) },
                     modifier = (if (takesInitialFocus && index == 0) Modifier.requestInitialFocus() else Modifier)
                         .onFocusChanged { if (it.isFocused) onStreamFocused(stream) },

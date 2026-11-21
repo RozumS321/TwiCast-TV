@@ -48,6 +48,12 @@ object TwiDimens {
     val AvatarSmallDense = 30.dp
     val AvatarRingWidth = 2.dp
     val BadgeInset = 10.dp
+    val LiveLampSize = 8.dp
+    val LiveLampRim = 2.dp
+    val TimeBadgeHorizontalPadding = 6.dp
+    val TimeBadgeVerticalPadding = 2.dp
+    /** Between the category and the viewers under a card. */
+    val CardMetaGap = 6.dp
 
     val FocusBorderWidth = TwiThemeConfig.focus.ringWidth
     val FocusShadowElevation = 18.dp
