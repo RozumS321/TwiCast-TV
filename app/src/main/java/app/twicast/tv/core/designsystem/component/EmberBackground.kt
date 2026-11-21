@@ -7,26 +7,49 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.ImageShader
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import app.twicast.tv.core.designsystem.theme.TwiEffectsTokens
 import app.twicast.tv.core.designsystem.theme.TwiThemeConfig
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 private const val GrainSize = 192
@@ -42,43 +65,93 @@ private const val RiseFraction = 0.12f
 private const val GrowFraction = 0.18f
 private const val MinBloomAlpha = 0.7f
 
+/** The frame glass shows under itself: small (the light has no detail to lose) and blurred like frosted glass. */
+private const val BackdropWidthPx = 320
+private const val BackdropBlurRadius = 10
+private const val BackdropBrighten = 1.2f
+
 /**
- * "Эффекты интерфейса": Ember Bloom — warm light rising out of the dark under heavy film grain (canvas,
- * "UI-библиотека"). Drawn with plain radial gradients and a tiled noise bitmap, no shaders or blur, so it runs on
+ * The living background shared by every screen: its animation, and the same frame small and blurred, so each glass
+ * surface can draw the piece behind it — frosted glass without real blur (Android 11 has none). Computed only
+ * while the background is seen: paused under the player and while the app is in the background.
+ */
+@Stable
+class EmberBackdrop internal constructor(internal val steps: Int) {
+    internal val phase = Animatable(0f)
+    internal val step: State<Int> = derivedStateOf { (phase.value * steps).toInt() }
+    internal var started = false
+
+    /** The background in pixels (the whole app): glass maps its own position onto [blurred] with it. */
+    var size by mutableStateOf(IntSize.Zero)
+        internal set
+
+    /** The current frame, small and blurred; null until the first one is ready. */
+    var blurred by mutableStateOf<ImageBitmap?>(null)
+        internal set
+
+    /** A full-screen video covers the background: nothing to animate or blur. */
+    var coveredByVideo by mutableStateOf(false)
+
+    internal var appVisible by mutableStateOf(true)
+
+    internal val running: Boolean get() = !coveredByVideo && appVisible
+}
+
+/** The background behind glass, or null without "Эффекты интерфейса". */
+val LocalEmberBackdrop = staticCompositionLocalOf<EmberBackdrop?> { null }
+
+@Composable
+fun rememberEmberBackdrop(): EmberBackdrop = remember {
+    EmberBackdrop(TwiThemeConfig.effects.bloomLoopMillis * BloomFramesPerSecond / MillisPerSecond)
+}
+
+/**
+ * "Эффекты интерфейса": Ember Bloom — warm light rising out of the dark under film grain, and a softer light from
+ * above (canvas, "UI-библиотека"). Plain radial gradients and a tiled noise bitmap: no shaders, so it runs on
  * Android 11 TVs. Animated only in the draw phase: the loop never recomposes anything.
  */
 @Composable
-fun EmberBackground(modifier: Modifier = Modifier) {
+fun EmberBackground(backdrop: EmberBackdrop, modifier: Modifier = Modifier) {
     val tokens = TwiThemeConfig.effects
-    val phase = remember { Animatable(0f) }
-    // The first seconds after launch are the busiest (home, images, the Twitch player): an animation there would
-    // stutter. The light stands still until the app has settled, then starts breathing from rest — no jump.
-    LaunchedEffect(phase) {
-        delay(StartDelayMillis)
+    LifecycleResumeEffect(backdrop) {
+        backdrop.appVisible = true
+        onPauseOrDispose { backdrop.appVisible = false }
+    }
+    LaunchedEffect(backdrop) {
+        // The first seconds after launch are the busiest (home, images, the Twitch player): an animation there
+        // would stutter. The light stands still until the app has settled, then starts breathing from rest.
+        if (!backdrop.started) {
+            delay(StartDelayMillis)
+            backdrop.started = true
+        }
         while (true) {
-            phase.animateTo(1f, tween(tokens.bloomLoopMillis, easing = LinearEasing))
-            phase.snapTo(0f)
+            snapshotFlow { backdrop.running }.first { it }
+            val remaining = ((1f - backdrop.phase.value) * tokens.bloomLoopMillis).toInt()
+            val finished = runCatchingAnimation {
+                backdrop.phase.animateTo(1f, tween(remaining, easing = LinearEasing))
+            }
+            if (finished) backdrop.phase.snapTo(0f)
         }
     }
-    val steps = tokens.bloomLoopMillis * BloomFramesPerSecond / MillisPerSecond
-    // Changes only at each step, so the draw below is invalidated 12 times a second, not 60.
-    val step = remember(phase) { derivedStateOf { (phase.value * steps).toInt() } }
+    // Stops the animation as soon as the background gets covered; the loop above resumes it.
+    LaunchedEffect(backdrop) {
+        snapshotFlow { backdrop.running }.collectLatest { running -> if (!running) backdrop.phase.stop() }
+    }
+    // The blurred frame for glass: off the main thread, once per step, only while something changes.
+    LaunchedEffect(backdrop) {
+        snapshotFlow { backdrop.step.value to backdrop.size }.collectLatest { (step, size) ->
+            if (size.width <= 0 || size.height <= 0) return@collectLatest
+            backdrop.blurred = withContext(Dispatchers.Default) { renderBackdrop(tokens, step.toFloat() / backdrop.steps, size) }
+        }
+    }
     val grain = remember { grainBitmap() }
-    Box(modifier) {
+    Box(modifier.onSizeChanged { backdrop.size = it }) {
         Box(
             Modifier
                 .matchParentSize()
                 // Its own layer: redrawing the light never re-records the screens above it.
                 .graphicsLayer()
-                .drawBehind {
-                    drawRect(tokens.emberBase)
-                    val t = step.value.toFloat() / steps
-                    drawBloom(tokens, wave(t), centerX = size.width * 0.45f, radius = size.height * 0.95f)
-                    // A smaller bloom on the right, half a loop apart: the light never pulses as one block.
-                    drawBloom(tokens, wave(t + 0.5f), centerX = size.width * 0.96f, radius = size.height * 0.62f, strength = 0.75f)
-                    // Soft warm light from above (canvas: "Главная · эффекты"): the room is lit, not only the floor.
-                    drawTopGlow(tokens, wave(t + 0.25f))
-                },
+                .drawBehind { drawEmber(tokens, backdrop.step.value.toFloat() / backdrop.steps) },
         )
         // Grain is drawn once into its own layer and only composited afterwards.
         Box(
@@ -91,6 +164,41 @@ fun EmberBackground(modifier: Modifier = Modifier) {
                 },
         )
     }
+}
+
+/** True when the animation ran to its end, false when it was stopped because the background got covered. */
+private suspend fun runCatchingAnimation(block: suspend () -> Unit): Boolean = try {
+    block()
+    true
+} catch (stopped: CancellationException) {
+    // Our own coroutine cancelled (the screen left): pass it on. Only Animatable.stop() is swallowed.
+    currentCoroutineContext().ensureActive()
+    false
+}
+
+private fun DrawScope.drawEmber(tokens: TwiEffectsTokens, t: Float) {
+    drawRect(tokens.emberBase)
+    drawBloom(tokens, wave(t), centerX = size.width * 0.45f, radius = size.height * 0.95f)
+    // A smaller bloom on the right, half a loop apart: the light never pulses as one block.
+    drawBloom(tokens, wave(t + 0.5f), centerX = size.width * 0.96f, radius = size.height * 0.62f, strength = 0.75f)
+    // Soft warm light from above (canvas: "Главная · эффекты"): the room is lit, not only the floor.
+    drawTopGlow(tokens, wave(t + 0.25f))
+}
+
+/** The same frame as on screen, drawn at 320 px wide and blurred: what frosted glass shows. */
+private fun renderBackdrop(tokens: TwiEffectsTokens, t: Float, screen: IntSize): ImageBitmap {
+    val width = BackdropWidthPx
+    val height = (BackdropWidthPx * screen.height / screen.width.toFloat()).roundToInt().coerceAtLeast(1)
+    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    val image = bitmap.asImageBitmap()
+    CanvasDrawScope().draw(Density(1f), LayoutDirection.Ltr, Canvas(image), Size(width.toFloat(), height.toFloat())) {
+        drawEmber(tokens, t)
+    }
+    val pixels = IntArray(width * height)
+    bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+    frostBlur(pixels, width, height, BackdropBlurRadius, BackdropBrighten)
+    bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
+    return image
 }
 
 private const val MillisPerSecond = 1000

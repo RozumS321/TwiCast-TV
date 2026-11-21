@@ -109,5 +109,5 @@ internal fun readableNameColor(color: Color, onDarkPanel: Boolean): Color = when
     else -> color
 }
 
-/** Chat lines over a moving picture: denser than the island (0.78). */
-private const val ChatGlassAlpha = 0.86f
+/** Chat over a moving picture: the video shows through a little, lines still read. */
+private const val ChatGlassAlpha = 0.68f

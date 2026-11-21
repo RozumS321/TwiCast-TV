@@ -1,5 +1,15 @@
 package app.twicast.tv.core.designsystem.component
 
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.asAndroidBitmap
+import android.graphics.Shader
+import android.graphics.Matrix
+import android.graphics.BitmapShader
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.addOutline
 import androidx.compose.ui.graphics.TileMode
@@ -52,7 +62,8 @@ fun Modifier.twiSurface(shape: Shape): Modifier {
     val colors = TwiTheme.colors
     if (!TwiTheme.effects) return background(colors.surface, shape)
     val tokens = TwiThemeConfig.effects
-    val base = background(colors.surface, shape)
+    // Under the frost: the blurred background behind this very spot — frosted glass on Android 11.
+    val base = backdropSlice(shape).background(colors.surface, shape)
     val lit = if (tokens.glassHighlightAlpha > 0f) {
         base.background(
             Brush.verticalGradient(0f to Color.White.copy(alpha = tokens.glassHighlightAlpha * SurfaceHighlightBoost), SurfaceHighlightEnd to Color.Transparent),
@@ -67,7 +78,7 @@ fun Modifier.twiSurface(shape: Shape): Modifier {
 }
 
 /** Grain inside glass: frosted glass is matte, not clear. Drawn from one shared tiled noise bitmap. */
-private const val FrostGrainAlpha = 0.06f
+private const val FrostGrainAlpha = 0.03f
 private val sharedGrain by lazy { grainBitmap() }
 
 @Composable
@@ -75,4 +86,33 @@ private fun Modifier.frostGrain(shape: Shape): Modifier = drawWithCache {
     val brush = ShaderBrush(ImageShader(sharedGrain, TileMode.Repeated, TileMode.Repeated))
     val path = Path().apply { addOutline(shape.createOutline(size, layoutDirection, this@drawWithCache)) }
     onDrawBehind { clipPath(path) { drawRect(brush, alpha = FrostGrainAlpha) } }
+}
+
+/**
+ * Draws the piece of [EmberBackdrop.blurred] that lies behind this element, clipped to [shape]: the background
+ * is known and blurred once per frame, so every glass surface just cuts out its own window.
+ */
+@Composable
+fun Modifier.backdropSlice(shape: Shape): Modifier {
+    val backdrop = LocalEmberBackdrop.current ?: return this
+    val position = remember { mutableStateOf(Offset.Zero) }
+    return this
+        .onGloballyPositioned { position.value = it.positionInRoot() }
+        .drawWithCache {
+            val outline = shape.createOutline(size, layoutDirection, this@drawWithCache)
+            val matrix = Matrix()
+            onDrawBehind {
+                val image = backdrop.blurred ?: return@onDrawBehind
+                val screen = backdrop.size
+                if (screen.width <= 0 || screen.height <= 0) return@onDrawBehind
+                // The small blurred frame stretched back to screen size and shifted to this element's spot,
+                // painted straight into its shape: one textured draw, no clipping layer (cheap on a TV GPU).
+                matrix.reset()
+                matrix.setScale(screen.width / image.width.toFloat(), screen.height / image.height.toFloat())
+                matrix.postTranslate(-position.value.x, -position.value.y)
+                val shader = BitmapShader(image.asAndroidBitmap(), Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+                shader.setLocalMatrix(matrix)
+                drawOutline(outline, ShaderBrush(shader))
+            }
+        }
 }

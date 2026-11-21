@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -44,6 +45,8 @@ import app.twicast.tv.R
 import app.twicast.tv.core.designsystem.component.SidebarItem
 import app.twicast.tv.core.designsystem.component.SidebarLayout
 import app.twicast.tv.core.designsystem.component.EmberBackground
+import app.twicast.tv.core.designsystem.component.LocalEmberBackdrop
+import app.twicast.tv.core.designsystem.component.rememberEmberBackdrop
 import app.twicast.tv.core.designsystem.theme.TwiMotion
 import app.twicast.tv.core.designsystem.theme.TwiTheme
 import app.twicast.tv.data.model.AuthState
@@ -118,8 +121,10 @@ private fun AuthGate(
     }
     // "Эффекты интерфейса": the living background under every screen; otherwise the plain background color.
     val effects = TwiTheme.effects
+    val backdrop = if (effects) rememberEmberBackdrop() else null
     Box(Modifier.fillMaxSize()) {
-    if (effects) EmberBackground(Modifier.fillMaxSize())
+    if (backdrop != null) EmberBackground(backdrop, Modifier.fillMaxSize())
+    CompositionLocalProvider(LocalEmberBackdrop provides backdrop) {
     // Animate by gate type: the shell is not rebuilt when only the user's fields change.
     AnimatedContent(
         targetState = gate,
@@ -134,6 +139,7 @@ private fun AuthGate(
             Gate.FirstStart -> LoginRoute(onContinueAsGuest = onContinueAsGuest)
             is Gate.Shell -> Shell(state.user, liveFollowedCount, openStream, onStreamOpened, askNotificationPermission, onShowUpdate)
         }
+    }
     }
     }
 }

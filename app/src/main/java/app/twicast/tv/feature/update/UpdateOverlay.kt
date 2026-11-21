@@ -1,5 +1,10 @@
 package app.twicast.tv.feature.update
 
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -181,9 +186,19 @@ private fun NotesList(release: AppRelease, modifier: Modifier) {
     val scope = rememberCoroutineScope()
     val step = with(LocalDensity.current) { TwiDimens.NotesScrollStep.toPx() }
     val focusProgress = rememberFocusProgress()
+    // A long release: the focus starts on the notes, so they can be read to the end first; Down past the end
+    // reaches the buttons. Asked after layout, so it wins over the button's own initial focus.
+    val notesFocus = remember { FocusRequester() }
+    LaunchedEffect(scrollable) {
+        if (scrollable) {
+            withFrameNanos { }
+            notesFocus.requestFocus()
+        }
+    }
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .focusRequester(notesFocus)
             .background(colors.dialogInset, TwiShapes.NotesCard)
             .focusRing(focusProgress, colors.primary, TwiShapes.NotesCard, TwiDimens.FocusBorderWidth)
             .onPreviewKeyEvent { event ->

@@ -46,6 +46,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -209,6 +210,7 @@ private fun SidebarPanelBackground(state: SidebarState) {
                 val hiddenWidth = (TwiDimens.SidebarExpandedWidth - TwiDimens.SidebarCollapsedWidth).toPx()
                 translationX = -hiddenWidth * (1f - state.expandProgress)
             }
+            .then(if (effects) Modifier.backdropSlice(RectangleShape) else Modifier)
             .drawBehind {
                 val fraction = state.expandProgress
                 val lineWidth = TwiDimens.OutlineWidth.toPx()

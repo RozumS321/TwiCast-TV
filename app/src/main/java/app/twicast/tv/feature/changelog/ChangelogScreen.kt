@@ -74,7 +74,7 @@ fun ChangelogScreen(
         when (state) {
             ChangelogUiState.Loading -> ChangelogSkeleton()
             is ChangelogUiState.Error -> ErrorState(appErrorMessage(state.error), onRetry, Modifier.fillMaxSize())
-            is ChangelogUiState.Content -> KeepFocusedVisibleScroll { ReleaseList(state, focusFirst = state.newer == null) }
+            is ChangelogUiState.Content -> KeepFocusedVisibleScroll { ReleaseList(state, focusFirst = true) }
         }
     }
 }
@@ -109,7 +109,6 @@ private fun Header(state: ChangelogUiState, onUpdate: (AppRelease) -> Unit) {
                 text = stringResource(R.string.changelog_update, newer.versionName),
                 onClick = { onUpdate(newer) },
                 icon = TwiIcons.ArrowUp,
-                modifier = Modifier.requestInitialFocus(),
             )
         }
     }

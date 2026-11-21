@@ -2,10 +2,6 @@ package app.twicast.tv.feature.home.components
 
 import app.twicast.tv.core.designsystem.component.twiSurface
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -33,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -64,9 +59,6 @@ private val GlassPadding = 28.dp
 private val LampSize = 8.dp
 private val HeroAvatarSize = 40.dp
 private const val UptimeTickMillis = 1_000L
-/** "Эффекты интерфейса": the preview slowly drifts closer, like a stream that is playing. */
-private const val PreviewZoom = 1.06f
-private const val PreviewZoomMillis = 9_000
 private const val PreviewShadeAlpha = 0.45f
 
 /**
@@ -81,7 +73,7 @@ fun HomeHero(stream: Stream, onWatch: () -> Unit, onChannel: () -> Unit, modifie
         horizontalArrangement = Arrangement.spacedBy(ContentGap),
         modifier = modifier.fillMaxWidth(),
     ) {
-        HeroPreview(stream, effects)
+        HeroPreview(stream)
         AnimatedContent(
             targetState = stream,
             contentKey = { it.id },
@@ -102,13 +94,7 @@ fun HomeHero(stream: Stream, onWatch: () -> Unit, onChannel: () -> Unit, modifie
 }
 
 @Composable
-private fun HeroPreview(stream: Stream, effects: Boolean) {
-    val zoom = if (effects) {
-        val transition = rememberInfiniteTransition(label = "hero-zoom")
-        transition.animateFloat(1f, PreviewZoom, infiniteRepeatable(tween(PreviewZoomMillis, easing = TwiMotion.Decelerate), RepeatMode.Reverse), label = "zoom")
-    } else {
-        null
-    }
+private fun HeroPreview(stream: Stream) {
     Box(
         Modifier
             .size(PreviewWidth, PreviewWidth / TwiAspect.Thumbnail)
@@ -120,13 +106,7 @@ private fun HeroPreview(stream: Stream, effects: Boolean) {
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .fillMaxSize()
-                // Read in the draw phase only: the slow zoom never recomposes the hero.
-                .graphicsLayer {
-                    val scale = zoom?.value ?: 1f
-                    scaleX = scale
-                    scaleY = scale
-                },
+                .fillMaxSize(),
         )
         Box(
             Modifier

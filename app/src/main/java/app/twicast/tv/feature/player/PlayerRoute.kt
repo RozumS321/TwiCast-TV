@@ -1,5 +1,7 @@
 package app.twicast.tv.feature.player
 
+import androidx.compose.runtime.DisposableEffect
+import app.twicast.tv.core.designsystem.component.LocalEmberBackdrop
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,6 +26,12 @@ import app.twicast.tv.feature.player.components.VideoQuality
 fun PlayerRoute(onClose: () -> Unit, onOpenChannel: (String) -> Unit, viewModel: PlayerViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    // The video covers the whole screen: the effects background stops animating and blurring underneath.
+    val backdrop = LocalEmberBackdrop.current
+    DisposableEffect(backdrop) {
+        backdrop?.coveredByVideo = true
+        onDispose { backdrop?.coveredByVideo = false }
+    }
     // Weak TV boxes run the embed close to the memory limit: drop decoded thumbnails while it plays
     // (they come back from the disk cache).
     LaunchedEffect(Unit) {
