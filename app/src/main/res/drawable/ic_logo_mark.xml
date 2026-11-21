@@ -1,28 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Brand mark "Уголёк" (canvas: "Логотип · варианты", D): a coral play that smoulders on a dark tile.
-     Fixed brand colors, not theme tokens. The glow is a radial gradient: vectors have no blur. -->
+<!-- Brand mark: a coral "play" on a dark tile, flat and static. Fixed brand colors, not theme tokens. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="48dp"
     android:height="48dp"
     android:viewportWidth="48"
     android:viewportHeight="48">
-    <path android:pathData="M12,0h24a12,12 0,0 1,12 12v24a12,12 0,0 1,-12 12h-24a12,12 0,0 1,-12 -12v-24a12,12 0,0 1,12 -12z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:type="radial"
-                android:centerX="25"
-                android:centerY="24"
-                android:gradientRadius="26"
-                android:startColor="#66FF7A59"
-                android:centerColor="#1FFF7A59"
-                android:endColor="#00141415" />
-        </aapt:attr>
-    </path>
+    <path
+        android:fillColor="#1F1F22"
+        android:pathData="M12,0h24a12,12 0,0 1,12 12v24a12,12 0,0 1,-12 12h-24a12,12 0,0 1,-12 -12v-24a12,12 0,0 1,12 -12z" />
     <path
         android:fillColor="#FF7A59"
-        android:strokeColor="#FFB59F"
-        android:strokeWidth="1"
+        android:strokeColor="#FF7A59"
+        android:strokeWidth="2.5"
         android:strokeLineJoin="round"
-        android:pathData="M18,13.5v21l17,-10.5z" />
+        android:pathData="M19,15v18l14,-9z" />
 </vector>
