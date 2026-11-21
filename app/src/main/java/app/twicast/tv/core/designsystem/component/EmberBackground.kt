@@ -98,16 +98,17 @@ private const val StartDelayMillis = 3_000L
 
 /** How far the light from above drifts sideways over a loop, as a share of the width. */
 private const val TopDrift = 0.08f
-private const val TopAlpha = 0.42f
+private const val TopAlpha = 0.75f
 
 private fun DrawScope.drawTopGlow(tokens: TwiEffectsTokens, wave: Float) {
-    val radius = size.height * 0.85f
-    val center = Offset(size.width * (0.55f + TopDrift * wave), -size.height * 0.28f)
+    val radius = size.height * 1.05f
+    val center = Offset(size.width * (0.55f + TopDrift * wave), -size.height * 0.12f)
     drawCircle(
         brush = Brush.radialGradient(
-            0f to tokens.emberMid.copy(alpha = 0.9f),
-            0.4f to tokens.emberEdge.copy(alpha = 0.45f),
-            0.75f to Color.Transparent,
+            0f to tokens.emberCore.copy(alpha = 0.75f),
+            0.3f to tokens.emberMid.copy(alpha = 0.55f),
+            0.55f to tokens.emberEdge.copy(alpha = 0.3f),
+            0.8f to Color.Transparent,
             center = center,
             radius = radius,
         ),
