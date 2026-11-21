@@ -76,6 +76,8 @@ fun EmberBackground(modifier: Modifier = Modifier) {
                     drawBloom(tokens, wave(t), centerX = size.width * 0.45f, radius = size.height * 0.95f)
                     // A smaller bloom on the right, half a loop apart: the light never pulses as one block.
                     drawBloom(tokens, wave(t + 0.5f), centerX = size.width * 0.96f, radius = size.height * 0.62f, strength = 0.75f)
+                    // Soft warm light from above (canvas: "Главная · эффекты"): the room is lit, not only the floor.
+                    drawTopGlow(tokens, wave(t + 0.25f))
                 },
         )
         // Grain is drawn once into its own layer and only composited afterwards.
@@ -93,6 +95,27 @@ fun EmberBackground(modifier: Modifier = Modifier) {
 
 private const val MillisPerSecond = 1000
 private const val StartDelayMillis = 3_000L
+
+/** How far the light from above drifts sideways over a loop, as a share of the width. */
+private const val TopDrift = 0.08f
+private const val TopAlpha = 0.42f
+
+private fun DrawScope.drawTopGlow(tokens: TwiEffectsTokens, wave: Float) {
+    val radius = size.height * 0.85f
+    val center = Offset(size.width * (0.55f + TopDrift * wave), -size.height * 0.28f)
+    drawCircle(
+        brush = Brush.radialGradient(
+            0f to tokens.emberMid.copy(alpha = 0.9f),
+            0.4f to tokens.emberEdge.copy(alpha = 0.45f),
+            0.75f to Color.Transparent,
+            center = center,
+            radius = radius,
+        ),
+        radius = radius,
+        center = center,
+        alpha = TopAlpha * (0.8f + 0.2f * wave),
+    )
+}
 
 /** 0 → 1 → 0 over one loop, eased at both ends. */
 private fun wave(t: Float): Float = ((1 - cos(2 * PI * (t % 1f))) / 2).toFloat()
