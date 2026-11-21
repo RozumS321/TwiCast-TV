@@ -114,7 +114,7 @@ fun TwiIconButton(
 private fun Modifier.outlinedSurface(focusProgress: FocusProgress): Modifier {
     val colors = TwiTheme.colors
     return focusTransform(focusProgress, TwiScale.ButtonFocused, TwiShapes.Button)
-        .background(colors.surface, TwiShapes.Button)
+        .twiSurface(TwiShapes.Button)
         .border(TwiDimens.OutlineWidth, colors.outline, TwiShapes.Button)
         .focusRing(focusProgress, colors.primary, TwiShapes.Button, TwiDimens.FocusBorderWidth)
 }

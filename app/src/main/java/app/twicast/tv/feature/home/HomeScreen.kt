@@ -106,7 +106,8 @@ private fun HomeContent(
         item(key = "header", contentType = ContentType.HEADER) {
             Column(
                 horizontalAlignment = Alignment.End,
-                modifier = Modifier.padding(start = TwiDimens.ContentStartPadding, end = TwiDimens.ContentEndPadding, bottom = TwiDimens.HeroBottomSpacing),
+                // Focus on the hero's buttons (Up from the first row) brings the whole list back to the very top.
+                modifier = Modifier.scrollToTopOnFocus(listState, scope).padding(start = TwiDimens.ContentStartPadding, end = TwiDimens.ContentEndPadding, bottom = TwiDimens.HeroBottomSpacing),
             ) {
                 // A guest (mockup "Главная · гость"): a quiet line on what signing in gives.
                 if (state.guest) SignInBanner(onSignIn, Modifier.padding(bottom = TwiDimens.HomeSectionSpacing))

@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.settings.components
 
+import app.twicast.tv.core.designsystem.component.twiSurface
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -107,7 +108,7 @@ fun AboutSection(versionName: String) {
             horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChipSpacing),
             modifier = Modifier
                 .width(TwiDimens.SettingsToggleWidth)
-                .background(colors.surface, TwiShapes.SettingsToggle)
+                .twiSurface(TwiShapes.SettingsToggle)
                 .padding(horizontal = TwiDimens.SettingsToggleHorizontalPadding, vertical = TwiDimens.SettingsToggleVerticalPadding),
         ) {
             Image(
@@ -238,7 +239,7 @@ private fun SwitchCard(
             .width(width)
             .graphicsLayer { alpha = if (enabled) 1f else DisabledAlpha }
             .focusTransform(focusProgress, TwiScale.ButtonFocused, TwiShapes.SettingsToggle)
-            .background(colors.surface, TwiShapes.SettingsToggle)
+            .twiSurface(TwiShapes.SettingsToggle)
             .focusRing(focusProgress, colors.primary, TwiShapes.SettingsToggle, TwiDimens.FocusBorderWidth)
             .trackFocus(focusProgress)
             .clickable(interactionSource = interactionSource, indication = null, enabled = enabled, onClick = onToggle)

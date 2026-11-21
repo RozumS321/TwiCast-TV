@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.following.components
 
+import app.twicast.tv.core.designsystem.component.twiSurface
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -67,7 +68,7 @@ fun ChannelCard(
                 shadowElevation = TwiDimens.FocusShadowElevation,
                 shadowColor = colors.primary,
             )
-            .background(colors.surface, TwiShapes.ChannelCard)
+            .twiSurface(TwiShapes.ChannelCard)
             .border(TwiDimens.OutlineWidth, colors.outlineVariant, TwiShapes.ChannelCard)
             .focusRing(focusProgress, colors.primary, TwiShapes.ChannelCard, TwiDimens.FocusBorderWidth)
             .trackFocus(focusProgress)

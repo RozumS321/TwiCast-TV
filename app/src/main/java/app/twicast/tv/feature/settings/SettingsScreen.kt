@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.settings
 
+import app.twicast.tv.core.designsystem.component.twiSurface
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.background
@@ -165,7 +166,7 @@ private fun PlayerCard(option: PlayerOption, selected: Boolean, onClick: () -> U
                 shadowElevation = TwiDimens.FocusShadowElevation,
                 shadowColor = colors.primary,
             )
-            .background(colors.surface, TwiShapes.Banner)
+            .twiSurface(TwiShapes.Banner)
             // Selected is not focused: no accent border here (that is the focus ring's look), only the filled radio.
             .border(TwiDimens.OutlineWidth, colors.outlineVariant, TwiShapes.Banner)
             .focusRing(focusProgress, colors.primary, TwiShapes.Banner, TwiDimens.FocusBorderWidth)

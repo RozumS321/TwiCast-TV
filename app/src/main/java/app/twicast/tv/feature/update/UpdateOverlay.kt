@@ -93,7 +93,7 @@ fun UpdateOverlay(state: UpdateUiState, actions: UpdateActions, modifier: Modifi
                     shape = TwiShapes.Panel
                     shadowElevation = TwiDimens.LoginPanelShadowElevation.toPx()
                 }
-                .background(TwiTheme.colors.surface, TwiShapes.Panel)
+                .background(TwiTheme.colors.dialog, TwiShapes.Panel)
                 // The app behind stays visible but unreachable while the panel is up.
                 .focusProperties { onExit = { cancelFocusChange() } }
                 .focusGroup()
@@ -184,7 +184,7 @@ private fun NotesList(release: AppRelease, modifier: Modifier) {
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .background(colors.background, TwiShapes.NotesCard)
+            .background(colors.dialogInset, TwiShapes.NotesCard)
             .focusRing(focusProgress, colors.primary, TwiShapes.NotesCard, TwiDimens.FocusBorderWidth)
             .onPreviewKeyEvent { event ->
                 if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
@@ -214,7 +214,7 @@ private fun NotesList(release: AppRelease, modifier: Modifier) {
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .height(TwiDimens.NotesFadeHeight)
-                    .background(Brush.verticalGradient(listOf(Color.Transparent, colors.background)), TwiShapes.NotesCard),
+                    .background(Brush.verticalGradient(listOf(Color.Transparent, colors.dialogInset)), TwiShapes.NotesCard),
             )
         }
     }

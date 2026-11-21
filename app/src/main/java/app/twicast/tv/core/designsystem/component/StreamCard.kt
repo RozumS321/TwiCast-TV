@@ -1,5 +1,7 @@
 package app.twicast.tv.core.designsystem.component
 
+import androidx.compose.ui.graphics.Color
+import app.twicast.tv.core.designsystem.theme.GeistMono
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -85,18 +87,19 @@ fun StreamCard(
             .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
             .padding(bottom = spacing),
     ) {
-        StreamThumbnail(thumbnailUrl, viewerCountText, live, watchedFraction, uptimeText)
-        StreamCardInfo(title, subtitle, avatarUrl.takeIf { showAvatar }, dense, avatarRing, showAvatar)
+        // Mockup "Главная": a quiet card — a small live lamp and the time in the corner of the preview, the viewers
+        // under it with the category. A recording shows its length (or time left) in that corner instead.
+        StreamThumbnail(thumbnailUrl, live, watchedFraction, cornerText = uptimeText ?: viewerCountText.takeIf { !live })
+        StreamCardInfo(title, subtitle, viewerCountText.takeIf { live }, avatarUrl.takeIf { showAvatar }, dense, avatarRing, showAvatar)
     }
 }
 
 @Composable
 private fun StreamThumbnail(
     thumbnailUrl: String?,
-    viewerCountText: String,
     live: Boolean,
     watchedFraction: Float?,
-    uptimeText: String?,
+    cornerText: String?,
 ) {
     Box(
         modifier = Modifier
@@ -113,11 +116,12 @@ private fun StreamThumbnail(
                 modifier = Modifier.fillMaxSize(),
             )
         }
-        if (live) LiveBadge(Modifier.align(Alignment.TopStart).padding(TwiDimens.BadgeInset))
+        if (live) LiveLamp(Modifier.align(Alignment.TopStart).padding(TwiDimens.BadgeInset))
         // Above the watched strip, when there is one.
         val badgeLift = if (watchedFraction != null) TwiDimens.WatchedStripHeight else 0.dp
-        ViewerCountBadge(viewerCountText, Modifier.align(Alignment.BottomStart).padding(TwiDimens.BadgeInset).padding(bottom = badgeLift))
-        if (uptimeText != null) ViewerCountBadge(uptimeText, Modifier.align(Alignment.BottomEnd).padding(TwiDimens.BadgeInset))
+        if (cornerText != null) {
+            TimeBadge(cornerText, Modifier.align(Alignment.BottomEnd).padding(TwiDimens.BadgeInset).padding(bottom = badgeLift))
+        }
         if (watchedFraction != null) {
             val colors = TwiTheme.colors
             Box(
@@ -137,6 +141,7 @@ private fun StreamThumbnail(
 private fun StreamCardInfo(
     title: String,
     subtitle: String,
+    viewers: String?,
     avatarUrl: String?,
     dense: Boolean,
     avatarRing: Boolean,
@@ -158,13 +163,24 @@ private fun StreamCardInfo(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Text(
-                text = subtitle,
-                style = if (dense) TwiTheme.typography.captionDense else TwiTheme.typography.caption,
-                color = TwiTheme.colors.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.CardMetaGap)) {
+                Text(
+                    text = subtitle,
+                    style = if (dense) TwiTheme.typography.captionDense else TwiTheme.typography.caption,
+                    color = TwiTheme.colors.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                if (viewers != null) {
+                    Text(
+                        text = viewers,
+                        style = (if (dense) TwiTheme.typography.captionDense else TwiTheme.typography.caption).copy(fontFeatureSettings = "tnum"),
+                        color = TwiTheme.colors.onSurfaceFaint,
+                        maxLines = 1,
+                    )
+                }
+            }
         }
     }
 }
@@ -202,3 +218,31 @@ fun Avatar(imageUrl: String?, size: Dp, modifier: Modifier = Modifier) {
         }
     }
 }
+
+/** The "в эфире" lamp on a preview: a small red dot with a dark rim so it reads on any picture. */
+@Composable
+private fun LiveLamp(modifier: Modifier = Modifier) {
+    Box(
+        modifier
+            .size(TwiDimens.LiveLampSize + TwiDimens.LiveLampRim * 2)
+            .background(LampRim, CircleShape)
+            .padding(TwiDimens.LiveLampRim)
+            .background(TwiTheme.colors.live, CircleShape),
+    )
+}
+
+/** "3:12" / "1:12 осталось" in the corner of a preview, figures of one width. */
+@Composable
+private fun TimeBadge(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text = text,
+        style = TwiTheme.typography.captionDense.copy(fontFamily = GeistMono),
+        color = TwiTheme.colors.onOverlay,
+        maxLines = 1,
+        modifier = modifier
+            .background(TwiTheme.colors.overlay, TwiShapes.Badge)
+            .padding(horizontal = TwiDimens.TimeBadgeHorizontalPadding, vertical = TwiDimens.TimeBadgeVerticalPadding),
+    )
+}
+
+private val LampRim = Color(0x59000000)

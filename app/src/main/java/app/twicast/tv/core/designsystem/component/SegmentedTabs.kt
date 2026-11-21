@@ -33,7 +33,7 @@ fun SegmentedTabs(
     Row(
         horizontalArrangement = Arrangement.spacedBy(TwiDimens.SegmentedPadding),
         modifier = modifier
-            .background(colors.surface, TwiShapes.Segmented)
+            .twiSurface(TwiShapes.Segmented)
             .border(TwiDimens.OutlineWidth, colors.outlineVariant, TwiShapes.Segmented)
             .padding(TwiDimens.SegmentedPadding),
     ) {

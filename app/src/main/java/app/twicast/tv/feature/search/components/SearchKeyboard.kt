@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.search.components
 
+import app.twicast.tv.core.designsystem.component.twiSurface
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -70,7 +71,7 @@ fun QueryField(query: String, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .height(TwiDimens.QueryFieldHeight)
-            .background(colors.surface, TwiShapes.QueryField)
+            .twiSurface(TwiShapes.QueryField)
             .border(TwiDimens.QueryFieldRing, colors.primary, TwiShapes.QueryField)
             .padding(horizontal = TwiDimens.QueryFieldPadding),
     ) {

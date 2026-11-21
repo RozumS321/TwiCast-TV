@@ -1,5 +1,8 @@
 package app.twicast.tv.core.designsystem.component
 
+import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.ShaderBrush
+import androidx.compose.ui.graphics.ImageShader
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.text.style.LineHeightStyle
@@ -184,6 +187,8 @@ private fun SidebarPanelBackground(state: SidebarState) {
     val colors = TwiTheme.colors
     val effects = TwiTheme.effects
     val shadowColor = colors.shadow
+    // Frosted glass is matte: the same film grain as the background, inside the panel.
+    val grainBrush = remember { ShaderBrush(ImageShader(grainBitmap(), TileMode.Repeated, TileMode.Repeated)) }
     Box(
         Modifier
             .fillMaxSize()
@@ -192,11 +197,19 @@ private fun SidebarPanelBackground(state: SidebarState) {
                 translationX = -hiddenWidth * (1f - state.expandProgress)
             }
             .drawBehind {
-                // Over the effects background glass must still read as a panel: the dense glass, not card glass.
-                drawRect(if (effects) colors.surfaceOverlay else colors.surface)
-                val lineWidth = TwiDimens.OutlineWidth.toPx()
-                drawRect(colors.outlineVariant, Offset(size.width - lineWidth, 0f), Size(lineWidth, size.height))
                 val fraction = state.expandProgress
+                val lineWidth = TwiDimens.OutlineWidth.toPx()
+                if (effects) {
+                    // Glass (canvas: "Стекло"): the light shows through the rail; opened over the screen it gets
+                    // denser so the content below does not compete with the labels. Grain and a hairline rim.
+                    drawRect(Color.White.copy(alpha = SidebarFrostAlpha))
+                    if (fraction > 0f) drawRect(SidebarGlass.copy(alpha = SidebarGlassOpenAlpha * fraction))
+                    drawRect(grainBrush, alpha = SidebarGrainAlpha)
+                    drawRect(Color.White.copy(alpha = SidebarRimAlpha), Offset(size.width - lineWidth, 0f), Size(lineWidth, size.height))
+                } else {
+                    drawRect(colors.surface)
+                    drawRect(colors.outlineVariant, Offset(size.width - lineWidth, 0f), Size(lineWidth, size.height))
+                }
                 if (fraction > 0f && TwiThemeConfig.focus.shadows) {
                     // Cheap edge shadow: a short gradient instead of a blurred shadow.
                     val shadowWidth = TwiDimens.SidebarEdgeShadowWidth.toPx()
@@ -217,6 +230,14 @@ private fun SidebarPanelBackground(state: SidebarState) {
 
 private const val EdgeShadowAlpha = 0.12f
 
+private val SidebarGlass = Color(0xFF1C1B1F)
+/** Collapsed: frost the background's light passes through. */
+private const val SidebarFrostAlpha = 0.09f
+/** Opened over the screen: darker, so the labels read over whatever is below. */
+private const val SidebarGlassOpenAlpha = 0.86f
+private const val SidebarRimAlpha = 0.10f
+private const val SidebarGrainAlpha = 0.06f
+
 private val NavigationItemShape = RoundedCornerShape(TwiDimens.NavigationItemRadius)
 
 /** Brand mark "Две сферы" in the icon column; the wordmark Twi·Cast fades in with the item labels. Not focusable. */
@@ -234,7 +255,7 @@ private fun SidebarLogo(state: SidebarState, modifier: Modifier = Modifier) {
             Image(
                 painter = painterResource(R.drawable.ic_logo_mark),
                 contentDescription = null,
-                modifier = Modifier.size(TwiDimens.LogoMarkSize).emberGlow(),
+                modifier = Modifier.size(TwiDimens.LogoMarkSize),
             )
         }
         Text(

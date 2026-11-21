@@ -67,7 +67,7 @@ fun LoginScreen(
                     shape = TwiShapes.Panel
                     shadowElevation = TwiDimens.LoginPanelShadowElevation.toPx()
                 }
-                .background(TwiTheme.colors.surface, TwiShapes.Panel)
+                .background(TwiTheme.colors.dialog, TwiShapes.Panel)
                 .padding(horizontal = TwiDimens.LoginPanelHorizontalPadding, vertical = TwiDimens.LoginPanelVerticalPadding),
         ) {
             Column(

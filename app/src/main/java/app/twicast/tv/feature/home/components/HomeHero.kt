@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.home.components
 
+import app.twicast.tv.core.designsystem.component.twiSurface
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -147,7 +148,7 @@ private fun HeroInfo(stream: Stream, effects: Boolean, onWatch: () -> Unit, onCh
     Column(
         verticalArrangement = Arrangement.spacedBy(InfoSpacing),
         modifier = if (effects) {
-            Modifier.fillMaxWidth().background(colors.surface, TwiShapes.Panel).padding(GlassPadding)
+            Modifier.fillMaxWidth().twiSurface(TwiShapes.Panel).padding(GlassPadding)
         } else {
             Modifier.fillMaxWidth()
         },

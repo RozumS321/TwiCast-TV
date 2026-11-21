@@ -64,7 +64,7 @@ fun ProfileScreen(
                     shape = TwiShapes.Panel
                     shadowElevation = TwiDimens.LoginPanelShadowElevation.toPx()
                 }
-                .background(TwiTheme.colors.surface, TwiShapes.Panel)
+                .background(TwiTheme.colors.dialog, TwiShapes.Panel)
                 .padding(
                     start = TwiDimens.UpdatePanelHorizontalPadding,
                     end = TwiDimens.UpdatePanelHorizontalPadding,
@@ -127,7 +127,7 @@ private fun ProfileAvatar(state: ProfileUiState) {
 private fun Stat(value: Int?, label: String, modifier: Modifier) {
     Column(
         modifier = modifier
-            .background(TwiTheme.colors.background, TwiShapes.Button)
+            .background(TwiTheme.colors.dialogInset, TwiShapes.Button)
             .padding(horizontal = TwiDimens.ProfileStatSidePadding, vertical = TwiDimens.ProfileStatPadding),
     ) {
         Text(value?.toString() ?: NoValue, style = TwiTheme.typography.statValue, color = TwiTheme.colors.onSurface)

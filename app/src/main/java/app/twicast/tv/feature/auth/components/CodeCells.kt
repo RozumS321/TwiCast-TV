@@ -47,7 +47,7 @@ private fun CodeCell(character: Char) {
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .size(TwiDimens.CodeCellWidth, TwiDimens.CodeCellHeight)
-            .background(TwiTheme.colors.background, TwiShapes.CodeCell)
+            .background(TwiTheme.colors.dialogInset, TwiShapes.CodeCell)
             .border(TwiDimens.OutlineWidth, TwiTheme.colors.outline, TwiShapes.CodeCell),
     ) {
         Text(character.toString(), style = TwiTheme.typography.codeCharacter, color = TwiTheme.colors.onSurface)
