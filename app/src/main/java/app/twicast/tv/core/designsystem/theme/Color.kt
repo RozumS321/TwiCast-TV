@@ -53,6 +53,10 @@ data class TwiColorScheme(
     val inverseOnSurface: Color,
     /** Soft shadows drawn by hand (sidebar edge): a light-text color would glow instead of shade. */
     val shadow: Color,
+    /** Dialogs and panels with text to read (update, sign-in, QR): always solid, even with glass effects. */
+    val dialog: Color = surface,
+    /** A block inside a dialog (release notes): one step off [dialog], solid too. */
+    val dialogInset: Color = background,
 )
 
 /** Semantic tokens from one palette of [TwiThemeConfig]: screens never see the palette itself. */
@@ -98,9 +102,14 @@ fun TwiColorScheme.withGlass(tokens: TwiEffectsTokens) = copy(
     outline = White.copy(alpha = tokens.glassRimAlpha),
     outlineVariant = White.copy(alpha = tokens.glassRimAlpha),
     surfaceOverlay = GlassTint.copy(alpha = DenseGlassAlpha),
+    // Glass behind a dialog would let the screen show through its text: dialogs stay solid.
+    dialog = GlassDialog,
+    dialogInset = GlassDialogInset,
 )
 
 private val GlassTint = Color(0xFF1E1E22)
+private val GlassDialog = Color(0xFF1A1A1D)
+private val GlassDialogInset = Color(0xFF232326)
 private const val GlassRaisedAlpha = 0.10f
 /** Sidebar and panels over the effects background: glass, but dense enough to read as a surface. */
 private const val DenseGlassAlpha = 0.94f

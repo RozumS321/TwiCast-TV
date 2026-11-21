@@ -48,7 +48,7 @@ fun FollowQrDialog(login: String, displayName: String, followed: Boolean, onDone
                     shape = TwiShapes.Panel
                     shadowElevation = TwiDimens.LoginPanelShadowElevation.toPx()
                 }
-                .background(colors.surface, TwiShapes.Panel)
+                .background(colors.dialog, TwiShapes.Panel)
                 .padding(horizontal = TwiDimens.LoginPanelHorizontalPadding, vertical = TwiDimens.LoginPanelVerticalPadding),
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(TwiDimens.LoginBlockSpacing), modifier = Modifier.weight(1f)) {
