@@ -166,7 +166,8 @@ private fun PlayerCard(option: PlayerOption, selected: Boolean, onClick: () -> U
                 shadowColor = colors.primary,
             )
             .background(colors.surface, TwiShapes.Banner)
-            .border(TwiDimens.OutlineWidth, if (selected) colors.primary else colors.outlineVariant, TwiShapes.Banner)
+            // Selected is not focused: no accent border here (that is the focus ring's look), only the filled radio.
+            .border(TwiDimens.OutlineWidth, colors.outlineVariant, TwiShapes.Banner)
             .focusRing(focusProgress, colors.primary, TwiShapes.Banner, TwiDimens.FocusBorderWidth)
             .trackFocus(focusProgress)
             .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
@@ -180,9 +181,10 @@ private fun PlayerCard(option: PlayerOption, selected: Boolean, onClick: () -> U
         Text(
             stringResource(option.tag),
             style = TwiTheme.typography.tagDense,
-            color = if (recommended) colors.primaryStrong else colors.onSurfaceVariant,
+            // A quiet tag: an accent here would read as focus too.
+            color = if (recommended) colors.onSurface else colors.onSurfaceVariant,
             modifier = Modifier
-                .background(if (recommended) colors.primaryContainer else colors.background, TwiShapes.Pill)
+                .background(colors.surfaceVariant, TwiShapes.Badge)
                 .padding(horizontal = TwiDimens.BadgePillHorizontalPadding, vertical = TwiDimens.BadgePillVerticalPadding),
         )
         Text(stringResource(option.text), style = TwiTheme.typography.body, color = colors.onSurfaceSecondary)
@@ -197,8 +199,8 @@ private fun RadioMark(selected: Boolean) {
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .size(TwiDimens.SettingsRadioSize)
-            .border(TwiDimens.SettingsRadioBorder, if (selected) colors.primary else colors.onSurfaceFaint, CircleShape),
+            .border(TwiDimens.SettingsRadioBorder, if (selected) colors.onSurface else colors.onSurfaceFaint, CircleShape),
     ) {
-        if (selected) Box(Modifier.size(TwiDimens.SettingsRadioDot).background(colors.primary, CircleShape))
+        if (selected) Box(Modifier.size(TwiDimens.SettingsRadioDot).background(colors.onSurface, CircleShape))
     }
 }

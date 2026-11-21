@@ -85,16 +85,18 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch { optimizationSettings.freeMemoryInBackground.collect { freeMemoryInBackground = it } }
         setContent {
             val themeMode by appearanceSettings.themeMode.collectAsStateWithLifecycle(initialValue = null)
-            val effects by appearanceSettings.effects.collectAsStateWithLifecycle(initialValue = false)
+            val effects by appearanceSettings.effects.collectAsStateWithLifecycle(initialValue = null)
             // Until the choice is read the window background shows: drawing a guessed theme would flash.
             val mode = themeMode ?: return@setContent
+            // Same for the effects: guessing them would flash the plain look before the glass one.
+            val withEffects = effects ?: return@setContent
             LaunchedEffect(mode) { syncSystemNightMode(mode) }
             val darkTheme = when (mode) {
                 ThemeMode.System -> isSystemInDarkTheme()
                 ThemeMode.Light -> false
                 ThemeMode.Dark -> true
             }
-            TwiCastTheme(darkTheme = darkTheme, effects = effects) {
+            TwiCastTheme(darkTheme = darkTheme, effects = withEffects) {
                 // uiMode changes don't recreate the activity, so the XML window background must follow by hand.
                 val background = TwiTheme.colors.background
                 SideEffect { window.setBackgroundDrawable(ColorDrawable(background.toArgb())) }

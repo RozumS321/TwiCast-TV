@@ -20,7 +20,7 @@ interface AppearanceSettingsRepository {
 
     suspend fun setThemeMode(mode: ThemeMode)
 
-    /** "Эффекты интерфейса": living background, glass and richer motion. Off by default: weak TVs stay light. */
+    /** "Эффекты интерфейса": living background, glass and richer motion. On by default; weak TVs can turn it off. */
     val effects: Flow<Boolean>
 
     suspend fun setEffects(enabled: Boolean)
@@ -45,7 +45,7 @@ class DataStoreAppearanceSettingsRepository @Inject constructor(
         dataStore.edit { it[themeModeKey] = mode.name }
     }
 
-    override val effects: Flow<Boolean> = dataStore.data.map { it[effectsKey] ?: false }
+    override val effects: Flow<Boolean> = dataStore.data.map { it[effectsKey] ?: true }
 
     override suspend fun setEffects(enabled: Boolean) {
         dataStore.edit { it[effectsKey] = enabled }
