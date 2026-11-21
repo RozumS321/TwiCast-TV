@@ -1,14 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The brand mark on the graphite background, inside the 66dp safe zone of the 108dp adaptive icon. -->
+<!-- "Уголёк" on the graphite background, inside the 66dp safe zone of the 108dp adaptive icon. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <path android:pathData="M54,20a34,34 0,1 1,0 68a34,34 0,1 1,0 -68z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="55"
+                android:centerY="54"
+                android:gradientRadius="34"
+                android:startColor="#80FF7A59"
+                android:centerColor="#24FF7A59"
+                android:endColor="#00141415" />
+        </aapt:attr>
+    </path>
     <path
-        android:fillColor="#EDEDED"
-        android:pathData="M37,27h34a10,10 0,0 1,10 10v34a10,10 0,0 1,-10 10h-34a10,10 0,0 1,-10 -10v-34a10,10 0,0 1,10 -10z" />
-    <path
-        android:fillColor="#141415"
-        android:pathData="M47,41v26l22,-13z" />
+        android:fillColor="#FF7A59"
+        android:strokeColor="#FFB59F"
+        android:strokeWidth="1.6"
+        android:strokeLineJoin="round"
+        android:pathData="M44,37v34l28,-17z" />
 </vector>
