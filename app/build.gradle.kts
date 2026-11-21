@@ -92,6 +92,13 @@ android {
             // Without the release key (e.g. a fresh clone) the build still installs, signed with the debug key.
             signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
+        // Release code (R8, not debuggable) next to the other builds: frame timings on a TV mean something only here.
+        create("perf") {
+            initWith(getByName("release"))
+            applicationIdSuffix = ".perf"
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += "release"
+        }
     }
 
     compileOptions {
