@@ -4,18 +4,26 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import app.twicast.tv.R
 
-// Plus Jakarta Sans has no Cyrillic glyphs: Russian text falls back to the system font of the same weight.
-val PlusJakartaSans = FontFamily(
-    Font(R.font.plus_jakarta_sans_regular, FontWeight.Normal),
-    Font(R.font.plus_jakarta_sans_medium, FontWeight.Medium),
-    Font(R.font.plus_jakarta_sans_semibold, FontWeight.SemiBold),
-    Font(R.font.plus_jakarta_sans_bold, FontWeight.Bold),
-    Font(R.font.plus_jakarta_sans_extrabold, FontWeight.ExtraBold),
+/** Geist: one family for the whole interface, with Cyrillic and Ukrainian letters. A variable font: 100–900. */
+@OptIn(ExperimentalTextApi::class)
+val Geist = FontFamily(
+    Font(R.font.geist, FontWeight.Normal, variationSettings = FontVariation.Settings(FontVariation.weight(400))),
+    Font(R.font.geist, FontWeight.Medium, variationSettings = FontVariation.Settings(FontVariation.weight(500))),
+    Font(R.font.geist, FontWeight.SemiBold, variationSettings = FontVariation.Settings(FontVariation.weight(600))),
+)
+
+/** Figures that tick: viewers, uptime, time codes, versions, the sign-in code. */
+@OptIn(ExperimentalTextApi::class)
+val GeistMono = FontFamily(
+    Font(R.font.geist_mono, FontWeight.Normal, variationSettings = FontVariation.Settings(FontVariation.weight(400))),
+    Font(R.font.geist_mono, FontWeight.Medium, variationSettings = FontVariation.Settings(FontVariation.weight(500))),
 )
 
 /** Text styles from DESIGN.md. Sizes are in design units (see [TwiCastTheme]). Colors are applied by components. */
@@ -66,12 +74,20 @@ data class TwiTypography(
     val rank: TextStyle,
 )
 
-private fun style(size: Int, weight: FontWeight, letterSpacing: Double = 0.0) = TextStyle(
-    fontFamily = PlusJakartaSans,
+/**
+ * Hierarchy from size and color, not weight: two weights only (unslop). The weights the mockups once asked for
+ * (bold, extra bold) all become medium; negative tracking stays only on large display text.
+ */
+private fun style(size: Int, weight: FontWeight, letterSpacing: Double = 0.0, mono: Boolean = false, figures: Boolean = false) = TextStyle(
+    fontFamily = if (mono) GeistMono else Geist,
+    // Counts and durations: digits of one width, so "18 214" does not jitter as it changes.
+    fontFeatureSettings = if (figures) "tnum" else null,
     fontSize = size.sp,
-    fontWeight = weight,
-    letterSpacing = letterSpacing.em,
+    fontWeight = if (weight >= FontWeight.Medium) FontWeight.Medium else FontWeight.Normal,
+    letterSpacing = if (size >= LargeTextSize) letterSpacing.coerceAtMost(0.0).em else 0.em,
 )
+
+private const val LargeTextSize = 24
 
 val DefaultTwiTypography = TwiTypography(
     screenTitle = style(32, FontWeight.ExtraBold, letterSpacing = -0.02),
@@ -101,20 +117,20 @@ val DefaultTwiTypography = TwiTypography(
     tab = style(14, FontWeight.ExtraBold),
     channelCardName = style(15, FontWeight.ExtraBold),
     channelCardNameCompact = style(13, FontWeight.ExtraBold),
-    liveCount = style(12, FontWeight.Bold),
-    statValue = style(22, FontWeight.ExtraBold),
+    liveCount = style(12, FontWeight.Bold, figures = true),
+    statValue = style(22, FontWeight.ExtraBold, figures = true),
     avatarInitials = style(44, FontWeight.ExtraBold),
     loginTitle = style(32, FontWeight.ExtraBold, letterSpacing = -0.02).copy(lineHeight = 1.15.em),
     stepNumber = style(16, FontWeight.ExtraBold),
     step = style(16, FontWeight.Normal),
     label = style(13, FontWeight.Bold),
     status = style(15, FontWeight.Bold),
-    codeCharacter = style(30, FontWeight.ExtraBold, letterSpacing = 0.02),
+    codeCharacter = style(30, FontWeight.ExtraBold, letterSpacing = 0.02, mono = true),
     codeSeparator = style(28, FontWeight.ExtraBold),
     bodySmall = style(14, FontWeight.Normal),
     badge = style(10, FontWeight.ExtraBold, letterSpacing = 0.04),
     badgeLarge = style(12, FontWeight.ExtraBold, letterSpacing = 0.04),
-    count = style(11, FontWeight.Bold),
-    countLarge = style(13, FontWeight.Bold),
-    rank = style(11, FontWeight.ExtraBold),
+    count = style(11, FontWeight.Bold, figures = true),
+    countLarge = style(13, FontWeight.Bold, figures = true),
+    rank = style(11, FontWeight.ExtraBold, figures = true),
 )

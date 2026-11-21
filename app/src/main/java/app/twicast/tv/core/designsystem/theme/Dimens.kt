@@ -49,7 +49,7 @@ object TwiDimens {
     val AvatarRingWidth = 2.dp
     val BadgeInset = 10.dp
 
-    val FocusBorderWidth = 3.dp
+    val FocusBorderWidth = TwiThemeConfig.focus.ringWidth
     val FocusShadowElevation = 18.dp
     val OutlineWidth = 1.dp
 
@@ -295,37 +295,38 @@ object TwiDimens {
     val ScheduleCardVerticalPadding = 14.dp
 }
 
+/** Corner radii, all from [TwiThemeConfig]: controls 10, cards 14, panels 20 — not everything is a pill. */
 object TwiShapes {
-    val Card = RoundedCornerShape(16.dp)
-    val Thumbnail = RoundedCornerShape(14.dp)
-    val Cover = RoundedCornerShape(14.dp)
-    val Hero = RoundedCornerShape(20.dp)
-    val Button = RoundedCornerShape(16.dp)
-    val Chip = RoundedCornerShape(20.dp)
-    val Badge = RoundedCornerShape(6.dp)
-    val BadgeLarge = RoundedCornerShape(8.dp)
-    val Panel = RoundedCornerShape(28.dp)
+    private val r = TwiThemeConfig.radius
+    val Card = RoundedCornerShape(r.card)
+    val Thumbnail = RoundedCornerShape(r.thumbnail)
+    val Cover = RoundedCornerShape(r.thumbnail)
+    val Hero = RoundedCornerShape(r.card)
+    val Button = RoundedCornerShape(r.button)
+    val Chip = RoundedCornerShape(r.button)
+    val Badge = RoundedCornerShape(r.badge)
+    val BadgeLarge = RoundedCornerShape(r.badge)
+    val Panel = RoundedCornerShape(r.panel)
     val Pill = RoundedCornerShape(percent = 50)
-    val SkeletonLine = RoundedCornerShape(6.dp)
-    val CodeCell = RoundedCornerShape(12.dp)
-    val Qr = RoundedCornerShape(22.dp)
-    val QueryField = RoundedCornerShape(18.dp)
-    val Key = RoundedCornerShape(12.dp)
-    val NotesCard = RoundedCornerShape(18.dp)
-    val Segmented = RoundedCornerShape(18.dp)
-    val SegmentedTab = RoundedCornerShape(13.dp)
-    val ChannelCard = RoundedCornerShape(20.dp)
-    val Banner = RoundedCornerShape(22.dp)
-    val SettingsToggle = RoundedCornerShape(18.dp)
+    val SkeletonLine = RoundedCornerShape(r.badge)
+    val CodeCell = RoundedCornerShape(r.button)
+    val Qr = RoundedCornerShape(r.card)
+    val QueryField = RoundedCornerShape(r.button)
+    val Key = RoundedCornerShape(r.badge)
+    val NotesCard = RoundedCornerShape(r.card)
+    val Segmented = RoundedCornerShape(r.button)
+    val SegmentedTab = RoundedCornerShape(r.badge)
+    val ChannelCard = RoundedCornerShape(r.card)
+    val Banner = RoundedCornerShape(r.card)
+    val SettingsToggle = RoundedCornerShape(r.card)
 }
 
-/** Focus scales. Card scale 1.06 (not 1.08): at 1.08 neighbours in a row overlap. */
 object TwiAspect {
     const val Thumbnail = 16f / 9f
     const val Cover = 3f / 4f
 }
 
 object TwiScale {
-    const val CardFocused = 1.06f
-    const val ButtonFocused = 1.05f
+    val CardFocused = TwiThemeConfig.focus.cardScale
+    val ButtonFocused = TwiThemeConfig.focus.buttonScale
 }

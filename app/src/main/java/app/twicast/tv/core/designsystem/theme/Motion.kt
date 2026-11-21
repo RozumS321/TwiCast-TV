@@ -3,25 +3,25 @@ package app.twicast.tv.core.designsystem.theme
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Easing
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.InfiniteRepeatableSpec
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 
-/** Durations and easings from DESIGN.md. All animated values are applied in the draw phase (graphicsLayer / drawBehind). */
+/** Durations and the easing from [TwiThemeConfig]. All animated values are applied in the draw phase (graphicsLayer / drawBehind). */
 object TwiMotion {
-    const val FocusDurationMillis = 200
-    const val SidebarDurationMillis = 250
+    private val tokens = TwiThemeConfig.motion
+    val FocusDurationMillis = tokens.shortMillis
+    val SidebarDurationMillis = tokens.mediumMillis
     const val SidebarLabelFadeInMillis = 150
     const val SidebarLabelFadeInDelayMillis = 80
     const val SidebarLabelFadeOutMillis = 100
     const val ScreenFadeMillis = 180
     const val SkeletonPulseMillis = 900
 
-    /** Android's DecelerateInterpolator equivalent. */
-    val Decelerate: Easing = CubicBezierEasing(0f, 0f, 0.2f, 1f)
-    val Standard: Easing = FastOutSlowInEasing
+    /** The one curve of [TwiThemeConfig] (fast start, long soft landing). */
+    val Decelerate: Easing = tokens.easing.let { CubicBezierEasing(it.a, it.b, it.c, it.d) }
+    val Standard: Easing = Decelerate
 
     fun <T> focus(): AnimationSpec<T> = tween(FocusDurationMillis, easing = Decelerate)
 

@@ -17,6 +17,7 @@ private const val DesignCanvasWidth = 1280f
 
 private val LocalTwiColors = staticCompositionLocalOf { LightTwiColorScheme }
 private val LocalTwiTypography = staticCompositionLocalOf { DefaultTwiTypography }
+private val LocalTwiEffects = staticCompositionLocalOf { false }
 
 object TwiTheme {
     val colors: TwiColorScheme
@@ -26,6 +27,11 @@ object TwiTheme {
     val typography: TwiTypography
         @Composable @ReadOnlyComposable
         get() = LocalTwiTypography.current
+
+    /** "Эффекты интерфейса" are on: components draw the Ember Bloom background and glass. */
+    val effects: Boolean
+        @Composable @ReadOnlyComposable
+        get() = LocalTwiEffects.current
 }
 
 /**
@@ -35,7 +41,7 @@ object TwiTheme {
  * [darkTheme] is resolved by the caller from the user's choice in Settings.
  */
 @Composable
-fun TwiCastTheme(darkTheme: Boolean, content: @Composable () -> Unit) {
+fun TwiCastTheme(darkTheme: Boolean, effects: Boolean = false, content: @Composable () -> Unit) {
     val colors = if (darkTheme) DarkTwiColorScheme else LightTwiColorScheme
     val windowWidthPx = LocalWindowInfo.current.containerSize.width
     val systemDensity = LocalDensity.current
@@ -70,6 +76,7 @@ fun TwiCastTheme(darkTheme: Boolean, content: @Composable () -> Unit) {
         LocalDensity provides canvasDensity,
         LocalTwiColors provides colors,
         LocalTwiTypography provides DefaultTwiTypography,
+        LocalTwiEffects provides effects,
     ) {
         MaterialTheme(colorScheme = materialColors, content = content)
     }

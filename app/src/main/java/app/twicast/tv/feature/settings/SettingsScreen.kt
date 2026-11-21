@@ -42,6 +42,7 @@ import app.twicast.tv.feature.settings.components.OptimizationSections
 import app.twicast.tv.feature.settings.components.QualitySection
 import app.twicast.tv.feature.settings.components.SettingsMenu
 import app.twicast.tv.feature.settings.components.ThemeSection
+import app.twicast.tv.feature.settings.components.EffectsSection
 
 private class PlayerOption(val engine: PlayerEngine, val title: Int, val tag: Int, val text: Int, val note: Int)
 
@@ -73,6 +74,7 @@ fun SettingsScreen(
     onPlayerSelected: (PlayerEngine) -> Unit,
     onDefaultQualitySelected: (DefaultQuality) -> Unit,
     onThemeSelected: (ThemeMode) -> Unit,
+    onEffectsChanged: (Boolean) -> Unit,
     onLanguageSelected: (AppLanguage) -> Unit,
     onOpenChatChanged: (Boolean) -> Unit,
     onNotifyLiveStartsChanged: (Boolean) -> Unit,
@@ -104,6 +106,7 @@ fun SettingsScreen(
                         ChatSection(state.openChatWithStream, onOpenChatChanged)
                     }
                     SettingsSection.System -> {
+                        EffectsSection(state.effects, onEffectsChanged)
                         ThemeSection(state.themeMode, onThemeSelected)
                         LanguageSection(state.language, state.focusLanguage, onLanguageSelected)
                         NotificationsSection(state.notifyLiveStarts, onNotifyLiveStartsChanged)

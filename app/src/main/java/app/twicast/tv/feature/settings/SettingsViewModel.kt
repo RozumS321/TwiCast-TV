@@ -65,6 +65,7 @@ class SettingsViewModel @Inject constructor(
         .combine(combine(optimization.warmTwitchPlayer, optimization.freeMemoryInBackground, ::Pair)) { state, (warm, free) ->
             state.copy(warmTwitchPlayer = warm, freeMemoryInBackground = free, lowMemory = lowMemory)
         }.combine(settings.notifyLiveStarts) { state, notify -> state.copy(notifyLiveStarts = notify) }
+        .combine(appearance.effects) { state, effects -> state.copy(effects = effects) }
         .stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(StopTimeoutMillis),
@@ -98,6 +99,10 @@ class SettingsViewModel @Inject constructor(
 
     fun onThemeSelected(mode: ThemeMode) {
         viewModelScope.launch { appearance.setThemeMode(mode) }
+    }
+
+    fun onEffectsChanged(enabled: Boolean) {
+        viewModelScope.launch { appearance.setEffects(enabled) }
     }
 
     fun onOpenChatChanged(open: Boolean) {

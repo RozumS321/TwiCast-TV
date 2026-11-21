@@ -123,6 +123,21 @@ fun AboutSection(versionName: String) {
     }
 }
 
+/** "Интерфейс": "Эффекты интерфейса" — living background and glass, off by default for weak TVs. */
+@Composable
+fun EffectsSection(effects: Boolean?, onEffectsChanged: (Boolean) -> Unit) {
+    SettingsSection(R.string.settings_interface, hint = null) {
+        if (effects == null) return@SettingsSection
+        SwitchCard(
+            title = stringResource(R.string.settings_effects),
+            text = stringResource(R.string.settings_effects_hint),
+            checked = effects,
+            width = TwiDimens.SettingsWideToggleWidth,
+            onToggle = { onEffectsChanged(!effects) },
+        )
+    }
+}
+
 /** "Уведомления": "Сообщать о начале эфиров" — system notifications, checked in the background. */
 @Composable
 fun NotificationsSection(notify: Boolean?, onNotifyChanged: (Boolean) -> Unit) {
