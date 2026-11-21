@@ -11,12 +11,16 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.Dp
@@ -90,17 +94,37 @@ fun Modifier.focusBackground(progress: FocusProgress, color: Color, shape: Shape
 /** Ring of [width] drawn just outside the bounds (like CSS `box-shadow: 0 0 0 3px`), fading in with focus. */
 fun Modifier.focusRing(progress: FocusProgress, color: Color, shape: Shape, width: Dp): Modifier = drawWithCache {
     val strokeWidth = width.toPx()
-    val ringSize = Size(size.width + strokeWidth, size.height + strokeWidth)
-    val outline = shape.createOutline(ringSize, layoutDirection, this)
+    val half = strokeWidth / 2f
+    // The stroke's centre line sits half a stroke outside the bounds; its corners grow by the same amount,
+    // so the ring stays concentric with the element instead of pinching at the corners.
+    val outline = when (val inner = shape.createOutline(size, layoutDirection, this)) {
+        is Outline.Rounded -> Outline.Rounded(inner.roundRect.grow(half))
+        is Outline.Rectangle -> Outline.Rectangle(inner.rect.inflate(half))
+        is Outline.Generic -> {
+            val grown = shape.createOutline(Size(size.width + strokeWidth, size.height + strokeWidth), layoutDirection, this)
+            Outline.Generic(Path().apply { addPath(grown.toPath(), Offset(-half, -half)) })
+        }
+    }
     val stroke = Stroke(strokeWidth)
-    val shift = -strokeWidth / 2f
     onDrawWithContent {
         drawContent()
         val fraction = progress.value
-        if (fraction > 0f) {
-            translate(shift, shift) { drawOutline(outline, color, alpha = fraction, style = stroke) }
-        }
+        if (fraction > 0f) drawOutline(outline, color, alpha = fraction, style = stroke)
     }
+}
+
+private fun RoundRect.grow(d: Float): RoundRect = RoundRect(
+    left = left - d, top = top - d, right = right + d, bottom = bottom + d,
+    topLeftCornerRadius = CornerRadius(topLeftCornerRadius.x + d, topLeftCornerRadius.y + d),
+    topRightCornerRadius = CornerRadius(topRightCornerRadius.x + d, topRightCornerRadius.y + d),
+    bottomRightCornerRadius = CornerRadius(bottomRightCornerRadius.x + d, bottomRightCornerRadius.y + d),
+    bottomLeftCornerRadius = CornerRadius(bottomLeftCornerRadius.x + d, bottomLeftCornerRadius.y + d),
+)
+
+private fun Outline.toPath(): Path = when (this) {
+    is Outline.Generic -> path
+    is Outline.Rounded -> Path().apply { addRoundRect(roundRect) }
+    is Outline.Rectangle -> Path().apply { addRect(rect) }
 }
 
 /** Focuses this element once it enters composition — the entry point of a screen. Also collapses the sidebar. */

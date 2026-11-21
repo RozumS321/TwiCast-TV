@@ -15,6 +15,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.tv.material3.Icon
@@ -25,8 +28,8 @@ import app.twicast.tv.core.designsystem.theme.TwiShapes
 import app.twicast.tv.core.designsystem.theme.TwiTheme
 
 /**
- * Main action ("Смотреть"): primary with its shadow (0 10 24 primary@32%) — one per screen, so the resting shadow is cheap.
- * Focus: scale 1.05, stronger shadow, 3dp primaryStrong ring.
+ * Main action ("Смотреть"). At rest it is a calm raised surface so it never reads as focused;
+ * the bright accent fill appears only with focus (feedback: an always-bright button looked focused).
  */
 @Composable
 fun TwiPrimaryButton(
@@ -42,21 +45,17 @@ fun TwiPrimaryButton(
         focusProgress = focusProgress,
         horizontalPadding = TwiDimens.ButtonHorizontalPadding,
         modifier = modifier
-            .focusTransform(
-                progress = focusProgress,
-                focusedScale = TwiScale.ButtonFocused,
-                shape = TwiShapes.Button,
-                shadowElevation = TwiDimens.ButtonShadowElevation,
-                shadowColor = colors.primary,
-                restShadowElevation = TwiDimens.ButtonRestShadowElevation,
-            )
-            .background(colors.primary, TwiShapes.Button)
-            .focusRing(focusProgress, colors.primaryStrong, TwiShapes.Button, TwiDimens.FocusBorderWidth),
+            .focusTransform(focusProgress, TwiScale.ButtonFocused, TwiShapes.Button)
+            .drawBehind {
+                val fill = lerp(colors.surfaceVariant, colors.primary, focusProgress.value)
+                drawOutline(TwiShapes.Button.createOutline(size, layoutDirection, this), fill)
+            },
     ) {
+        val content = lerp(colors.onSurface, colors.onPrimary, focusProgress.value)
         if (icon != null) {
-            Icon(icon, contentDescription = null, tint = colors.onPrimary, modifier = Modifier.size(TwiDimens.ButtonIconSize))
+            Icon(icon, contentDescription = null, tint = content, modifier = Modifier.size(TwiDimens.ButtonIconSize))
         }
-        Text(text, style = TwiTheme.typography.button, color = colors.onPrimary)
+        Text(text, style = TwiTheme.typography.button, color = content)
     }
 }
 
