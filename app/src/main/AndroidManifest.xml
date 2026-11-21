@@ -24,7 +24,7 @@
     <application
         android:name=".TwiCastApplication"
         android:allowBackup="false"
-        android:banner="@drawable/banner"
+        android:banner="@drawable/banner_storm"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
