@@ -234,7 +234,7 @@ private fun SidebarLogo(state: SidebarState, modifier: Modifier = Modifier) {
             Image(
                 painter = painterResource(R.drawable.ic_logo_mark),
                 contentDescription = null,
-                modifier = Modifier.size(TwiDimens.LogoMarkSize),
+                modifier = Modifier.size(TwiDimens.LogoMarkSize).shine(),
             )
         }
         Text(

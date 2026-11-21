@@ -1,5 +1,14 @@
 package app.twicast.tv.feature.player
 
+import app.twicast.tv.core.designsystem.theme.TwiMotion
+import app.twicast.tv.core.designsystem.theme.TwiThemeConfig
+import app.twicast.tv.core.designsystem.component.glassOverVideo
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.size
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.animateContentSize
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
@@ -156,8 +165,8 @@ fun PlayerScreen(
             PlayerTitleBar(title, live = state.channel.isLive, modifier = Modifier.align(Alignment.TopCenter))
         }
         if (state.status != PlaybackStatus.Playing || state.adBreak || state.resumeNotice) {
-            // With the title across the top the plate steps to the right corner.
-            val corner = if (controlsUp && title != null) Alignment.TopEnd else Alignment.TopStart
+            // The island sits top center; with the title across the top it steps to the right corner.
+            val corner = if (controlsUp && title != null) Alignment.TopEnd else Alignment.TopCenter
             StatusPlate(state, Modifier.align(corner).padding(TwiDimens.PlayerOverlayPadding))
         }
         when (state.overlay) {
@@ -182,7 +191,7 @@ fun PlayerScreen(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(TwiDimens.PlayerControlsInset)
-                        .background(TwiTheme.colors.overlay, TwiShapes.Hero)
+                        .glassOverVideo(TwiShapes.Panel)
                         .padding(horizontal = TwiDimens.PlayerControlsHorizontalPadding, vertical = TwiDimens.PlayerControlsVerticalPadding),
                 )
             }
@@ -196,15 +205,24 @@ fun PlayerScreen(
     }
 }
 
+/**
+ * Mockup "Плеер · островок": one glass shape at the top that flows between what the player has to say —
+ * loading, paused, an ad break, "продолжаем с …" — changing its width smoothly instead of swapping plates.
+ */
 @Composable
 private fun StatusPlate(state: PlayerUiState, modifier: Modifier) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(TwiDimens.CardTextSpacing),
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(IslandGap),
         modifier = modifier
-            .background(TwiTheme.colors.overlay, TwiShapes.Card)
-            .padding(horizontal = TwiDimens.PlayerPlateHorizontalPadding, vertical = TwiDimens.PlayerPlateVerticalPadding),
+            .animateContentSize(tween(TwiThemeConfig.motion.longMillis, easing = TwiMotion.Decelerate))
+            .glassOverVideo(IslandShape)
+            .padding(horizontal = IslandHorizontalPadding, vertical = IslandVerticalPadding),
     ) {
-        Text(state.channel.channelName, style = TwiTheme.typography.channelName, color = TwiTheme.colors.onOverlay)
+        if (state.channel.isLive && state.status == PlaybackStatus.Playing && !state.adBreak) {
+            Box(Modifier.size(IslandLampSize).background(TwiTheme.colors.live, CircleShape))
+        }
+        Text(state.channel.channelName, style = TwiTheme.typography.listTitle, color = TwiTheme.colors.onOverlay)
         val resumedFrom = state.resumedFromMs
         Text(
             text = if (state.resumeNotice && resumedFrom != null && state.status == PlaybackStatus.Playing && !state.adBreak) {
@@ -222,10 +240,16 @@ private fun StatusPlate(state: PlayerUiState, modifier: Modifier) {
                 },
             ),
             style = TwiTheme.typography.bodySmall,
-            color = TwiTheme.colors.onOverlay,
+            color = TwiTheme.colors.onOverlayVariant,
         )
     }
 }
+
+private val IslandShape = RoundedCornerShape(percent = 50)
+private val IslandGap = 10.dp
+private val IslandHorizontalPadding = 20.dp
+private val IslandVerticalPadding = 12.dp
+private val IslandLampSize = 8.dp
 
 /** Nothing to focus over the video: the root takes the keys. */
 private val PlayerOverlay.isBare: Boolean get() = this == PlayerOverlay.Hidden || this == PlayerOverlay.Seek

@@ -1,0 +1,30 @@
+package app.twicast.tv.core.designsystem.component
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import app.twicast.tv.core.designsystem.theme.TwiDimens
+import app.twicast.tv.core.designsystem.theme.TwiTheme
+import app.twicast.tv.core.designsystem.theme.TwiThemeConfig
+
+private const val HighlightEnd = 0.4f
+
+/**
+ * Dark glass over video (canvas: "Тёмное стекло"): the player's island, panels and notices. A translucent tint,
+ * a light rim and a soft highlight at the top — no blur, so it looks the same on Android 11.
+ */
+@Composable
+fun Modifier.glassOverVideo(shape: Shape): Modifier {
+    val tokens = TwiThemeConfig.effects
+    return this
+        .background(TwiTheme.colors.overlay, shape)
+        .background(
+            Brush.verticalGradient(0f to Color.White.copy(alpha = tokens.glassHighlightAlpha), HighlightEnd to Color.Transparent),
+            shape,
+        )
+        .border(TwiDimens.OutlineWidth, Color.White.copy(alpha = tokens.glassRimAlpha), shape)
+}

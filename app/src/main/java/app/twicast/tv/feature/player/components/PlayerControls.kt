@@ -32,6 +32,7 @@ import app.twicast.tv.core.designsystem.icon.TwiIcons
 import app.twicast.tv.core.designsystem.theme.TwiDimens
 import app.twicast.tv.core.designsystem.theme.TwiShapes
 import app.twicast.tv.core.designsystem.theme.TwiTheme
+import app.twicast.tv.core.designsystem.component.glassOverVideo
 import app.twicast.tv.feature.player.PlaybackStatus
 import app.twicast.tv.feature.player.PlayerUiState
 
@@ -57,7 +58,7 @@ fun PlayerControls(
         verticalArrangement = Arrangement.spacedBy(TwiDimens.SeekPanelSpacing),
         modifier = modifier
             .fillMaxWidth()
-            .background(TwiTheme.colors.overlay, TwiShapes.Hero)
+            .glassOverVideo(TwiShapes.Panel)
             .padding(horizontal = TwiDimens.PlayerControlsHorizontalPadding, vertical = TwiDimens.PlayerControlsVerticalPadding),
     ) {
         if (seekable && progress != null) {
