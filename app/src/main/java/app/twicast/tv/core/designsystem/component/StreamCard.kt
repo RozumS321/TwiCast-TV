@@ -1,5 +1,6 @@
 package app.twicast.tv.core.designsystem.component
 
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.graphics.Color
 import app.twicast.tv.core.designsystem.theme.GeistMono
 import androidx.compose.ui.unit.dp
@@ -87,10 +88,16 @@ fun StreamCard(
             .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
             .padding(bottom = spacing),
     ) {
-        // Mockup "Главная": a quiet card — a small live lamp and the time in the corner of the preview, the viewers
-        // under it with the category. A recording shows its length (or time left) in that corner instead.
-        StreamThumbnail(thumbnailUrl, live, watchedFraction, cornerText = uptimeText ?: viewerCountText.takeIf { !live })
-        StreamCardInfo(title, subtitle, viewerCountText.takeIf { live }, avatarUrl.takeIf { showAvatar }, dense, avatarRing, showAvatar)
+        // Canvas "Карточка · зрители на превью": live viewers sit on the preview with the live lamp, light on a dark
+        // pill (they were too faint under it). The time stays in the other corner; a recording shows its length there.
+        StreamThumbnail(
+            thumbnailUrl,
+            live,
+            watchedFraction,
+            cornerText = uptimeText ?: viewerCountText.takeIf { !live },
+            liveViewers = viewerCountText.takeIf { live && it.isNotBlank() },
+        )
+        StreamCardInfo(title, subtitle, null, avatarUrl.takeIf { showAvatar }, dense, avatarRing, showAvatar)
     }
 }
 
@@ -100,6 +107,7 @@ private fun StreamThumbnail(
     live: Boolean,
     watchedFraction: Float?,
     cornerText: String?,
+    liveViewers: String?,
 ) {
     Box(
         modifier = Modifier
@@ -116,7 +124,10 @@ private fun StreamThumbnail(
                 modifier = Modifier.fillMaxSize(),
             )
         }
-        if (live) LiveLamp(Modifier.align(Alignment.TopStart).padding(TwiDimens.BadgeInset))
+        if (live) {
+            val corner = Modifier.align(Alignment.TopStart).padding(TwiDimens.BadgeInset)
+            if (liveViewers != null) ViewersBadge(liveViewers, corner) else LiveLamp(corner)
+        }
         // Above the watched strip, when there is one.
         val badgeLift = if (watchedFraction != null) TwiDimens.WatchedStripHeight else 0.dp
         if (cornerText != null) {
@@ -229,6 +240,26 @@ private fun LiveLamp(modifier: Modifier = Modifier) {
             .padding(TwiDimens.LiveLampRim)
             .background(TwiTheme.colors.live, CircleShape),
     )
+}
+
+/** "● 18 тыс" on a live preview: the live lamp and the viewers, light figures of one width on a dark pill. */
+@Composable
+private fun ViewersBadge(text: String, modifier: Modifier = Modifier) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(TwiDimens.TimeBadgeHorizontalPadding),
+        modifier = modifier
+            .background(TwiTheme.colors.overlay, TwiShapes.Badge)
+            .padding(horizontal = TwiDimens.TimeBadgeHorizontalPadding, vertical = TwiDimens.TimeBadgeVerticalPadding),
+    ) {
+        Box(Modifier.size(TwiDimens.LiveLampSize).background(TwiTheme.colors.live, CircleShape))
+        Text(
+            text = text,
+            style = TwiTheme.typography.captionDense.copy(fontWeight = FontWeight.Medium, fontFeatureSettings = "tnum"),
+            color = TwiTheme.colors.onOverlay,
+            maxLines = 1,
+        )
+    }
 }
 
 /** "3:12" / "1:12 осталось" in the corner of a preview, figures of one width. */
