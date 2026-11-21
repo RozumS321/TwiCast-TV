@@ -48,9 +48,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
@@ -241,10 +238,8 @@ private fun SidebarLogo(state: SidebarState, modifier: Modifier = Modifier) {
             )
         }
         Text(
-            text = buildAnnotatedString {
-                append(wordStart)
-                withStyle(SpanStyle(color = colors.primary)) { append(wordEnd) }
-            },
+            // The wordmark is one color: the product name in the interface family, no accent split.
+            text = wordStart + wordEnd,
             style = TwiTheme.typography.logo,
             color = colors.onSurface,
             maxLines = 1,
