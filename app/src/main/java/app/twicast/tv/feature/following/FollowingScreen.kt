@@ -1,5 +1,10 @@
 package app.twicast.tv.feature.following
 
+import app.twicast.tv.core.designsystem.component.StreamCard
+import app.twicast.tv.core.designsystem.format.formatUptimeShort
+import app.twicast.tv.core.designsystem.format.formatViewerCount
+import app.twicast.tv.core.designsystem.image.rememberTwitchImageUrl
+import app.twicast.tv.core.designsystem.theme.TwiAspect
 import app.twicast.tv.core.designsystem.component.leftToSidebar
 import app.twicast.tv.core.designsystem.component.isFirstInRow
 import app.twicast.tv.core.designsystem.component.LocalSidebarFocus
@@ -43,7 +48,8 @@ import app.twicast.tv.feature.following.components.ChannelCard
 
 /** 24 columns: a live card spans 4 (6 per row), a compact offline card 3 (8 per row), headers the whole line. */
 private const val GridColumns = 24
-private const val LiveSpan = 4
+// Live channels are stream cards with the broadcast picture, 4 per row like the category grid.
+private const val LiveSpan = 6
 private const val OfflineSpan = 3
 private const val SkeletonColumns = 6
 
@@ -131,14 +137,18 @@ private fun ChannelsGrid(
             span = { _, _ -> GridItemSpan(LiveSpan) },
             contentType = { _, _ -> ContentType.CHANNEL },
         ) { index, stream ->
-            ChannelCardItem(
-                name = stream.channelName,
-                avatarUrl = stream.avatarUrl,
+            StreamCard(
+                title = stream.channelName,
                 subtitle = stream.categoryName,
-                liveViewers = formatViewersLabel(stream.viewerCount),
-                first = index == 0,
+                viewerCountText = formatViewerCount(stream.viewerCount),
+                thumbnailUrl = rememberTwitchImageUrl(stream.thumbnailTemplate, TwiDimens.StreamCardGridWidth, TwiAspect.Thumbnail),
+                avatarUrl = stream.avatarUrl,
                 onClick = { onStreamClick(stream) },
-                modifier = Modifier.leftToSidebar(sidebar, isFirstInRow(index, GridColumns / LiveSpan)),
+                width = TwiDimens.StreamCardGridWidth,
+                uptimeText = stream.startedAtMillis?.let { formatUptimeShort(it, System.currentTimeMillis()) },
+                modifier = Modifier
+                    .leftToSidebar(sidebar, isFirstInRow(index, GridColumns / LiveSpan))
+                    .then(if (index == 0) Modifier.requestInitialFocus() else Modifier),
             )
         }
         if (state.offline.isNotEmpty()) {
