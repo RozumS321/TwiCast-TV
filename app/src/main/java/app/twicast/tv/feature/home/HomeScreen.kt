@@ -94,8 +94,9 @@ private fun HomeContent(
         "recommended" -> state.recommended.firstOrNull()
         else -> null
     } ?: (state.followedLive + state.recommended + state.regional + state.worldwide).firstOrNull()
-    var heroStream by remember(firstStream?.id) { mutableStateOf(firstStream) }
-    val onStreamFocused: (Stream) -> Unit = { heroStream = it }
+    // Written on every focus step but read only inside the hero, so moving along a row recomposes nothing else.
+    val focusedStream = remember(firstStream?.id) { mutableStateOf(firstStream) }
+    val onStreamFocused: (Stream) -> Unit = remember(focusedStream) { { focusedStream.value = it } }
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     LazyColumn(
@@ -111,9 +112,7 @@ private fun HomeContent(
             ) {
                 // A guest (mockup "Главная · гость"): a quiet line on what signing in gives.
                 if (state.guest) SignInBanner(onSignIn, Modifier.padding(bottom = TwiDimens.HomeSectionSpacing))
-                heroStream?.let { stream ->
-                    HomeHero(stream, onWatch = { onStreamClick(stream) }, onChannel = { onChannelClick(stream.userLogin) })
-                }
+                HomeHero(focusedStream)
             }
         }
         val scrollToTop = Modifier.scrollToTopOnFocus(listState, scope)
