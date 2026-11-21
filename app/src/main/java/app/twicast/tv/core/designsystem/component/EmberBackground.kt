@@ -24,6 +24,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.ImageShader
 import androidx.compose.ui.graphics.ShaderBrush
@@ -37,6 +39,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import app.twicast.tv.core.designsystem.theme.TwiBackdropStyle
 import app.twicast.tv.core.designsystem.theme.TwiEffectsTokens
 import app.twicast.tv.core.designsystem.theme.TwiThemeConfig
 import kotlinx.coroutines.CancellationException
@@ -85,6 +88,10 @@ class EmberBackdrop internal constructor(internal val steps: Int) {
     var size by mutableStateOf(IntSize.Zero)
         internal set
 
+    /** Storm: the current clouds, small, drawn on screen scaled up with smoothing. */
+    var sharp by mutableStateOf<ImageBitmap?>(null)
+        internal set
+
     /** The current frame, small and blurred; null until the first one is ready. */
     var blurred by mutableStateOf<ImageBitmap?>(null)
         internal set
@@ -117,6 +124,47 @@ fun EmberBackground(backdrop: EmberBackdrop, modifier: Modifier = Modifier) {
         backdrop.appVisible = true
         onPauseOrDispose { backdrop.appVisible = false }
     }
+    when (tokens.backdrop) {
+        TwiBackdropStyle.Bloom -> BloomAnimation(tokens, backdrop)
+        TwiBackdropStyle.Storm -> StormAnimation(tokens, backdrop)
+    }
+    val grain = remember { grainBitmap() }
+    Box(modifier.onSizeChanged { backdrop.size = it }) {
+        when (tokens.backdrop) {
+            TwiBackdropStyle.Bloom -> Box(
+                Modifier
+                    .matchParentSize()
+                    // Its own layer: redrawing the light never re-records the screens above it.
+                    .graphicsLayer()
+                    .drawBehind { drawEmber(tokens, backdrop.step.value.toFloat() / backdrop.steps) },
+            )
+            TwiBackdropStyle.Storm -> Box(
+                Modifier
+                    .matchParentSize()
+                    .graphicsLayer()
+                    .drawBehind {
+                        drawRect(tokens.stormGround)
+                        backdrop.sharp?.let { frame ->
+                            drawImage(frame, dstSize = IntSize(size.width.roundToInt(), size.height.roundToInt()), filterQuality = FilterQuality.Low)
+                        }
+                    },
+            )
+        }
+        // Grain is drawn once into its own layer and only composited afterwards.
+        Box(
+            Modifier
+                .matchParentSize()
+                .graphicsLayer()
+                .drawWithCache {
+                    val grainBrush = ShaderBrush(ImageShader(grain, TileMode.Repeated, TileMode.Repeated))
+                    onDrawBehind { drawRect(grainBrush, alpha = tokens.grainAlpha) }
+                },
+        )
+    }
+}
+
+@Composable
+private fun BloomAnimation(tokens: TwiEffectsTokens, backdrop: EmberBackdrop) {
     LaunchedEffect(backdrop) {
         // The first seconds after launch are the busiest (home, images, the Twitch player): an animation there
         // would stutter. The light stands still until the app has settled, then starts breathing from rest.
@@ -144,26 +192,54 @@ fun EmberBackground(backdrop: EmberBackdrop, modifier: Modifier = Modifier) {
             backdrop.blurred = withContext(Dispatchers.Default) { renderBackdrop(tokens, step.toFloat() / backdrop.steps, size) }
         }
     }
-    val grain = remember { grainBitmap() }
-    Box(modifier.onSizeChanged { backdrop.size = it }) {
-        Box(
-            Modifier
-                .matchParentSize()
-                // Its own layer: redrawing the light never re-records the screens above it.
-                .graphicsLayer()
-                .drawBehind { drawEmber(tokens, backdrop.step.value.toFloat() / backdrop.steps) },
-        )
-        // Grain is drawn once into its own layer and only composited afterwards.
-        Box(
-            Modifier
-                .matchParentSize()
-                .graphicsLayer()
-                .drawWithCache {
-                    val grainBrush = ShaderBrush(ImageShader(grain, TileMode.Repeated, TileMode.Repeated))
-                    onDrawBehind { drawRect(grainBrush, alpha = tokens.grainAlpha) }
-                },
+}
+
+/**
+ * Storm: the clouds are not a loop, they keep rolling. A new frame [StormFramesPerSecond] times a second, computed
+ * off the main thread (sharp for the screen, blurred for glass); paused while covered or in the background.
+ */
+@Composable
+private fun StormAnimation(tokens: TwiEffectsTokens, backdrop: EmberBackdrop) {
+    val look = remember(tokens) {
+        StormLook(
+            ground = tokens.stormGround.toArgb(),
+            cloud = tokens.stormCloud.toArgb(),
+            light = tokens.stormLight.toArgb(),
+            edge = tokens.stormEdge.toArgb(),
+            cover = tokens.stormCover,
+            brightness = tokens.stormBrightness,
         )
     }
+    LaunchedEffect(backdrop) {
+        var seconds = StormStartSeconds
+        val frameMillis = MillisPerSecond.toLong() / StormFramesPerSecond
+        while (true) {
+            val (sharp, blurred) = withContext(Dispatchers.Default) { renderStorm(look, seconds) }
+            backdrop.sharp = sharp
+            backdrop.blurred = blurred
+            // The first seconds after launch are the busiest: the clouds stand still until the app has settled.
+            if (!backdrop.started) {
+                delay(StartDelayMillis)
+                backdrop.started = true
+            }
+            snapshotFlow { backdrop.running }.first { it }
+            delay(frameMillis)
+            seconds += 1f / StormFramesPerSecond
+        }
+    }
+}
+
+private const val StormFramesPerSecond = 12
+private const val StormStartSeconds = 4f
+private const val StormBlurRadius = 5
+
+private fun renderStorm(look: StormLook, seconds: Float): Pair<ImageBitmap, ImageBitmap> {
+    val pixels = stormFrame(look, seconds)
+    val sharp = Bitmap.createBitmap(pixels, StormWidthPx, StormHeightPx, Bitmap.Config.ARGB_8888)
+    val soft = pixels.copyOf()
+    frostBlur(soft, StormWidthPx, StormHeightPx, StormBlurRadius, BackdropBrighten)
+    val blurred = Bitmap.createBitmap(soft, StormWidthPx, StormHeightPx, Bitmap.Config.ARGB_8888)
+    return sharp.asImageBitmap() to blurred.asImageBitmap()
 }
 
 /** True when the animation ran to its end, false when it was stopped because the background got covered. */

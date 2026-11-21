@@ -104,7 +104,24 @@ data class CubicCurve(val a: Float, val b: Float, val c: Float, val d: Float)
 
 /** "Эффекты интерфейса": the Ember Bloom background and glass surfaces. No blur: Android 11 TVs have none. */
 @Immutable
+/** What "Эффекты интерфейса" paints behind the screens. */
+enum class TwiBackdropStyle {
+    /** Soft light rising from the bottom, breathing (radial gradients and film grain). */
+    Bloom,
+
+    /** Dim storm clouds billowing through the dark under grain (canvas: "Эффекты · фон: тёмная гроза"). */
+    Storm,
+}
+
 data class TwiEffectsTokens(
+    val backdrop: TwiBackdropStyle,
+    /** Storm: from the dark ground up to the lit cloud edges; how much sky the clouds cover; their strength. */
+    val stormGround: Color,
+    val stormCloud: Color,
+    val stormLight: Color,
+    val stormEdge: Color,
+    val stormCover: Float,
+    val stormBrightness: Float,
     /** Ember Bloom: warm light rising from the dark, from the core outwards. */
     val emberCore: Color,
     val emberMid: Color,
@@ -159,6 +176,14 @@ val TwiThemeConfig = TwiThemeTokens(
     focus = TwiFocusTokens(ringWidth = 2.dp, ringGap = 2.dp, cardScale = 1.04f, buttonScale = 1.04f, shadows = false),
     motion = TwiMotionTokens(easing = CubicCurve(0.22f, 1f, 0.36f, 1f), shortMillis = 150, mediumMillis = 300, longMillis = 500),
     effects = TwiEffectsTokens(
+        // Feedback: the storm "не так в глаза бьёт", the bloom was too bright.
+        backdrop = TwiBackdropStyle.Storm,
+        stormGround = Color(0xFF07060C),
+        stormCloud = Color(0xFF241A52),
+        stormLight = Color(0xFF5B3FB8),
+        stormEdge = Color(0xFF8C6CFF),
+        stormCover = 0.55f,
+        stormBrightness = 0.7f,
         // The living background in Twitch purple instead of ember orange.
         emberCore = Color(0xFFA970FF),
         emberMid = Color(0xFF772CE8),
