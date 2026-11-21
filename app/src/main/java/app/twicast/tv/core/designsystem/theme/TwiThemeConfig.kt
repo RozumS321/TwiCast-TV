@@ -147,8 +147,8 @@ val TwiThemeConfig = TwiThemeTokens(
         emberBase = Color(0xFF070605),
         bloomLoopMillis = 10_000,
         grainAlpha = 0.09f,
-        glassAlpha = 0.5f,
+        glassAlpha = 0.07f,
         glassRimAlpha = 0.16f,
-        glassHighlightAlpha = 0.07f,
+        glassHighlightAlpha = 0.08f,
     ),
 )

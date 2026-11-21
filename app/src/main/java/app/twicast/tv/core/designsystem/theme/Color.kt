@@ -97,7 +97,9 @@ val DarkTwiColorScheme = twiColorScheme(TwiThemeConfig.dark, isDark = true)
 /** Glass over the Ember Bloom background ("Эффекты интерфейса"): surfaces turn translucent with a light rim. */
 fun TwiColorScheme.withGlass(tokens: TwiEffectsTokens) = copy(
     background = tokens.emberBase,
-    surface = GlassTint.copy(alpha = tokens.glassAlpha),
+    // Frost, not a dark film: a faint light tint the background's light passes through. Over our soft, blurry
+    // background this reads as frosted glass even without real blur (Android 11 has none).
+    surface = White.copy(alpha = tokens.glassAlpha),
     surfaceVariant = White.copy(alpha = GlassRaisedAlpha),
     outline = White.copy(alpha = tokens.glassRimAlpha),
     outlineVariant = White.copy(alpha = tokens.glassRimAlpha),
@@ -111,6 +113,6 @@ fun TwiColorScheme.withGlass(tokens: TwiEffectsTokens) = copy(
 private val GlassTint = Color(0xFF2C2B30)
 private val GlassDialog = Color(0xFF1A1A1D)
 private val GlassDialogInset = Color(0xFF232326)
-private const val GlassRaisedAlpha = 0.10f
+private const val GlassRaisedAlpha = 0.14f
 /** Sidebar and panels over the effects background: glass, but dense enough to read as a surface. */
 private const val DenseGlassAlpha = 0.94f

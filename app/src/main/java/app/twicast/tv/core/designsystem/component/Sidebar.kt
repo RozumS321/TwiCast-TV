@@ -197,7 +197,8 @@ private fun SidebarPanelBackground(state: SidebarState) {
                 if (effects) {
                     // Glass (canvas: "Стекло"): the light shows through the rail; opened over the screen it gets
                     // denser so the content below does not compete with the labels. A highlight at the top, a rim.
-                    drawRect(SidebarGlass.copy(alpha = SidebarGlassAlpha + (SidebarGlassOpenAlpha - SidebarGlassAlpha) * fraction))
+                    drawRect(Color.White.copy(alpha = SidebarFrostAlpha))
+                    if (fraction > 0f) drawRect(SidebarGlass.copy(alpha = SidebarGlassOpenAlpha * fraction))
                     drawRect(Brush.verticalGradient(0f to Color.White.copy(alpha = SidebarHighlightAlpha), SidebarHighlightEnd to Color.Transparent))
                     drawRect(Color.White.copy(alpha = SidebarRimAlpha), Offset(size.width - lineWidth, 0f), Size(lineWidth, size.height))
                 } else {
@@ -224,9 +225,11 @@ private fun SidebarPanelBackground(state: SidebarState) {
 
 private const val EdgeShadowAlpha = 0.12f
 
-private val SidebarGlass = Color(0xFF2C2B30)
-private const val SidebarGlassAlpha = 0.5f
-private const val SidebarGlassOpenAlpha = 0.9f
+private val SidebarGlass = Color(0xFF1C1B1F)
+/** Collapsed: frost the background's light passes through. */
+private const val SidebarFrostAlpha = 0.06f
+/** Opened over the screen: darker, so the labels read over whatever is below. */
+private const val SidebarGlassOpenAlpha = 0.86f
 private const val SidebarHighlightAlpha = 0.08f
 private const val SidebarHighlightEnd = 0.35f
 private const val SidebarRimAlpha = 0.18f
