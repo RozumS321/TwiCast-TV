@@ -14,7 +14,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.Text
@@ -74,8 +73,8 @@ fun StreamRow(
             state = listState,
             contentPadding = RowPadding,
             horizontalArrangement = Arrangement.spacedBy(TwiDimens.HomeCardSpacing),
-            // Coming back to the row lands on the card that was focused last.
-            modifier = Modifier.padding(start = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset).focusRestorer(),
+            // No focusRestorer: Down/Up must land on the card right under/over the focused one, not the row's last.
+            modifier = Modifier.padding(start = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset),
         ) {
             itemsIndexed(streams, key = { _, it -> it.id }, contentType = { _, _ -> "stream" }) { index, stream ->
                 // Mockup "Главная": the channel and its category under the card; the title is in the hero above.
@@ -115,7 +114,7 @@ fun RecentRow(
         LazyRow(
             contentPadding = RowPadding,
             horizontalArrangement = Arrangement.spacedBy(TwiDimens.HomeCardSpacing),
-            modifier = Modifier.padding(start = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset).focusRestorer(),
+            modifier = Modifier.padding(start = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset),
         ) {
             itemsIndexed(items, key = { _, it -> it.entry.key }, contentType = { _, it -> it::class }) { index, item ->
                 val focus = if (takesInitialFocus && index == 0) Modifier.requestInitialFocus() else Modifier
