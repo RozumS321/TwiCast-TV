@@ -30,9 +30,16 @@ interface PlaybackRepository {
 private const val UsherHost = "usher.ttvnw.net"
 private const val PlayerRandomBound = 10_000_000
 
+/**
+ * Live streams are asked for as the embedded player, not as twitch.tv itself ("site"): Twitch stitches its ads,
+ * the one before the stream and those in the middle, only into the "site" playlist, so the stream plays without
+ * them and nothing has to be cut or switched. Same qualities, up to the source.
+ */
+private const val LivePlayerType = "embed"
+
 // The web player's own request (same params as twitch.tv), so usher accepts the token.
 private const val TokenQuery = "query(\$login: String!, \$isLive: Boolean!, \$vodID: ID!, \$isVod: Boolean!) { " +
-    "streamPlaybackAccessToken(channelName: \$login, params: {platform: \"web\", playerBackend: \"mediaplayer\", playerType: \"site\"}) " +
+    "streamPlaybackAccessToken(channelName: \$login, params: {platform: \"web\", playerBackend: \"mediaplayer\", playerType: \"$LivePlayerType\"}) " +
     "@include(if: \$isLive) { value signature } " +
     "videoPlaybackAccessToken(id: \$vodID, params: {platform: \"web\", playerBackend: \"mediaplayer\", playerType: \"site\"}) " +
     "@include(if: \$isVod) { value signature } }"
