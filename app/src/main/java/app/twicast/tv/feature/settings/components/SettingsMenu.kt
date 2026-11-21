@@ -90,17 +90,14 @@ private fun MenuItem(entry: MenuEntry, isSelected: Boolean, onFocused: () -> Uni
     val colors = TwiTheme.colors
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
+    // As in the sidebar: focus is a light pill with dark text; the open section a raised surface.
     val background = when {
-        isFocused -> colors.primary
-        isSelected -> colors.primaryContainer
+        isFocused -> colors.inverseSurface
+        isSelected -> colors.surfaceVariant
         else -> Color.Transparent
     }
-    val titleColor = when {
-        isFocused -> colors.onPrimary
-        isSelected -> colors.primaryStrong
-        else -> colors.onSurface
-    }
-    val secondaryColor = if (isFocused) colors.onPrimary else colors.onSurfaceVariant
+    val titleColor = if (isFocused) colors.inverseOnSurface else colors.onSurface
+    val secondaryColor = if (isFocused) colors.inverseOnSurface else colors.onSurfaceVariant
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(TwiDimens.NavigationLabelGap),
