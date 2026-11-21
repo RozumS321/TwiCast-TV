@@ -2,8 +2,8 @@
 <resources>
     <!-- Mirrors TwiThemeConfig.light.background: the window shows it before Compose draws, so no white flash. -->
     <color name="twi_background">#FFFAFAFA</color>
-    <color name="twi_primary">#FFE8A72F</color>
-    <color name="twi_on_primary">#FF171717</color>
+    <color name="twi_primary">#FF171717</color>
+    <color name="twi_on_primary">#FFFFFFFF</color>
     <!-- Brand: launcher icon background. -->
     <color name="brand_dark">#FF17151F</color>
 </resources>

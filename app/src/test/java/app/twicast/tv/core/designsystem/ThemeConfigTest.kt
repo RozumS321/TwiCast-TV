@@ -27,7 +27,7 @@ class ThemeConfigTest {
         assertTrue("$name on accent", contrast(palette.onAccent, palette.accent) >= 4.5)
         assertTrue("$name accent text", contrast(palette.accentText, palette.surface) >= 4.5)
         // A focus ring is a UI element: 3:1 against what it sits on.
-        assertTrue("$name focus ring", contrast(palette.accent, palette.background) >= 3.0 || palette === TwiThemeConfig.light)
+        assertTrue("$name focus ring", contrast(palette.accent, palette.background) >= 3.0)
     }
 
     @Test
