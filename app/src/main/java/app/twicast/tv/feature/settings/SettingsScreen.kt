@@ -1,5 +1,10 @@
 package app.twicast.tv.feature.settings
 
+import androidx.compose.foundation.focusGroup
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.FocusRequester
 import app.twicast.tv.core.designsystem.component.twiSurface
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -90,13 +95,25 @@ fun SettingsScreen(
             .padding(start = TwiDimens.ContentStartPadding, end = TwiDimens.ContentEndPadding, top = TwiDimens.ScreenTopPadding),
     ) {
         Text(stringResource(R.string.settings_title), style = TwiTheme.typography.screenTitle, color = TwiTheme.colors.onSurface)
+        val menuRequester = remember { FocusRequester() }
         Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.SettingsSectionsSpacing)) {
-            SettingsMenu(state.section, takesInitialFocus = !state.focusLanguage, onSectionFocused)
+            SettingsMenu(state.section, takesInitialFocus = !state.focusLanguage, onSectionFocused, Modifier.focusRequester(menuRequester))
             // Scrolls when a section is taller than the screen ("Плеер" with notifications); focus brings cards into view.
             Column(
                 verticalArrangement = Arrangement.spacedBy(TwiDimens.SettingsContentSpacing),
                 modifier = Modifier
                     .weight(1f)
+                    // Left out of a section always goes back to its tab. Scrolled down, no tab sits level with the
+                    // focused card, and the geometric search flew on to the main menu.
+                    .focusProperties {
+                        onExit = {
+                            if (requestedFocusDirection == FocusDirection.Left) {
+                                menuRequester.requestFocus()
+                                cancelFocusChange()
+                            }
+                        }
+                    }
+                    .focusGroup()
                     .verticalScroll(rememberScrollState())
                     .padding(bottom = TwiDimens.ScreenTopPadding),
             ) {
