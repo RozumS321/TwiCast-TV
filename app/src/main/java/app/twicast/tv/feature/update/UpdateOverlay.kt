@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.update
 
+import app.twicast.tv.core.designsystem.component.AuroraLogo
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.runtime.withFrameNanos
@@ -118,7 +119,7 @@ private fun UpdateHeader(state: UpdateUiState) {
     val release = state.release() ?: return
     val whatsNew = state is UpdateUiState.WhatsNew
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(TwiDimens.UpdateHeaderSpacing)) {
-        Image(painterResource(R.drawable.ic_logo_mark), contentDescription = null, modifier = Modifier.size(TwiDimens.UpdateLogoSize))
+        AuroraLogo(Modifier.size(TwiDimens.UpdateLogoSize))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(TwiDimens.CardTextSpacing * 2)) {
             Text(
                 text = stringResource(

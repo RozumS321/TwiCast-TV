@@ -18,6 +18,24 @@ data class TwiThemeTokens(
     val focus: TwiFocusTokens,
     val motion: TwiMotionTokens,
     val effects: TwiEffectsTokens,
+    val logo: TwiLogoTokens,
+)
+
+/**
+ * The mark (canvas: "Логотип · Aurora"): a dark tile with colour flowing inside the play — three soft patches
+ * of light over Twitch purple, drifting on slow loops that never move in step.
+ */
+@Immutable
+data class TwiLogoTokens(
+    val tile: Color,
+    val base: Color,
+    val glowA: Color,
+    val glowB: Color,
+    val glowC: Color,
+    /** Strength of the flowing light. */
+    val intensity: Float,
+    /** The flow changes slowly: this many redraws a second are plenty, and only the mark's own layer redraws. */
+    val framesPerSecond: Int,
 )
 
 /** One neutral ramp, three text roles and one accent (unslop: quiet chrome, the color lives in the content). */
@@ -152,5 +170,14 @@ val TwiThemeConfig = TwiThemeTokens(
         glassRimAlpha = 0.10f,
         // No glossy highlight: it made glass look like 3D buttons from the 2000s. Flat frost and a hairline.
         glassHighlightAlpha = 0f,
+    ),
+    logo = TwiLogoTokens(
+        tile = Color(0xFF18181B),
+        base = Color(0xFF772CE8),
+        glowA = Color(0xFFBF94FF),
+        glowB = Color(0xFFFF6FD8),
+        glowC = Color(0xFF5B8DEF),
+        intensity = 0.95f,
+        framesPerSecond = 20,
     ),
 )

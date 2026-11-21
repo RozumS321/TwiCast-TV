@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.settings.components
 
+import app.twicast.tv.core.designsystem.component.AuroraLogo
 import app.twicast.tv.core.designsystem.component.twiSurface
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -111,11 +112,7 @@ fun AboutSection(versionName: String) {
                 .twiSurface(TwiShapes.SettingsToggle)
                 .padding(horizontal = TwiDimens.SettingsToggleHorizontalPadding, vertical = TwiDimens.SettingsToggleVerticalPadding),
         ) {
-            Image(
-                painter = painterResource(R.drawable.ic_logo_mark),
-                contentDescription = null,
-                modifier = Modifier.size(TwiDimens.LogoMarkSize),
-            )
+            AuroraLogo(Modifier.size(TwiDimens.LogoMarkSize))
             Column {
                 Text(stringResource(R.string.profile_version, versionName), style = TwiTheme.typography.listTitle, color = colors.onSurface)
                 Text(stringResource(R.string.settings_about_hint), style = TwiTheme.typography.caption, color = colors.onSurfaceVariant)

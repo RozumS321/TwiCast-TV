@@ -267,11 +267,7 @@ private fun SidebarLogo(state: SidebarState, modifier: Modifier = Modifier) {
         modifier = modifier.height(TwiDimens.SidebarItemHeight),
     ) {
         Box(Modifier.size(TwiDimens.SidebarItemHeight), contentAlignment = Alignment.Center) {
-            Image(
-                painter = painterResource(R.drawable.ic_logo_mark),
-                contentDescription = null,
-                modifier = Modifier.size(TwiDimens.LogoMarkSize),
-            )
+            AuroraLogo(Modifier.size(TwiDimens.LogoMarkSize))
         }
         Text(
             // The wordmark is one color: the product name in the interface family, no accent split.

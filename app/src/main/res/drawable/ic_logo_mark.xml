@@ -1,17 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Brand mark: a white "play" on a Twitch-purple tile, flat and static. Fixed brand colors, not theme tokens. -->
+<!-- Brand mark, still frame of "Логотип · Aurora": a dark tile, the play filled with Twitch purple flowing into
+     lavender and pink. In the app the colour moves (AuroraLogo); here, for notifications, it stands still. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="48dp"
     android:height="48dp"
     android:viewportWidth="48"
     android:viewportHeight="48">
     <path
-        android:fillColor="#9147FF"
+        android:fillColor="#18181B"
         android:pathData="M12,0h24a12,12 0,0 1,12 12v24a12,12 0,0 1,-12 12h-24a12,12 0,0 1,-12 -12v-24a12,12 0,0 1,12 -12z" />
     <path
-        android:fillColor="#FFFFFF"
-        android:strokeColor="#FFFFFF"
         android:strokeWidth="2.5"
         android:strokeLineJoin="round"
-        android:pathData="M19,15v18l14,-9z" />
+        android:pathData="M17.5,13v22l17.5,-11z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="16" android:startY="12" android:endX="35" android:endY="36">
+                <item android:offset="0" android:color="#FFBF94FF" />
+                <item android:offset="0.5" android:color="#FF9147FF" />
+                <item android:offset="1" android:color="#FFFF6FD8" />
+            </gradient>
+        </aapt:attr>
+        <aapt:attr name="android:strokeColor">
+            <gradient android:type="linear" android:startX="16" android:startY="12" android:endX="35" android:endY="36">
+                <item android:offset="0" android:color="#FFBF94FF" />
+                <item android:offset="0.5" android:color="#FF9147FF" />
+                <item android:offset="1" android:color="#FFFF6FD8" />
+            </gradient>
+        </aapt:attr>
+    </path>
 </vector>
