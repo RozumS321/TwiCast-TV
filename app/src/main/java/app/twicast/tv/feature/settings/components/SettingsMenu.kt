@@ -60,8 +60,9 @@ fun SettingsMenu(
     takesInitialFocus: Boolean,
     onSectionFocused: (SettingsSection) -> Unit,
     modifier: Modifier = Modifier,
+    /** The open section's tab: the screen sends focus here when Left leaves the section's content. */
+    selectedRequester: FocusRequester = remember { FocusRequester() },
 ) {
-    val selectedRequester = remember { FocusRequester() }
     Column(
         verticalArrangement = Arrangement.spacedBy(TwiDimens.SettingsMenuItemSpacing),
         modifier = modifier

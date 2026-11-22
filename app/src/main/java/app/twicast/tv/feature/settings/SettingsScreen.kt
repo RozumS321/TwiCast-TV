@@ -97,7 +97,7 @@ fun SettingsScreen(
         Text(stringResource(R.string.settings_title), style = TwiTheme.typography.screenTitle, color = TwiTheme.colors.onSurface)
         val menuRequester = remember { FocusRequester() }
         Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.SettingsSectionsSpacing)) {
-            SettingsMenu(state.section, takesInitialFocus = !state.focusLanguage, onSectionFocused, Modifier.focusRequester(menuRequester))
+            SettingsMenu(state.section, takesInitialFocus = !state.focusLanguage, onSectionFocused, selectedRequester = menuRequester)
             // Scrolls when a section is taller than the screen ("Плеер" with notifications); focus brings cards into view.
             Column(
                 verticalArrangement = Arrangement.spacedBy(TwiDimens.SettingsContentSpacing),
