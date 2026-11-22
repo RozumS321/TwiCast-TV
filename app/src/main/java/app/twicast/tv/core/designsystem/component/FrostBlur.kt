@@ -5,9 +5,17 @@ package app.twicast.tv.core.designsystem.component
  * (deprecated) or a library. Used on a small 320×180 frame of the background, so it takes about a millisecond.
  * [brighten] lifts the colors a little: frosted glass gathers light.
  */
-internal fun frostBlur(pixels: IntArray, width: Int, height: Int, radius: Int, brighten: Float = 1f) {
+internal fun frostBlur(
+    pixels: IntArray,
+    width: Int,
+    height: Int,
+    radius: Int,
+    brighten: Float = 1f,
+    /** Scratch space of pixels.size, reused by callers that blur every frame (no garbage per frame). */
+    scratch: IntArray? = null,
+) {
     if (radius < 1 || width < 1 || height < 1) return
-    val buffer = IntArray(pixels.size)
+    val buffer = scratch?.takeIf { it.size >= pixels.size } ?: IntArray(pixels.size)
     repeat(Passes) {
         boxBlurHorizontal(pixels, buffer, width, height, radius)
         boxBlurVertical(buffer, pixels, width, height, radius)

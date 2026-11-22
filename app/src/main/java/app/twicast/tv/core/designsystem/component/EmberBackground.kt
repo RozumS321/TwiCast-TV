@@ -222,11 +222,12 @@ private fun StormAnimation(tokens: TwiEffectsTokens, backdrop: EmberBackdrop) {
         )
     }
     LaunchedEffect(backdrop, look) {
+        val renderer = StormRenderer()
         var seconds = StormStartSeconds
         val frameMillis = MillisPerSecond.toLong() / StormFramesPerSecond
         while (true) {
             val (sharp, blurred) = withContext(Dispatchers.Default) {
-                renderStorm(look, seconds, if (dark) BackdropBrighten else LightStormBlurTone)
+                renderer.render(look, seconds, if (dark) BackdropBrighten else LightStormBlurTone)
             }
             // Both in one snapshot: the screen and the glass change in the same frame, not in two frames in a row.
             Snapshot.withMutableSnapshot {
@@ -255,14 +256,37 @@ private const val StormBlurRadius = 5
  */
 private const val LightStormBlurTone = 0.94f
 
-private fun renderStorm(look: StormLook, seconds: Float, brighten: Float): Pair<ImageBitmap, ImageBitmap> {
-    val pixels = stormFrame(look, seconds)
-    val sharp = Bitmap.createBitmap(pixels, StormWidthPx, StormHeightPx, Bitmap.Config.ARGB_8888)
-    val soft = pixels.copyOf()
-    frostBlur(soft, StormWidthPx, StormHeightPx, StormBlurRadius, brighten)
-    val blurred = Bitmap.createBitmap(soft, StormWidthPx, StormHeightPx, Bitmap.Config.ARGB_8888)
-    return sharp.asImageBitmap() to blurred.asImageBitmap()
+/**
+ * Renders storm frames without garbage: the pixel buffers are allocated once, and the bitmaps go round a ring of
+ * [StormRing] pairs, so the one written is never the one on screen. A new array and two bitmaps per frame,
+ * 12 times a second, kept the garbage collector busy on 2 GB TVs, stealing a core right while rows scrolled.
+ * One renderer per animation; [render] runs off the main thread, one call at a time.
+ */
+private class StormRenderer {
+    private val size = StormWidthPx * StormHeightPx
+    private val pixels = IntArray(size)
+    private val soft = IntArray(size)
+    private val scratch = IntArray(size)
+    private val ring = Array(StormRing) {
+        Bitmap.createBitmap(StormWidthPx, StormHeightPx, Bitmap.Config.ARGB_8888) to
+            Bitmap.createBitmap(StormWidthPx, StormHeightPx, Bitmap.Config.ARGB_8888)
+    }
+    private val images = ring.map { (sharp, blurred) -> sharp.asImageBitmap() to blurred.asImageBitmap() }
+    private var next = 0
+
+    fun render(look: StormLook, seconds: Float, brighten: Float): Pair<ImageBitmap, ImageBitmap> {
+        stormFrame(look, seconds, pixels)
+        pixels.copyInto(soft)
+        frostBlur(soft, StormWidthPx, StormHeightPx, StormBlurRadius, brighten, scratch)
+        val (sharp, blurred) = ring[next]
+        sharp.setPixels(pixels, 0, StormWidthPx, 0, 0, StormWidthPx, StormHeightPx)
+        blurred.setPixels(soft, 0, StormWidthPx, 0, 0, StormWidthPx, StormHeightPx)
+        return images[next].also { next = (next + 1) % StormRing }
+    }
 }
+
+/** Bitmap pairs in the storm's ring: the one on screen, the one queued, the one being written. */
+private const val StormRing = 3
 
 /** True when the animation ran to its end, false when it was stopped because the background got covered. */
 private suspend fun runCatchingAnimation(block: suspend () -> Unit): Boolean = try {

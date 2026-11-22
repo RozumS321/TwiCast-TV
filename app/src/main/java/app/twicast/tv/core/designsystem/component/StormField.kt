@@ -33,11 +33,14 @@ internal data class StormLook(
  *
  * @return opaque ARGB pixels, [width] × [height].
  */
-internal fun stormFrame(look: StormLook, seconds: Float, width: Int = StormWidthPx, height: Int = StormHeightPx): IntArray {
+internal fun stormFrame(look: StormLook, seconds: Float, width: Int = StormWidthPx, height: Int = StormHeightPx): IntArray =
+    IntArray(width * height).also { stormFrame(look, seconds, it, width, height) }
+
+/** Same, written into [pixels] (width × height): the background reuses one buffer instead of a new one per frame. */
+internal fun stormFrame(look: StormLook, seconds: Float, pixels: IntArray, width: Int = StormWidthPx, height: Int = StormHeightPx) {
     val t = seconds * StormTimeScale
     val threshold = 0.62f - look.cover * 0.35f
     val range = 0.38f + look.cover * 0.35f
-    val pixels = IntArray(width * height)
     for (j in 0 until height) {
         val y = j / height.toFloat() * StormSpanY
         for (i in 0 until width) {
@@ -52,7 +55,6 @@ internal fun stormFrame(look: StormLook, seconds: Float, width: Int = StormWidth
             pixels[j * width + i] = ramp(look, min(1f, v))
         }
     }
-    return pixels
 }
 
 private fun ramp(look: StormLook, k: Float): Int = when {
