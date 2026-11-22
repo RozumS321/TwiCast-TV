@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sleep_timer_title">Таймер сну</string>
+    <string name="sleep_off">Вимкнено</string>
+    <string name="sleep_15">15 хвилин</string>
+    <string name="sleep_30">30 хвилин</string>
+    <string name="sleep_60">1 година</string>
+    <string name="sleep_120">2 години</string>
+    <string name="sleep_stream_end">Коли ефір закінчиться</string>
+    <string name="sleep_hint_allowed">Ефір зупиниться, приставка засне — і разом із нею згасне телевізор</string>
+    <string name="sleep_hint_not_allowed">Ефір зупиниться, а приставка засне за своїми налаштуваннями</string>
+    <string name="sleep_allow_row">Дозволити вимикати телевізор</string>
+    <string name="sleep_ask_title">Вимикати й телевізор?</string>
+    <string name="sleep_ask_text">Коли таймер спрацює, ефір зупиниться. Щоб одразу згас і телевізор, Android має дозволити TwiCast присипляти приставку.</string>
+    <string name="sleep_ask_note">Це право дає лише одне — вимкнути екран. Без нього телевізор згасне сам, коли приставка засне за своїми налаштуваннями.</string>
+    <string name="sleep_ask_allow">Дозволити</string>
+    <string name="sleep_ask_only_stop">Лише зупинити ефір</string>
+    <string name="sleep_warning_title">Засинаємо за хвилину</string>
+    <string name="sleep_warning_text">Ефір зупиниться, і телевізор згасне</string>
+    <string name="sleep_extend">Ще 15 хвилин</string>
+    <string name="sleep_cancel">Вимкнути таймер</string>
+    <string name="sleep_admin_explanation">TwiCast присипляє приставку, коли спрацьовує таймер сну, — так разом із нею гасне телевізор. Більше це право нічого не дає.</string>
+    <string name="sleep_until_end">до кінця ефіру</string>
+</resources>

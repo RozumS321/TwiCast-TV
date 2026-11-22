@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sleep_timer_title">Sleep timer</string>
+    <string name="sleep_off">Off</string>
+    <string name="sleep_15">15 minutes</string>
+    <string name="sleep_30">30 minutes</string>
+    <string name="sleep_60">1 hour</string>
+    <string name="sleep_120">2 hours</string>
+    <string name="sleep_stream_end">When the stream ends</string>
+    <string name="sleep_hint_allowed">The stream stops and the box goes to sleep — the TV turns off with it</string>
+    <string name="sleep_hint_not_allowed">The stream stops; the box sleeps by its own settings</string>
+    <string name="sleep_allow_row">Allow turning off the TV</string>
+    <string name="sleep_ask_title">Turn off the TV too?</string>
+    <string name="sleep_ask_text">When the timer ends, the stream stops. To turn off the TV right away, Android must allow TwiCast to put the box to sleep.</string>
+    <string name="sleep_ask_note">This right does one thing only — turn off the screen. Without it the TV goes off by itself when the box falls asleep by its own settings.</string>
+    <string name="sleep_ask_allow">Allow</string>
+    <string name="sleep_ask_only_stop">Only stop the stream</string>
+    <string name="sleep_warning_title">Going to sleep in a minute</string>
+    <string name="sleep_warning_text">The stream will stop and the TV will turn off</string>
+    <string name="sleep_extend">15 more minutes</string>
+    <string name="sleep_cancel">Turn off the timer</string>
+    <string name="sleep_admin_explanation">TwiCast puts the box to sleep when the sleep timer ends, so the TV turns off with it. This right gives nothing else.</string>
+    <string name="sleep_until_end">until the end</string>
+</resources>

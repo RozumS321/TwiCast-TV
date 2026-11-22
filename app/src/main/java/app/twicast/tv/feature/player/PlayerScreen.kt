@@ -1,5 +1,9 @@
 package app.twicast.tv.feature.player
 
+import app.twicast.tv.core.designsystem.theme.GeistMono
+import app.twicast.tv.core.designsystem.icon.TwiIcons
+import androidx.tv.material3.Icon
+import androidx.compose.foundation.layout.BoxScope
 import app.twicast.tv.core.designsystem.theme.TwiMotion
 import app.twicast.tv.core.designsystem.theme.TwiThemeConfig
 import app.twicast.tv.core.designsystem.component.glassOverVideo
@@ -78,6 +82,11 @@ fun PlayerScreen(
     onRestart: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Sleep timer: time left for the island and its button, null while off. */
+    sleepLeft: String? = null,
+    onOpenSleep: () -> Unit = {},
+    /** The sleep timer's panels and last-minute warning, over everything. */
+    sleepOverlay: @Composable BoxScope.() -> Unit = {},
     /** The chat panel; composed (and connected) only while the chat is open. */
     chat: @Composable (Modifier) -> Unit = {},
 ) {
@@ -172,10 +181,10 @@ fun PlayerScreen(
         if (controlsUp && title != null) {
             PlayerTitleBar(title, live = state.channel.isLive, modifier = Modifier.align(Alignment.TopCenter))
         }
-        if (state.status != PlaybackStatus.Playing || state.adBreak || state.resumeNotice) {
+        if (state.status != PlaybackStatus.Playing || state.adBreak || state.resumeNotice || sleepLeft != null) {
             // The island sits top center; with the title across the top it steps to the right corner.
             val corner = if (controlsUp && title != null) Alignment.TopEnd else Alignment.TopCenter
-            StatusPlate(state, Modifier.align(corner).padding(TwiDimens.PlayerOverlayPadding))
+            StatusPlate(state, sleepLeft, Modifier.align(corner).padding(TwiDimens.PlayerOverlayPadding))
         }
         when (state.overlay) {
             PlayerOverlay.Hidden -> Unit
@@ -187,6 +196,8 @@ fun PlayerScreen(
                 onOpenChannel = onOpenChannel,
                 onSeekStep = onSeekStep,
                 onRestart = onRestart,
+                onOpenSleep = onOpenSleep,
+                sleepLeft = sleepLeft,
                 modifier = Modifier.align(Alignment.BottomCenter).padding(TwiDimens.PlayerControlsInset),
             )
             PlayerOverlay.Seek -> state.progress?.let { progress ->
@@ -210,6 +221,7 @@ fun PlayerScreen(
                 modifier = Modifier.align(Alignment.CenterEnd),
             )
         }
+        sleepOverlay()
     }
 }
 
@@ -218,7 +230,7 @@ fun PlayerScreen(
  * loading, paused, an ad break, "продолжаем с …" — changing its width smoothly instead of swapping plates.
  */
 @Composable
-private fun StatusPlate(state: PlayerUiState, modifier: Modifier) {
+private fun StatusPlate(state: PlayerUiState, sleepLeft: String?, modifier: Modifier) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(IslandGap),
@@ -232,7 +244,9 @@ private fun StatusPlate(state: PlayerUiState, modifier: Modifier) {
         }
         Text(state.channel.channelName, style = TwiTheme.typography.listTitle, color = TwiTheme.colors.onOverlay)
         val resumedFrom = state.resumedFromMs
-        Text(
+        // Playing with nothing else to say: only the sleep timer's time left after the name.
+        val quiet = state.status == PlaybackStatus.Playing && !state.adBreak && !state.resumeNotice
+        if (!quiet) Text(
             text = if (state.resumeNotice && resumedFrom != null && state.status == PlaybackStatus.Playing && !state.adBreak) {
                 stringResource(R.string.player_resumed_from, formatPlaybackTime(resumedFrom))
             } else stringResource(
@@ -250,6 +264,12 @@ private fun StatusPlate(state: PlayerUiState, modifier: Modifier) {
             style = TwiTheme.typography.bodySmall,
             color = TwiTheme.colors.onOverlayVariant,
         )
+        if (sleepLeft != null) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(TwiIcons.Moon, contentDescription = null, tint = TwiTheme.colors.primaryStrong, modifier = Modifier.size(14.dp))
+                Text(sleepLeft, style = TwiTheme.typography.bodySmall.copy(fontFamily = GeistMono, fontFeatureSettings = "tnum"), color = TwiTheme.colors.primaryStrong)
+            }
+        }
     }
 }
 

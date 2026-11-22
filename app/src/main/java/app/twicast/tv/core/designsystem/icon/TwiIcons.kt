@@ -49,6 +49,7 @@ object TwiIcons {
     val ChevronRight = strokeIcon("ChevronRight", "M9 6l6 6l-6 6", strokeWidth = 2.4f)
     val Check = strokeIcon("Check", "M5 12l5 5L19 7", strokeWidth = 2.6f)
     val ArrowUp = strokeIcon("ArrowUp", "M12 19V5M5 12l7-7l7 7", strokeWidth = 2.6f)
+    val Moon = strokeIcon("Moon", "M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z", strokeWidth = 2f)
     val Microphone = strokeIcon("Microphone", "M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM5 11a7 7 0 0 0 14 0M12 18v3", strokeWidth = 2f)
 }
 

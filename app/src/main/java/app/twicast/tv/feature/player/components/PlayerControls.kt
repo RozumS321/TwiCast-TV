@@ -51,6 +51,9 @@ fun PlayerControls(
     onSeekStep: (forward: Boolean, repeat: Int) -> Unit,
     onRestart: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenSleep: () -> Unit = {},
+    /** The sleep timer's time left: the button shows it instead of its name. */
+    sleepLeft: String? = null,
 ) {
     val progress = state.progress
     val seekable = state.canSeek && progress != null
@@ -74,7 +77,7 @@ fun PlayerControls(
                 Text(stringResource(R.string.seek_hint), style = TwiTheme.typography.bodySmall, color = TwiTheme.colors.onOverlayVariant)
             }
         }
-        ControlsRow(state, seekable, onTogglePause, onRestart, onOpenQuality, onToggleChat, onOpenChannel)
+        ControlsRow(state, seekable, onTogglePause, onRestart, onOpenQuality, onToggleChat, onOpenChannel, onOpenSleep, sleepLeft)
     }
 }
 
@@ -87,6 +90,8 @@ private fun ControlsRow(
     onOpenQuality: () -> Unit,
     onToggleChat: () -> Unit,
     onOpenChannel: () -> Unit,
+    onOpenSleep: () -> Unit,
+    sleepLeft: String?,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -114,6 +119,7 @@ private fun ControlsRow(
             icon = TwiIcons.Quality,
             onClick = onOpenQuality,
         )
+        TwiSecondaryButton(text = sleepLeft ?: stringResource(R.string.sleep_timer_title), icon = TwiIcons.Moon, onClick = onOpenSleep)
         if (state.channel.isLive) {
             TwiSecondaryButton(
                 text = stringResource(if (state.chatVisible) R.string.player_chat_hide else R.string.player_chat_show),

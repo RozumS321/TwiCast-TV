@@ -1,5 +1,14 @@
 package app.twicast.tv.feature.player
 
+import app.twicast.tv.feature.player.components.sleepLeftText
+import app.twicast.tv.feature.player.components.SleepWarning
+import app.twicast.tv.feature.player.components.SleepTimerPanel
+import app.twicast.tv.feature.player.components.SleepAskCard
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.DisposableEffect
 import app.twicast.tv.core.designsystem.component.LocalEmberBackdrop
 import android.util.Log
@@ -51,6 +60,26 @@ fun PlayerRoute(onClose: () -> Unit, onOpenChannel: (String) -> Unit, viewModel:
             override fun onProgress(positionMs: Long, durationMs: Long) = viewModel.onProgress(positionMs, durationMs)
         }
     }
+    // Sleep timer (canvas "Плеер · таймер сна"): leaves the player and puts the box to sleep when time is up.
+    val sleepViewModel: SleepTimerViewModel = hiltViewModel()
+    val sleepUi by sleepViewModel.ui.collectAsStateWithLifecycle()
+    val currentOnClose by rememberUpdatedState(onClose)
+    LaunchedEffect(sleepViewModel) {
+        sleepViewModel.sleepNow.collect {
+            currentOnClose()
+            sleepViewModel.sleepDevice()
+        }
+    }
+    LaunchedEffect(state.status) { if (state.status == PlaybackStatus.Ended) sleepViewModel.onStreamEnded() }
+    LifecycleResumeEffect(sleepViewModel) {
+        sleepViewModel.onResume()
+        onPauseOrDispose {}
+    }
+    val openAdminRequest = {
+        sleepViewModel.onExplained()
+        runCatching { context.startActivity(sleepViewModel.adminRequest()) }
+        Unit
+    }
     val currentController by rememberUpdatedState(controller)
     LaunchedEffect(viewModel) { viewModel.seekRequests.collect { currentController.seekTo(it) } }
     PlayerScreen(
@@ -58,7 +87,8 @@ fun PlayerRoute(onClose: () -> Unit, onOpenChannel: (String) -> Unit, viewModel:
         embedController = embedController,
         nativeController = nativeController,
         listener = listener,
-        onRemoteActivity = viewModel::onRemoteActivity,
+        // While the sleep timer's panel or warning is up, keys belong to it: the controls stay down.
+        onRemoteActivity = { if (!sleepUi.capturesKeys) viewModel.onRemoteActivity() },
         onOpenQuality = viewModel::onOpenQuality,
         onQualitySelected = { quality ->
             controller.setQuality(quality.id)
@@ -69,9 +99,38 @@ fun PlayerRoute(onClose: () -> Unit, onOpenChannel: (String) -> Unit, viewModel:
         onSeekStep = viewModel::onSeekStep,
         onRestart = viewModel::onRestart,
         onBack = { if (!viewModel.onBack()) onClose() },
+        sleepLeft = sleepLeftText(sleepUi.choice, sleepUi.leftMillis),
+        onOpenSleep = {
+            viewModel.onBack()
+            sleepViewModel.onOpenMenu()
+        },
+        sleepOverlay = {
+            when (sleepUi.panel) {
+                SleepPanel.Menu -> SleepTimerPanel(
+                    choice = sleepUi.choice,
+                    allowed = sleepUi.allowed,
+                    onChoose = sleepViewModel::onChoose,
+                    onAllow = openAdminRequest,
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                )
+                SleepPanel.Ask -> SleepAskCard(
+                    onAllow = openAdminRequest,
+                    onOnlyStop = sleepViewModel::onExplained,
+                    modifier = Modifier.align(Alignment.BottomEnd),
+                )
+                SleepPanel.None -> Unit
+            }
+            val left = sleepUi.leftMillis
+            if (sleepUi.warning && left != null) {
+                SleepWarning(left, sleepViewModel::onExtend, sleepViewModel::onCancelTimer, Modifier.fillMaxSize())
+            }
+        },
         chat = { modifier ->
             val messages by chatViewModel.messages.collectAsStateWithLifecycle()
             ChatPanel(messages, modifier)
         },
     )
+    // Declared after the screen: closes the sleep panel before the player handles Back.
+    BackHandler(enabled = sleepUi.panel != SleepPanel.None) { sleepViewModel.onBack() }
 }
+
