@@ -87,13 +87,15 @@ fun PlayerScreen(
     onOpenSleep: () -> Unit = {},
     /** The sleep timer's panels and last-minute warning, over everything. */
     sleepOverlay: @Composable BoxScope.() -> Unit = {},
+    /** The sleep timer's menu or warning is up: every key goes to it, the player keeps out of the way. */
+    sleepCapturesKeys: Boolean = false,
     /** The chat panel; composed (and connected) only while the chat is open. */
     chat: @Composable (Modifier) -> Unit = {},
 ) {
     val rootFocus = remember { FocusRequester() }
     BackHandler(enabled = state.overlay != PlayerOverlay.Hidden || state.chatVisible, onBack = onBack)
     // Bare video (and its seek bar) keeps focus on the root so the next key press reaches it.
-    LaunchedEffect(state.overlay) { if (state.overlay.isBare) rootFocus.requestFocus() }
+    LaunchedEffect(state.overlay, sleepCapturesKeys) { if (state.overlay.isBare && !sleepCapturesKeys) rootFocus.requestFocus() }
     val twiCast = state.engine == PlayerEngine.TwiCast
     val controller: PlaybackController = if (twiCast) nativeController else embedController
 
@@ -103,6 +105,9 @@ fun PlayerScreen(
             .background(TwiTheme.colors.playerBackground)
             .onPreviewKeyEvent { event ->
                 if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                // Bare video swallows the first arrow press to reveal the controls: not while the sleep timer's menu
+                // is up, or its rows could never be reached.
+                if (sleepCapturesKeys && event.key != Key.MediaPlayPause) return@onPreviewKeyEvent false
                 when {
                     event.key == Key.MediaPlayPause -> {
                         controller.togglePause()

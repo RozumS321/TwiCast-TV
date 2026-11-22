@@ -9,6 +9,10 @@
 
     <!-- Android 11+ package visibility: lets search find the system voice input. -->
     <queries>
+        <!-- The sleep timer opens the TV settings' "activate device admin" screen directly. -->
+        <intent>
+            <action android:name="android.app.action.ADD_DEVICE_ADMIN" />
+        </intent>
         <intent>
             <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
         </intent>

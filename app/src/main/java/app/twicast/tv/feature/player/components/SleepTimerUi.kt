@@ -53,6 +53,7 @@ fun sleepLeftText(choice: SleepChoice, leftMillis: Long?): String? = when {
 private fun SleepChoice.label(): String = stringResource(
     when (this) {
         SleepChoice.Off -> R.string.sleep_off
+        SleepChoice.Minute1 -> R.string.sleep_1_debug
         SleepChoice.Minutes15 -> R.string.sleep_15
         SleepChoice.Minutes30 -> R.string.sleep_30
         SleepChoice.Hour1 -> R.string.sleep_60
@@ -83,7 +84,7 @@ fun SleepTimerPanel(
             Icon(TwiIcons.Moon, contentDescription = null, tint = colors.primary, modifier = Modifier.size(20.dp))
             Text(stringResource(R.string.sleep_timer_title), style = TwiTheme.typography.rowTitle, color = colors.onSurface)
         }
-        SleepChoice.entries.forEach { option ->
+        SleepChoice.entries.filter { it != SleepChoice.Minute1 || app.twicast.tv.BuildConfig.DEBUG }.forEach { option ->
             SleepRow(
                 text = option.label(),
                 selected = option == choice,

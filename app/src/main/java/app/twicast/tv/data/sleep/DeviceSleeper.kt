@@ -29,10 +29,19 @@ class DeviceSleeper @Inject constructor(@ApplicationContext private val context:
         get() = prefs.getBoolean(ExplainedKey, false)
         set(value) = prefs.edit().putBoolean(ExplainedKey, value).apply()
 
-    /** Android's own "activate device admin" screen, with our one-line reason. */
-    fun requestIntent(): Intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN)
-        .putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, admin)
-        .putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, context.getString(R.string.sleep_admin_explanation))
+    /**
+     * Android's own "activate device admin" screen, with our one-line reason. Aimed at one app: TV boxes carry both
+     * the phone and the TV settings, and the "choose an app" sheet between them came up black and unusable.
+     */
+    fun requestIntent(): Intent {
+        val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN)
+            .putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, admin)
+            .putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, context.getString(R.string.sleep_admin_explanation))
+        val handlers = context.packageManager.queryIntentActivities(intent, 0).map { it.activityInfo }
+        val target = handlers.firstOrNull { it.packageName == TvSettings } ?: handlers.firstOrNull()
+        if (target != null) intent.setClassName(target.packageName, target.name)
+        return intent
+    }
 
     /** Puts the box to sleep if allowed; false when it is not (the caller only stops playback then). */
     fun sleepNow(): Boolean {
@@ -42,6 +51,7 @@ class DeviceSleeper @Inject constructor(@ApplicationContext private val context:
 
     private companion object {
         const val PrefsName = "sleep_timer"
+        const val TvSettings = "com.android.tv.settings"
         const val ExplainedKey = "explained"
     }
 }

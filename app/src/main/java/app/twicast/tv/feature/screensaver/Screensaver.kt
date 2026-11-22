@@ -35,8 +35,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/** How long without a key press, outside the player, before the screensaver shows. */
-const val ScreensaverIdleMillis = 5 * 60 * 1000L
+/** How long without a key press, outside the player, before the screensaver shows (20 s in debug builds, to check it). */
+val ScreensaverIdleMillis = if (app.twicast.tv.BuildConfig.DEBUG) 20_000L else 5 * 60 * 1000L
 
 private const val ClockTickMillis = 15_000L
 private val MarkSize = 96.dp

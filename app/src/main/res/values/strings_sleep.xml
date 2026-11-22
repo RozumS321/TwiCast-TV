@@ -21,4 +21,5 @@
     <string name="sleep_cancel">Turn off the timer</string>
     <string name="sleep_admin_explanation">TwiCast puts the box to sleep when the sleep timer ends, so the TV turns off with it. This right gives nothing else.</string>
     <string name="sleep_until_end">until the end</string>
+    <string name="sleep_1_debug" translatable="false">1 minute (debug)</string>
 </resources>

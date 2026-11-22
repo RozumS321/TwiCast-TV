@@ -100,6 +100,7 @@ fun PlayerRoute(onClose: () -> Unit, onOpenChannel: (String) -> Unit, viewModel:
         onRestart = viewModel::onRestart,
         onBack = { if (!viewModel.onBack()) onClose() },
         sleepLeft = sleepLeftText(sleepUi.choice, sleepUi.leftMillis),
+        sleepCapturesKeys = sleepUi.capturesKeys,
         onOpenSleep = {
             viewModel.onBack()
             sleepViewModel.onOpenMenu()

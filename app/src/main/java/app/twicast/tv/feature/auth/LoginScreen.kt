@@ -209,6 +209,8 @@ private fun WaitingIndicator() {
         label = "pulse",
     )
     val dotColor = TwiTheme.colors.primary
+    // The ring in the lighter purple: on the dark card the deep one barely showed.
+    val ringColor = TwiTheme.colors.primaryStrong
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(TwiDimens.StatusDotSpacing),
@@ -219,7 +221,7 @@ private fun WaitingIndicator() {
                 .drawBehind {
                     val dot = TwiDimens.StatusDotSize.toPx() / 2
                     val t = pulse.value
-                    drawCircle(dotColor.copy(alpha = 0.45f * (1f - t)), radius = dot * (1f + 1.4f * t))
+                    drawCircle(ringColor.copy(alpha = 0.7f * (1f - t)), radius = dot * (1f + 1.8f * t))
                     drawCircle(dotColor, radius = dot)
                 },
         )

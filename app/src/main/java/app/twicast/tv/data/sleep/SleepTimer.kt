@@ -10,6 +10,9 @@ import javax.inject.Singleton
 /** What the sleep timer waits for (canvas "Плеер · таймер сна"). */
 enum class SleepChoice(val minutes: Int?) {
     Off(null),
+
+    /** Debug builds only: to see the last-minute warning and the sleep right away. */
+    Minute1(1),
     Minutes15(15),
     Minutes30(30),
     Hour1(60),

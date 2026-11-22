@@ -1,5 +1,13 @@
 package app.twicast.tv.feature.settings
 
+import androidx.compose.ui.input.key.onKeyEvent
+import app.twicast.tv.feature.settings.components.settingsRow
+import app.twicast.tv.feature.settings.components.LocalSettingsTab
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.Key
 import androidx.compose.foundation.focusGroup
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.focusProperties
@@ -96,6 +104,7 @@ fun SettingsScreen(
     ) {
         Text(stringResource(R.string.settings_title), style = TwiTheme.typography.screenTitle, color = TwiTheme.colors.onSurface)
         val menuRequester = remember { FocusRequester() }
+        CompositionLocalProvider(LocalSettingsTab provides menuRequester) {
         Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.SettingsSectionsSpacing)) {
             SettingsMenu(state.section, takesInitialFocus = !state.focusLanguage, onSectionFocused, selectedRequester = menuRequester)
             // Scrolls when a section is taller than the screen ("Плеер" with notifications); focus brings cards into view.
@@ -103,15 +112,11 @@ fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(TwiDimens.SettingsContentSpacing),
                 modifier = Modifier
                     .weight(1f)
-                    // Left out of a section always goes back to its tab. Scrolled down, no tab sits level with the
-                    // focused card, and the geometric search flew on to the main menu.
-                    .focusProperties {
-                        onExit = {
-                            if (requestedFocusDirection == FocusDirection.Left) {
-                                menuRequester.requestFocus()
-                                cancelFocusChange()
-                            }
-                        }
+                    // Left from anywhere in a section goes to its tab (rows of choices handle their own Left first).
+                    .onKeyEvent { event ->
+                        if (event.key != Key.DirectionLeft || event.type != KeyEventType.KeyDown) return@onKeyEvent false
+                        menuRequester.requestFocus()
+                        true
                     }
                     .focusGroup()
                     .verticalScroll(rememberScrollState())
@@ -141,6 +146,7 @@ fun SettingsScreen(
                 }
             }
         }
+        }
     }
 }
 
@@ -149,7 +155,7 @@ private fun PlayerSection(selected: PlayerEngine?, onPlayerSelected: (PlayerEngi
     Column(verticalArrangement = Arrangement.spacedBy(TwiDimens.HomeRowTitleSpacing)) {
         Text(stringResource(R.string.settings_player), style = TwiTheme.typography.rowTitleDense, color = TwiTheme.colors.onSurface)
         if (selected != null) {
-            Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChannelGridSpacing), modifier = Modifier.fillMaxWidth()) {
+            Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChannelGridSpacing), modifier = Modifier.fillMaxWidth().settingsRow()) {
                 PlayerOptions.forEach { option ->
                     PlayerCard(
                         option = option,

@@ -59,7 +59,7 @@ private val LanguageOptions = listOf(
 fun QualitySection(selected: DefaultQuality?, loaded: Boolean, onSelected: (DefaultQuality) -> Unit) {
     SettingsSection(R.string.settings_quality, R.string.settings_quality_hint) {
         if (!loaded) return@SettingsSection
-        Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChipSpacing)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChipSpacing), modifier = Modifier.settingsRow()) {
             DefaultQuality.entries.forEach { quality ->
                 val label = if (quality == DefaultQuality.Auto) stringResource(R.string.player_quality_auto) else quality.id
                 TwiChip(label, selected = quality == selected, onClick = { onSelected(quality) })
@@ -73,7 +73,7 @@ fun QualitySection(selected: DefaultQuality?, loaded: Boolean, onSelected: (Defa
 fun ThemeSection(themeMode: ThemeMode?, onThemeSelected: (ThemeMode) -> Unit) {
     SettingsSection(R.string.settings_theme, R.string.settings_theme_hint) {
         if (themeMode == null) return@SettingsSection
-        Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChipSpacing)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChipSpacing), modifier = Modifier.settingsRow()) {
             ThemeOptions.forEach { option ->
                 TwiChip(stringResource(option.title), selected = option.mode == themeMode, onClick = { onThemeSelected(option.mode) })
             }
@@ -85,7 +85,7 @@ fun ThemeSection(themeMode: ThemeMode?, onThemeSelected: (ThemeMode) -> Unit) {
 @Composable
 fun LanguageSection(language: AppLanguage, focusLanguage: Boolean, onLanguageSelected: (AppLanguage) -> Unit) {
     SettingsSection(R.string.settings_language, R.string.settings_language_hint) {
-        Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChipSpacing)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(TwiDimens.ChipSpacing), modifier = Modifier.settingsRow()) {
             LanguageOptions.forEach { option ->
                 val isCurrent = option.language == language
                 TwiChip(
