@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.player
 
+import app.twicast.tv.data.repository.LivePlayer
 import app.twicast.tv.core.device.DeviceProfile
 import app.twicast.tv.data.model.AppError
 import app.twicast.tv.data.model.AppResult
@@ -163,6 +164,37 @@ class PlayerViewModelTest {
         assertEquals(PlayerEngine.TwiCast, state.engine)
         assertEquals("https://usher.test/live.m3u8", state.streamUrl)
         assertEquals(listOf<PlaybackSource>(PlaybackSource.Live("sasavot")), playback.requests)
+    }
+
+    @Test
+    fun `an ad in our live stream moves to a fallback player, then back to the primary one`() = runTest(mainRule.dispatcher) {
+        settings.playerEngine.value = PlayerEngine.TwiCast
+        val viewModel = viewModel()
+        playback.result = AppResult.Success("https://usher.test/popout.m3u8")
+
+        viewModel.onAdBreak(true)
+        runCurrent()
+        assertEquals(PlaybackSource.Live("sasavot", LivePlayer.Popout), playback.requests.last())
+        assertEquals("https://usher.test/popout.m3u8", viewModel.uiState.value.streamUrl)
+        assertFalse(viewModel.uiState.value.adBreak)
+
+        playback.result = AppResult.Success("https://usher.test/live.m3u8")
+        advanceTimeBy(AdReturnMillis + 1)
+        assertEquals(PlaybackSource.Live("sasavot", LivePlayer.Primary), playback.requests.last())
+        assertEquals("https://usher.test/live.m3u8", viewModel.uiState.value.streamUrl)
+    }
+
+    @Test
+    fun `when every player carries the ad, it plays`() = runTest(mainRule.dispatcher) {
+        settings.playerEngine.value = PlayerEngine.TwiCast
+        val viewModel = viewModel()
+        repeat(LivePlayer.entries.size + 2) {
+            viewModel.onAdBreak(true)
+            runCurrent()
+        }
+        assertEquals(LivePlayer.Autoplay, (playback.requests.last() as PlaybackSource.Live).player)
+        assertEquals(1 + LivePlayer.entries.size - 1, playback.requests.size)
+        assertTrue(viewModel.uiState.value.adBreak)
     }
 
     @Test

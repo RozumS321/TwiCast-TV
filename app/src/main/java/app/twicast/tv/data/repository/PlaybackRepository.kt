@@ -17,9 +17,26 @@ import kotlin.random.Random
 
 /** What the TwiCast player plays. */
 sealed interface PlaybackSource {
-    data class Live(val login: String) : PlaybackSource
+    /** [player]: which Twitch player the token is asked as — the ad-free fallbacks differ only in this. */
+    data class Live(val login: String, val player: LivePlayer = LivePlayer.Primary) : PlaybackSource
     data class Vod(val videoId: String) : PlaybackSource
     data class Clip(val slug: String) : PlaybackSource
+}
+
+/**
+ * The Twitch players a live token can be asked as, none of which carried stitched ads in our checks (ads came only
+ * into "site"). When an ad does show up in one (feedback: a mid-roll ~30 min in), the player moves to the next.
+ */
+enum class LivePlayer(val type: String, val platform: String) {
+    Primary("embed", "web"),
+    Popout("popout", "web"),
+    Frontpage("frontpage", "web"),
+    /** The last resort: ad-free too, but capped at 360p. */
+    Autoplay("autoplay", "android"),
+    ;
+
+    /** The next one to try during an ad, or null when all were tried. */
+    val next: LivePlayer? get() = entries.getOrNull(ordinal + 1)
 }
 
 interface PlaybackRepository {
@@ -31,15 +48,14 @@ private const val UsherHost = "usher.ttvnw.net"
 private const val PlayerRandomBound = 10_000_000
 
 /**
- * Live streams are asked for as the embedded player, not as twitch.tv itself ("site"): Twitch stitches its ads,
- * the one before the stream and those in the middle, only into the "site" playlist, so the stream plays without
- * them and nothing has to be cut or switched. Same qualities, up to the source.
+ * Live streams are asked for as the embedded player ([LivePlayer.Primary]), not as twitch.tv itself ("site"):
+ * Twitch stitches its ads only into the "site" playlist, so the stream plays without them. Same qualities.
  */
-private const val LivePlayerType = "embed"
 
 // The web player's own request (same params as twitch.tv), so usher accepts the token.
-private const val TokenQuery = "query(\$login: String!, \$isLive: Boolean!, \$vodID: ID!, \$isVod: Boolean!) { " +
-    "streamPlaybackAccessToken(channelName: \$login, params: {platform: \"web\", playerBackend: \"mediaplayer\", playerType: \"$LivePlayerType\"}) " +
+private const val TokenQuery = "query(\$login: String!, \$isLive: Boolean!, \$vodID: ID!, \$isVod: Boolean!, " +
+    "\$playerType: String!, \$platform: String!) { " +
+    "streamPlaybackAccessToken(channelName: \$login, params: {platform: \$platform, playerBackend: \"mediaplayer\", playerType: \$playerType}) " +
     "@include(if: \$isLive) { value signature } " +
     "videoPlaybackAccessToken(id: \$vodID, params: {platform: \"web\", playerBackend: \"mediaplayer\", playerType: \"site\"}) " +
     "@include(if: \$isVod) { value signature } }"
@@ -54,7 +70,7 @@ class GqlPlaybackRepository @Inject constructor(private val api: TwitchGqlApi) :
     override suspend fun playbackUrl(source: PlaybackSource): AppResult<String> {
         val result = runCatchingRemote {
             when (source) {
-                is PlaybackSource.Live -> liveUrl(source.login)
+                is PlaybackSource.Live -> liveUrl(source.login, source.player)
                 is PlaybackSource.Vod -> vodUrl(source.videoId)
                 is PlaybackSource.Clip -> clipUrl(source.slug)
             }
@@ -66,8 +82,8 @@ class GqlPlaybackRepository @Inject constructor(private val api: TwitchGqlApi) :
         }
     }
 
-    private suspend fun liveUrl(login: String): String? {
-        val token = token(login = login, videoId = null)?.streamPlaybackAccessToken ?: return null
+    private suspend fun liveUrl(login: String, player: LivePlayer): String? {
+        val token = token(login = login, videoId = null, player = player)?.streamPlaybackAccessToken ?: return null
         return usherUrl("api/channel/hls/${login.lowercase()}.m3u8", token)
     }
 
@@ -76,7 +92,7 @@ class GqlPlaybackRepository @Inject constructor(private val api: TwitchGqlApi) :
         return usherUrl("vod/$videoId.m3u8", token)
     }
 
-    private suspend fun token(login: String?, videoId: String?) = api.playbackToken(
+    private suspend fun token(login: String?, videoId: String?, player: LivePlayer = LivePlayer.Primary) = api.playbackToken(
         GqlRequest(
             query = TokenQuery,
             variables = buildJsonObject {
@@ -84,6 +100,8 @@ class GqlPlaybackRepository @Inject constructor(private val api: TwitchGqlApi) :
                 put("isLive", JsonPrimitive(login != null))
                 put("vodID", JsonPrimitive(videoId.orEmpty()))
                 put("isVod", JsonPrimitive(videoId != null))
+                put("playerType", JsonPrimitive(player.type))
+                put("platform", JsonPrimitive(player.platform))
             },
         ),
     ).data

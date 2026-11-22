@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.player
 
+import app.twicast.tv.data.repository.LivePlayer
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -287,7 +288,46 @@ class PlayerViewModel internal constructor(
         }
     }
 
-    fun onAdBreak(active: Boolean) = _uiState.update { it.copy(adBreak = active) }
+    /** Which Twitch player the live stream is asked as now: [LivePlayer.Primary] unless dodging an ad. */
+    private var livePlayer = LivePlayer.Primary
+    private var adSwitchJob: Job? = null
+    private var returnJob: Job? = null
+
+    fun onAdBreak(active: Boolean) {
+        _uiState.update { it.copy(adBreak = active) }
+        if (active) switchAwayFromAd()
+    }
+
+    /**
+     * An ad was stitched into our live stream: move to the next Twitch player type, which did not carry ads in
+     * our checks. After [AdReturnMillis] (about an ad break) we go back to the primary one; if all types carry the
+     * ad, it plays. Only our own player: the official embed shows Twitch's ads its own way.
+     */
+    private fun switchAwayFromAd() {
+        val state = _uiState.value
+        val live = state.channel.isLive && state.channel.videoId == null && state.channel.clipSlug == null
+        if (state.engine != PlayerEngine.TwiCast || !live || adSwitchJob?.isActive == true) return
+        val next = livePlayer.next ?: return
+        adSwitchJob = viewModelScope.launch {
+            val result = playback.playbackUrl(PlaybackSource.Live(state.channel.channelLogin, next))
+            if (result !is AppResult.Success) return@launch
+            livePlayer = next
+            _uiState.update { it.copy(streamUrl = result.value, adBreak = false, status = PlaybackStatus.Loading) }
+            scheduleReturnToPrimary()
+        }
+    }
+
+    private fun scheduleReturnToPrimary() {
+        returnJob?.cancel()
+        returnJob = viewModelScope.launch {
+            delay(AdReturnMillis)
+            if (livePlayer == LivePlayer.Primary) return@launch
+            val result = playback.playbackUrl(PlaybackSource.Live(_uiState.value.channel.channelLogin))
+            if (result !is AppResult.Success) return@launch
+            livePlayer = LivePlayer.Primary
+            _uiState.update { it.copy(streamUrl = result.value, status = PlaybackStatus.Loading) }
+        }
+    }
 
     fun onProgress(positionMs: Long, durationMs: Long) {
         if (durationMs <= 0) return
@@ -422,3 +462,6 @@ class PlayerViewModel internal constructor(
         }
     }
 }
+
+/** How long to stay on a fallback player after dodging an ad before trying the primary one again. */
+internal const val AdReturnMillis = 75_000L

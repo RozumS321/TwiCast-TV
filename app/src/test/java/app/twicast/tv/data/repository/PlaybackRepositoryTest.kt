@@ -1,5 +1,6 @@
 package app.twicast.tv.data.repository
 
+import kotlinx.serialization.json.JsonPrimitive
 import app.twicast.tv.data.model.AppResult
 import app.twicast.tv.data.remote.AccessTokenDto
 import app.twicast.tv.data.remote.ClipPlaybackData
@@ -45,8 +46,20 @@ class PlaybackRepositoryTest {
 
         GqlPlaybackRepository(api).playbackUrl(PlaybackSource.Live("Pixelmira"))
 
-        val liveParams = api.requests.single().query.substringAfter("streamPlaybackAccessToken").substringBefore("@include")
-        assertTrue(liveParams, liveParams.contains("playerType: \"embed\""))
+        val variables = api.requests.single().variables
+        assertEquals(JsonPrimitive("embed"), variables["playerType"])
+        assertEquals(JsonPrimitive("web"), variables["platform"])
+    }
+
+    @Test
+    fun `a fallback live player is asked as its own player type`() = runTest {
+        val api = TokenApi()
+
+        GqlPlaybackRepository(api).playbackUrl(PlaybackSource.Live("Pixelmira", LivePlayer.Autoplay))
+
+        val variables = api.requests.single().variables
+        assertEquals(JsonPrimitive("autoplay"), variables["playerType"])
+        assertEquals(JsonPrimitive("android"), variables["platform"])
     }
 
     @Test
