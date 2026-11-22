@@ -98,8 +98,7 @@ fun StreamCard(
             .onFocusChanged { focused = it.isFocused }
             .onPlaced { placed[0] = it }
             .clickable(interactionSource = interactionSource, indication = null) {
-                LaunchOrigin.from(placed[0], thumbnailUrl)
-                onClick()
+                LaunchOrigin.launch(placed[0], thumbnailUrl, onClick)
             }
             .padding(bottom = spacing),
     ) {

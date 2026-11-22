@@ -1,5 +1,12 @@
 package app.twicast.tv.core.designsystem.component
 
+import android.os.Looper
+import android.os.Handler
+import coil3.request.crossfade
+import coil3.request.ImageRequest
+import coil3.compose.LocalPlatformContext
+import app.twicast.tv.core.designsystem.theme.TwiTheme
+import androidx.compose.foundation.background
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
@@ -46,14 +53,24 @@ object LaunchOrigin {
 
     internal var pending by mutableStateOf<Launch?>(null)
 
-    /** Remembers [coordinates] (a card's, still attached) as the place the next screen grows from. */
-    fun from(coordinates: LayoutCoordinates?, imageUrl: String? = null) {
-        val card = coordinates?.takeIf { it.isAttached } ?: return
-        val root = card.findRootCoordinates().size
-        if (root.width == 0 || root.height == 0) return
+    private val main = Handler(Looper.getMainLooper())
+
+    /**
+     * Grows the card at [coordinates] (still attached) into the screen, then runs [open]. Opening the player takes
+     * the main thread for a few hundred milliseconds; done first it froze the growth, so the preview jumped to full
+     * screen. Done after, the stall hides under the preview that already covers the screen.
+     */
+    fun launch(coordinates: LayoutCoordinates?, imageUrl: String?, open: () -> Unit) {
+        val card = coordinates?.takeIf { it.isAttached }
+        val root = card?.findRootCoordinates()?.size
+        if (card == null || root == null || root.width == 0 || root.height == 0 || pending != null) {
+            open()
+            return
+        }
         val bounds = card.boundsInRoot()
         origin = TransformOrigin(bounds.center.x / root.width, bounds.center.y / root.height)
         pending = Launch(bounds, imageUrl)
+        main.postDelayed(open, TwiMotion.LaunchMillis.toLong())
     }
 }
 
@@ -89,10 +106,13 @@ fun LaunchOverlay() {
                 .size(with(density) { width.toDp() }, with(density) { height.toDp() })
                 .graphicsLayer { this.alpha = alpha.value }
                 .clip(RoundedCornerShape(lerp(radius.value, 0f, f).dp))
-                .then(Modifier),
+                // Visible from the first frame even before the picture is there.
+                .background(TwiTheme.colors.surfaceVariant),
         ) {
+            val context = LocalPlatformContext.current
             AsyncImage(
-                model = launch.imageUrl,
+                // Straight from the memory cache, no fade: the app-wide crossfade left it see-through while growing.
+                model = remember(launch) { ImageRequest.Builder(context).data(launch.imageUrl).crossfade(false).build() },
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
