@@ -1,5 +1,15 @@
 package app.twicast.tv.core.designsystem.component
 
+import androidx.compose.ui.layout.findRootCoordinates
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.runtime.remember
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.layout.Arrangement
@@ -27,31 +37,67 @@ import app.twicast.tv.core.designsystem.theme.TwiMotion
 import app.twicast.tv.core.designsystem.theme.TwiShapes
 import app.twicast.tv.core.designsystem.theme.TwiTheme
 
-private const val SkeletonMinAlpha = 0.55f
-private const val SkeletonMaxAlpha = 1f
+/** One sweep of the shine across the screen; the band is this share of the screen width. */
+private const val SkeletonSweepMillis = 1600
+private const val SkeletonBandFraction = 0.35f
+private const val SkeletonShineAlpha = 0.07f
 private const val SkeletonTitleFraction = 0.85f
 private const val SkeletonCaptionFraction = 0.55f
 
-/** One pulse shared by all skeletons of a list, so a loading row runs a single animation. */
+/**
+ * One shine shared by all skeletons of a screen (canvas: "Главная · загрузка"): a soft light band sweeping left to
+ * right across the whole screen, so every block it passes lights up in turn, as one surface. [value] is 0..1.
+ */
 @Stable
-class SkeletonPulse internal constructor(private val alpha: State<Float>) {
-    val value: Float get() = alpha.value
+class SkeletonPulse internal constructor(private val sweep: State<Float>) {
+    val value: Float get() = sweep.value
 }
 
 @Composable
 fun rememberSkeletonPulse(): SkeletonPulse {
     val transition = rememberInfiniteTransition(label = "skeleton")
-    val alpha = transition.animateFloat(SkeletonMinAlpha, SkeletonMaxAlpha, TwiMotion.skeletonPulse(), label = "alpha")
-    return SkeletonPulse(alpha)
+    val sweep = transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(SkeletonSweepMillis, easing = LinearEasing)),
+        label = "sweep",
+    )
+    return SkeletonPulse(sweep)
 }
 
 @Composable
 fun SkeletonBlock(pulse: SkeletonPulse, shape: Shape, modifier: Modifier = Modifier) {
     val color = TwiTheme.colors.surfaceVariant
+    val shine = TwiTheme.colors.onSurface.copy(alpha = SkeletonShineAlpha)
+    // Where this block sits on the screen, so the band crosses all blocks at the same screen position.
+    val placement = remember { floatArrayOf(0f, 1f) }
     Box(
-        modifier.drawBehind {
-            drawOutline(shape.createOutline(size, layoutDirection, this), color, alpha = pulse.value)
-        },
+        modifier
+            .onPlaced { coordinates ->
+                placement[0] = coordinates.positionInRoot().x
+                placement[1] = coordinates.findRootCoordinates().size.width.toFloat()
+            }
+            .drawWithCache {
+                val outline = shape.createOutline(size, layoutDirection, this)
+                onDrawBehind {
+                    drawOutline(outline, color)
+                    val screen = placement[1]
+                    val band = screen * SkeletonBandFraction
+                    val center = -band + pulse.value * (screen + 2 * band) - placement[0]
+                    if (center + band > 0f && center - band < size.width) {
+                        drawOutline(
+                            outline,
+                            Brush.horizontalGradient(
+                                0f to Color.Transparent,
+                                0.5f to shine,
+                                1f to Color.Transparent,
+                                startX = center - band,
+                                endX = center + band,
+                            ),
+                        )
+                    }
+                }
+            },
     )
 }
 

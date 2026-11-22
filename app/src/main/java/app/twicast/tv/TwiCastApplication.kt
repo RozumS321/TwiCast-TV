@@ -12,7 +12,8 @@ import dagger.hilt.android.HiltAndroidApp
 import okhttp3.OkHttpClient
 import javax.inject.Inject
 
-private const val ImageCrossfadeMillis = 150
+// Images fade in softly over their skeleton instead of popping in.
+private const val ImageCrossfadeMillis = 300
 
 /**
  * Decoded images kept in memory. A TV screen shows under 20 previews; Coil's default (a share of the app's heap)
