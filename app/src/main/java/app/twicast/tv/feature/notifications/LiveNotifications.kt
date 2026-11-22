@@ -82,6 +82,8 @@ object LiveNotifications {
             .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
+            // TVs keep a heads-up on screen until it is dismissed by hand: let it go away by itself.
+            .setTimeoutAfter(NotificationTimeoutMillis)
             .setContentIntent(PendingIntent.getActivity(context, id, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT))
             .build()
     }
@@ -98,6 +100,8 @@ object LiveNotifications {
             .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
+            // TVs keep a heads-up on screen until it is dismissed by hand: let it go away by itself.
+            .setTimeoutAfter(NotificationTimeoutMillis)
             .setContentIntent(PendingIntent.getActivity(context, SummaryId, intent, PendingIntent.FLAG_IMMUTABLE))
             .build()
     }
@@ -115,3 +119,6 @@ object LiveNotifications {
         )
     }
 }
+
+/** How long a "started streaming" notification stays on the TV screen. */
+private const val NotificationTimeoutMillis = 10_000L
