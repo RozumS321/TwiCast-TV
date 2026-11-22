@@ -129,7 +129,7 @@ fun SettingsScreen(
                         ChatSection(state.openChatWithStream, onOpenChatChanged)
                     }
                     SettingsSection.System -> {
-                        EffectsSection(state.effects, onEffectsChanged)
+                        // «Эффекты интерфейса» are always on now: their switch is hidden (EffectsSection).
                         ThemeSection(state.themeMode, onThemeSelected)
                         LanguageSection(state.language, state.focusLanguage, onLanguageSelected)
                         NotificationsSection(state.notifyLiveStarts, onNotifyLiveStartsChanged)

@@ -1,5 +1,6 @@
 package app.twicast.tv.data.repository
 
+import kotlinx.coroutines.flow.flowOf
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -20,7 +21,7 @@ interface AppearanceSettingsRepository {
 
     suspend fun setThemeMode(mode: ThemeMode)
 
-    /** "Эффекты интерфейса": living background, glass and richer motion. On by default for everyone; a manual choice in settings is kept. */
+    /** "Эффекты интерфейса": living background, glass and richer motion. Always on: the switch is hidden in settings. */
     val effects: Flow<Boolean>
 
     suspend fun setEffects(enabled: Boolean)
@@ -45,7 +46,9 @@ class DataStoreAppearanceSettingsRepository @Inject constructor(
         dataStore.edit { it[themeModeKey] = mode.name }
     }
 
-    override val effects: Flow<Boolean> = dataStore.data.map { it[effectsKey] ?: true }
+    // Effects are part of the look for everyone now (measured on a 2 GB TV: they cost nothing noticeable); the
+    // switch is hidden in settings and an old stored "off" is ignored. setEffects stays for a quick way back.
+    override val effects: Flow<Boolean> = flowOf(true)
 
     override suspend fun setEffects(enabled: Boolean) {
         dataStore.edit { it[effectsKey] = enabled }
