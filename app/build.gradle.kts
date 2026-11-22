@@ -168,3 +168,8 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(libs.kotlinx.coroutines.test)
 }
+
+// scripts/check.sh runs only the tests of the packages that changed; a package without tests is not a failure.
+tasks.withType<Test>().configureEach {
+    filter.isFailOnNoMatchingTests = false
+}
