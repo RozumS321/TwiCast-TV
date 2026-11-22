@@ -1,5 +1,13 @@
 package app.twicast.tv.navigation
 
+import kotlinx.coroutines.delay
+import app.twicast.tv.feature.screensaver.ScreensaverIdleMillis
+import app.twicast.tv.feature.screensaver.Screensaver
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.runtime.mutableLongStateOf
+import android.os.SystemClock
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import app.twicast.tv.core.designsystem.component.LaunchOrigin
@@ -197,6 +205,30 @@ private fun Shell(
             items.first { it.key == TopLevelDestination.Profile.name }
     }
 
+    // Canvas "Заставка при простое": after a while without a key press (never over the player) the screensaver
+    // covers the app; the key that wakes it is swallowed so it does not also act on the screen below.
+    var lastInput by remember { mutableLongStateOf(0L) }
+    var idle by remember { mutableStateOf(false) }
+    LaunchedEffect(lastInput, isPlayer) {
+        idle = false
+        if (!isPlayer) {
+            delay(ScreensaverIdleMillis)
+            idle = true
+        }
+    }
+    val mainBackdrop = LocalEmberBackdrop.current
+    // The app's own background pauses under the screensaver (it has its own storm); only undo what we set.
+    LaunchedEffect(idle, mainBackdrop) {
+        if (mainBackdrop == null) return@LaunchedEffect
+        if (idle) mainBackdrop.coveredByVideo = true else if (!isPlayer) mainBackdrop.coveredByVideo = false
+    }
+    Box(
+        Modifier.fillMaxSize().onPreviewKeyEvent { event ->
+            val wasIdle = idle
+            if (event.type == KeyEventType.KeyDown) lastInput = SystemClock.uptimeMillis()
+            wasIdle
+        },
+    ) {
     SidebarLayout(
         items = mainItems,
         bottomItem = profileItem,
@@ -285,6 +317,8 @@ private fun Shell(
                 PlayerRoute(onClose = navController::popBackStack, onOpenChannel = navController::openChannel)
             }
         }
+    }
+    if (idle) Screensaver(liveFollowedCount, Modifier.fillMaxSize())
     }
 }
 

@@ -40,4 +40,11 @@
     <string name="home_sign_in_later">Пізніше</string>
     <string name="home_row_worldwide">Популярне у світі</string>
     <string name="home_row_worldwide_hint">усіма мовами</string>
+    <string name="screensaver_hint">Натисніть будь-яку кнопку</string>
+    <plurals name="screensaver_live">
+        <item quantity="one">В ефірі %d канал із підписок</item>
+        <item quantity="few">В ефірі %d канали з підписок</item>
+        <item quantity="many">В ефірі %d каналів із підписок</item>
+        <item quantity="other">В ефірі %d каналу з підписок</item>
+    </plurals>
 </resources>

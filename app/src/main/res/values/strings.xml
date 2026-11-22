@@ -42,4 +42,9 @@
     <string name="home_sign_in_later">Later</string>
     <string name="home_row_worldwide">Popular worldwide</string>
     <string name="home_row_worldwide_hint">all languages</string>
+    <string name="screensaver_hint">Press any button</string>
+    <plurals name="screensaver_live">
+        <item quantity="one">%d followed channel is live</item>
+        <item quantity="other">%d followed channels are live</item>
+    </plurals>
 </resources>

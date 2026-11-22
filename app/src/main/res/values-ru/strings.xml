@@ -41,4 +41,11 @@
     <string name="home_sign_in_later">Позже</string>
     <string name="home_row_worldwide">Популярное в мире</string>
     <string name="home_row_worldwide_hint">на всех языках</string>
+    <string name="screensaver_hint">Нажмите любую кнопку</string>
+    <plurals name="screensaver_live">
+        <item quantity="one">В эфире %d канал из подписок</item>
+        <item quantity="few">В эфире %d канала из подписок</item>
+        <item quantity="many">В эфире %d каналов из подписок</item>
+        <item quantity="other">В эфире %d канала из подписок</item>
+    </plurals>
 </resources>
