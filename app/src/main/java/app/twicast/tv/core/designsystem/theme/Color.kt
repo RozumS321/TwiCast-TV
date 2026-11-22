@@ -116,16 +116,18 @@ fun TwiColorScheme.withLightGlass(tokens: TwiEffectsTokens) = copy(
     background = tokens.stormLight.ground,
     surface = White.copy(alpha = LightGlassAlpha),
     surfaceVariant = White.copy(alpha = LightGlassRaisedAlpha),
-    outline = Black.copy(alpha = tokens.glassRimAlpha * 0.8f),
-    outlineVariant = Black.copy(alpha = tokens.glassRimAlpha * 0.8f),
+    // A dark hairline: white glass on a light room needs an edge to read as a pane at all.
+    outline = Black.copy(alpha = LightGlassRimAlpha),
+    outlineVariant = Black.copy(alpha = LightGlassRimAlpha),
     surfaceOverlay = White.copy(alpha = DenseGlassAlpha),
     dialog = White,
     dialogInset = LightDialogInset,
 )
 
 private val LightDialogInset = Color(0xFFEFEFF1)
-private const val LightGlassAlpha = 0.62f
-private const val LightGlassRaisedAlpha = 0.78f
+private const val LightGlassAlpha = 0.5f
+private const val LightGlassRaisedAlpha = 0.7f
+private const val LightGlassRimAlpha = 0.14f
 
 /** Lighter than the dark room behind it, so glass reads as a frosted pane, not a hole. */
 private val GlassTint = Color(0xFF2C2B30)

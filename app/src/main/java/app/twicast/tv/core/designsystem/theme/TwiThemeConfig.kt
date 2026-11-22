@@ -188,11 +188,12 @@ val TwiThemeConfig = TwiThemeTokens(
             edge = Color(0xFF8C6CFF),
         ),
         // Canvas "Эффекты · светлая тема": a pale lavender storm on Twitch's light grey.
+        // Feedback: the first pale storm was invisible on the light grey — clouds clearly lavender now.
         stormLight = TwiStormColors(
-            ground = Color(0xFFF7F7F8),
-            cloud = Color(0xFFEAE2FB),
-            light = Color(0xFFD5C2FF),
-            edge = Color(0xFFB794FF),
+            ground = Color(0xFFF2F1F5),
+            cloud = Color(0xFFD9C9FA),
+            light = Color(0xFFB89BFF),
+            edge = Color(0xFF9466F5),
         ),
         stormCover = 0.55f,
         stormBrightness = 0.7f,

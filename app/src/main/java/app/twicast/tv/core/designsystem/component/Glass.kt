@@ -74,7 +74,8 @@ fun Modifier.twiSurface(shape: Shape): Modifier {
     }
     return lit
         .frostGrain(shape)
-        .border(TwiDimens.OutlineWidth, Color.White.copy(alpha = tokens.glassRimAlpha), shape)
+        // The theme's rim: a light hairline on the dark storm, a dark one on the light storm.
+        .border(TwiDimens.OutlineWidth, colors.outline, shape)
 }
 
 /** Grain inside glass: frosted glass is matte, not clear. Drawn from one shared tiled noise bitmap. */
