@@ -153,10 +153,10 @@ object TwiDimens {
     val GridFocusInset = 8.dp
 
     /**
-     * Room a row or grid leaves around its cards for the focus glow (FocusShadowElevation spreads ~20dp): the list
+     * Room a row or grid leaves around its cards for the focus glow (FocusShadowElevation spreads ~30dp, a hard edge shows on the light theme): the list
      * starts this much earlier and pads its content back, so cards stay in place and the glow is not cut off.
      */
-    val CardGlowInset = 24.dp
+    val CardGlowInset = ContentStartPadding
     val GridTopPadding = 20.dp
     val GridVerticalSpacing = 22.dp
     val CategoryGridHorizontalSpacing = 20.dp
