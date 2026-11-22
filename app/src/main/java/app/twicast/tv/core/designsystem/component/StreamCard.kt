@@ -1,5 +1,9 @@
 package app.twicast.tv.core.designsystem.component
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.text.font.FontWeight
@@ -74,6 +78,7 @@ fun StreamCard(
     val spacing = if (dense) TwiDimens.CardContentSpacingDense else TwiDimens.CardContentSpacing
     // The player grows out of this card when it opens.
     val placed = remember { arrayOfNulls<LayoutCoordinates>(1) }
+    var focused by remember { mutableStateOf(false) }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(spacing),
@@ -86,9 +91,11 @@ fun StreamCard(
                 shadowElevation = TwiDimens.FocusShadowElevation,
                 shadowColor = colors.primary,
             )
-            .focusBackground(focusProgress, colors.surface, TwiShapes.Card)
+            // A raised surface, not the base one: the text under a focused preview stands out (feedback).
+            .focusBackground(focusProgress, colors.surfaceVariant, TwiShapes.Card)
             .focusRing(focusProgress, colors.primary, TwiShapes.Card, TwiDimens.FocusBorderWidth)
             .trackFocus(focusProgress)
+            .onFocusChanged { focused = it.isFocused }
             .onPlaced { placed[0] = it }
             .clickable(interactionSource = interactionSource, indication = null) {
                 LaunchOrigin.from(placed[0])
@@ -99,6 +106,7 @@ fun StreamCard(
         // Canvas "Карточка · зрители на превью": live viewers sit on the preview with the live lamp, light on a dark
         // pill (they were too faint under it). The time stays in the other corner; a recording shows its length there.
         StreamThumbnail(
+            focused,
             thumbnailUrl,
             live,
             watchedFraction,
@@ -111,6 +119,8 @@ fun StreamCard(
 
 @Composable
 private fun StreamThumbnail(
+    /** Focused, the preview's bottom corners go square: it joins the card's surface below (feedback). */
+    joined: Boolean,
     thumbnailUrl: String?,
     live: Boolean,
     watchedFraction: Float?,
@@ -121,7 +131,7 @@ private fun StreamThumbnail(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(TwiAspect.Thumbnail)
-            .clip(TwiShapes.Thumbnail)
+            .clip(if (joined) TwiShapes.ThumbnailTop else TwiShapes.Thumbnail)
             .background(TwiTheme.colors.surfaceVariant),
     ) {
         if (thumbnailUrl != null) {

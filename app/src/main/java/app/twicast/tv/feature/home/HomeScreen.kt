@@ -93,7 +93,8 @@ private fun HomeContent(
     CompositionLocalProvider(LocalFocusColumnAnchor provides columnAnchor) {
         LazyColumn(
             state = listState,
-            contentPadding = PaddingValues(top = TwiDimens.ScreenTopPadding, bottom = TwiDimens.SectionSpacing),
+            // Feedback: the first row title sat too close to the top edge.
+            contentPadding = PaddingValues(top = TwiDimens.HomeTopPadding, bottom = TwiDimens.SectionSpacing),
             modifier = modifier.fillMaxSize(),
         ) {
             // A guest (mockup "Главная · гость"): a quiet line on what signing in gives. No hero: a stream shown

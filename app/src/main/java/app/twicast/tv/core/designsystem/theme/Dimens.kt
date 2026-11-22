@@ -24,6 +24,7 @@ object TwiDimens {
     val ContentStartPadding = 40.dp
     val ContentEndPadding = 40.dp
     val ScreenTopPadding = 30.dp
+    val HomeTopPadding = 56.dp
     val SectionSpacing = 26.dp
     val SectionTitleSpacing = 14.dp
 
@@ -36,7 +37,8 @@ object TwiDimens {
     val FocusOverflowPadding = 24.dp
 
     val StreamCardWidth = 240.dp
-    val StreamCardDenseWidth = 212.dp
+    // Home cards: wide enough to read as landscape with their two text lines (feedback: they looked tall).
+    val StreamCardDenseWidth = 256.dp
     /** 4-column grid on the category streams screen. */
     val StreamCardGridWidth = 258.dp
     /** 6-column grid on the Categories screen. */
@@ -307,6 +309,8 @@ object TwiShapes {
     private val r = TwiThemeConfig.radius
     val Card = RoundedCornerShape(r.card)
     val Thumbnail = RoundedCornerShape(r.thumbnail)
+    /** A focused card's preview: rounded on top only, square where it meets the card below. */
+    val ThumbnailTop = RoundedCornerShape(topStart = r.thumbnail, topEnd = r.thumbnail)
     val Cover = RoundedCornerShape(r.thumbnail)
     val Hero = RoundedCornerShape(r.card)
     val Button = RoundedCornerShape(r.button)
