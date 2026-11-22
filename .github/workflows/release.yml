@@ -59,7 +59,8 @@ jobs:
           TWICAST_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
           TWICAST_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           TWICAST_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-        run: ./gradlew testDebugUnitTest assembleRelease -PversionCode=$VERSION_CODE -PversionName=$VERSION_NAME
+        # Tests on the release variant: one compilation shared with the APK instead of a separate debug one.
+        run: ./gradlew testReleaseUnitTest assembleRelease -PversionCode=$VERSION_CODE -PversionName=$VERSION_NAME
 
       # Conventional commits since the previous release become the "what's new" the app shows:
       # feat → Новое, fix → Исправлено, perf/refactor → Улучшено. The app parses these "## " sections.
