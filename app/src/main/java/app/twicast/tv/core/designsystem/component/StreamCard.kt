@@ -87,7 +87,7 @@ fun StreamCard(
         verticalArrangement = Arrangement.spacedBy(spacing),
         modifier = modifier
             .width(width)
-            .focusTransform(progress = focusProgress, focusedScale = TwiScale.CardFocused, shape = TwiShapes.Card)
+            // No zoom on focus: barely visible, yet on 2 GB TVs it cost ~20 dropped frames per scroll run.
             // The same purple glow as a focused category cover (feedback), as a pre-rendered image fading in.
             .focusGlow(focusProgress, colors.primary, TwiThemeConfig.radius.card, CardGlowSpread, CardGlowDrop)
             .focusRing(focusProgress, colors.primary, TwiShapes.Card, TwiDimens.FocusBorderWidth)
