@@ -93,6 +93,7 @@ fun PlayerScreen(
     chat: @Composable (Modifier) -> Unit = {},
 ) {
     val rootFocus = remember { FocusRequester() }
+    val backHandled = remember { booleanArrayOf(false) }
     BackHandler(enabled = state.overlay != PlayerOverlay.Hidden || state.chatVisible, onBack = onBack)
     // Bare video (and its seek bar) keeps focus on the root so the next key press reaches it.
     LaunchedEffect(state.overlay, sleepCapturesKeys) { if (state.overlay.isBare && !sleepCapturesKeys) rootFocus.requestFocus() }
@@ -104,6 +105,22 @@ fun PlayerScreen(
             .fillMaxSize()
             .background(TwiTheme.colors.playerBackground)
             .onPreviewKeyEvent { event ->
+                // Back closes what is up in one press. Left to the focus system, the first press only took focus
+                // out of the buttons' group and a second one was needed to close the panel.
+                if (event.key == Key.Back) {
+                    val somethingUp = sleepCapturesKeys || state.overlay != PlayerOverlay.Hidden || state.chatVisible
+                    when {
+                        event.type == KeyEventType.KeyDown && somethingUp -> {
+                            backHandled[0] = true
+                            onBack()
+                            return@onPreviewKeyEvent true
+                        }
+                        event.type == KeyEventType.KeyUp && backHandled[0] -> {
+                            backHandled[0] = false
+                            return@onPreviewKeyEvent true
+                        }
+                    }
+                }
                 if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                 // Bare video swallows the first arrow press to reveal the controls: not while the sleep timer's menu
                 // is up, or its rows could never be reached.

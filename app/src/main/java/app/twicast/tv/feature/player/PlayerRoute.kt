@@ -108,7 +108,14 @@ fun PlayerRoute(onClose: () -> Unit, onOpenChannel: (String) -> Unit, viewModel:
             onOpenChannel = { onOpenChannel(state.channel.channelLogin) },
             onSeekStep = viewModel::onSeekStep,
             onRestart = viewModel::onRestart,
-            onBack = { if (!viewModel.onBack()) onClose() },
+            // The sleep timer's warning and menu sit on top: Back closes them first.
+        onBack = {
+            when {
+                sleepUi.warning -> sleepViewModel.onCancelTimer()
+                sleepViewModel.onBack() -> Unit
+                !viewModel.onBack() -> onClose()
+            }
+        },
             sleepLeft = sleepLeftText(sleepUi.choice, sleepUi.leftMillis),
             sleepCapturesKeys = sleepUi.capturesKeys,
             onOpenSleep = {
