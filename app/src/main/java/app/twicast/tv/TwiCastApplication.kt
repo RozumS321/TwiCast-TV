@@ -16,10 +16,11 @@ import javax.inject.Inject
 private const val ImageCrossfadeMillis = 300
 
 /**
- * Decoded images kept in memory. A TV screen shows under 20 previews; Coil's default (a share of the app's heap)
- * kept growing with every row scrolled. The rest comes back from the disk cache.
+ * Decoded images kept in memory. Coil's default (a share of the app's heap) kept growing with every row scrolled;
+ * 32 MB held barely one screen, so coming back to a row decoded its previews again right while it scrolled in.
+ * 48 MB keeps a few screens; the rest comes back from the disk cache.
  */
-private const val ImageMemoryCacheBytes = 32L * 1024 * 1024
+private const val ImageMemoryCacheBytes = 48L * 1024 * 1024
 
 @HiltAndroidApp
 class TwiCastApplication : Application(), SingletonImageLoader.Factory {

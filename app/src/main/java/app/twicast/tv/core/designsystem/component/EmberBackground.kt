@@ -140,28 +140,34 @@ fun EmberBackground(backdrop: EmberBackdrop, modifier: Modifier = Modifier) {
                     .graphicsLayer()
                     .drawBehind { drawEmber(tokens, backdrop.step.value.toFloat() / backdrop.steps) },
             )
+            // The clouds and their grain in one layer: one full-screen composite per frame instead of two.
             TwiBackdropStyle.Storm -> Box(
                 Modifier
                     .matchParentSize()
                     .graphicsLayer()
-                    .drawBehind {
-                        drawRect(ground)
-                        backdrop.sharp?.let { frame ->
-                            drawImage(frame, dstSize = IntSize(size.width.roundToInt(), size.height.roundToInt()), filterQuality = FilterQuality.Low)
+                    .drawWithCache {
+                        val grainBrush = ShaderBrush(ImageShader(grain, TileMode.Repeated, TileMode.Repeated))
+                        val full = IntSize(size.width.roundToInt(), size.height.roundToInt())
+                        onDrawBehind {
+                            val frame = backdrop.sharp
+                            if (frame == null) drawRect(ground) else drawImage(frame, dstSize = full, filterQuality = FilterQuality.Low)
+                            drawRect(grainBrush, alpha = tokens.grainAlpha)
                         }
                     },
             )
         }
-        // Grain is drawn once into its own layer and only composited afterwards.
-        Box(
-            Modifier
-                .matchParentSize()
-                .graphicsLayer()
-                .drawWithCache {
-                    val grainBrush = ShaderBrush(ImageShader(grain, TileMode.Repeated, TileMode.Repeated))
-                    onDrawBehind { drawRect(grainBrush, alpha = tokens.grainAlpha) }
-                },
-        )
+        if (tokens.backdrop == TwiBackdropStyle.Bloom) {
+            // Grain is drawn once into its own layer and only composited afterwards.
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .graphicsLayer()
+                    .drawWithCache {
+                        val grainBrush = ShaderBrush(ImageShader(grain, TileMode.Repeated, TileMode.Repeated))
+                        onDrawBehind { drawRect(grainBrush, alpha = tokens.grainAlpha) }
+                    },
+            )
+        }
     }
 }
 
@@ -218,7 +224,9 @@ private fun StormAnimation(tokens: TwiEffectsTokens, backdrop: EmberBackdrop) {
         var seconds = StormStartSeconds
         val frameMillis = MillisPerSecond.toLong() / StormFramesPerSecond
         while (true) {
-            val (sharp, blurred) = withContext(Dispatchers.Default) { renderStorm(look, seconds, if (dark) BackdropBrighten else LightStormBlurTone) }
+            val (sharp, blurred) = withContext(Dispatchers.Default) {
+                renderStorm(look, seconds, if (dark) BackdropBrighten else LightStormBlurTone)
+            }
             backdrop.sharp = sharp
             backdrop.blurred = blurred
             // The first seconds after launch are the busiest: the clouds stand still until the app has settled.

@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.categories
 
+import app.twicast.tv.core.designsystem.format.MinuteClock
 import app.twicast.tv.core.designsystem.component.leftToSidebar
 import app.twicast.tv.core.designsystem.component.isFirstInRow
 import app.twicast.tv.core.designsystem.component.LocalSidebarFocus
@@ -145,7 +146,7 @@ private fun StreamsGrid(grid: StreamsGridState.Content, onStreamClick: (Stream) 
                 avatarUrl = stream.avatarUrl,
                 onClick = { onStreamClick(stream) },
                 width = TwiDimens.StreamCardGridWidth,
-                uptimeText = stream.startedAtMillis?.let { formatUptimeShort(it, System.currentTimeMillis()) },
+                uptimeText = stream.startedAtMillis?.let { formatUptimeShort(it, MinuteClock.now) },
                 modifier = Modifier
                     .leftToSidebar(sidebar, isFirstInRow(index, Columns))
                     .then(if (index == 0) Modifier.requestInitialFocus() else Modifier),

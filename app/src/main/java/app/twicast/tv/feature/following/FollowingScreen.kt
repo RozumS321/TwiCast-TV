@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.following
 
+import app.twicast.tv.core.designsystem.format.MinuteClock
 import app.twicast.tv.core.designsystem.theme.TwiShapes
 import app.twicast.tv.core.designsystem.component.twiSurface
 import app.twicast.tv.core.designsystem.component.StreamCard
@@ -153,7 +154,7 @@ private fun ChannelsGrid(
                         avatarUrl = stream.avatarUrl,
                         onClick = { onStreamClick(stream) },
                         width = TwiDimens.StreamCardGridWidth,
-                        uptimeText = stream.startedAtMillis?.let { formatUptimeShort(it, System.currentTimeMillis()) },
+                        uptimeText = stream.startedAtMillis?.let { formatUptimeShort(it, MinuteClock.now) },
                         modifier = Modifier
                             .leftToSidebar(sidebar, isFirstInRow(index, GridColumns / LiveSpan))
                             .then(if (index == 0) Modifier.requestInitialFocus() else Modifier),
@@ -175,7 +176,7 @@ private fun ChannelsGrid(
                 avatarUrl = stream.avatarUrl,
                 onClick = { onStreamClick(stream) },
                 width = TwiDimens.StreamCardGridWidth,
-                uptimeText = stream.startedAtMillis?.let { formatUptimeShort(it, System.currentTimeMillis()) },
+                uptimeText = stream.startedAtMillis?.let { formatUptimeShort(it, MinuteClock.now) },
                 modifier = Modifier
                     .leftToSidebar(sidebar, isFirstInRow(index, GridColumns / LiveSpan))
                     .then(if (index == 0) Modifier.requestInitialFocus() else Modifier),

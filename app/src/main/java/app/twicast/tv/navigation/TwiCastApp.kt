@@ -1,5 +1,6 @@
 package app.twicast.tv.navigation
 
+import app.twicast.tv.core.designsystem.format.MinuteClock
 import app.twicast.tv.core.designsystem.component.LaunchOverlay
 import kotlinx.coroutines.delay
 import app.twicast.tv.feature.screensaver.ScreensaverIdleMillis
@@ -206,6 +207,7 @@ private fun Shell(
             items.first { it.key == TopLevelDestination.Profile.name }
     }
 
+    MinuteClock.Ticker()
     // Canvas "Заставка при простое": after a while without a key press (never over the player) the screensaver
     // covers the app; the key that wakes it is swallowed so it does not also act on the screen below.
     var lastInput by remember { mutableLongStateOf(0L) }

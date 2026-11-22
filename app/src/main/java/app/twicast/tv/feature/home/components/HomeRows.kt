@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.home.components
 
+import app.twicast.tv.core.designsystem.format.MinuteClock
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.lazy.LazyListPrefetchStrategy
 import androidx.compose.foundation.lazy.LazyListState
@@ -105,7 +106,7 @@ fun StreamRow(
                     onClick = { onStreamClick(stream) },
                     dense = true,
                     showAvatar = false,
-                    uptimeText = stream.startedAtMillis?.let { formatUptimeShort(it, System.currentTimeMillis()) },
+                    uptimeText = stream.startedAtMillis?.let { formatUptimeShort(it, MinuteClock.now) },
                     modifier = (if (takesInitialFocus && index == 0) Modifier.requestInitialFocus() else Modifier)
                         .focusColumnItem(focusTargets, stream.id),
                 )
@@ -182,7 +183,7 @@ private fun RecentCard(
                     avatarUrl = stream.avatarUrl,
                     onClick = { onStreamClick(stream) },
                     dense = true,
-                    uptimeText = stream.startedAtMillis?.let { formatUptimeShort(it, System.currentTimeMillis()) },
+                    uptimeText = stream.startedAtMillis?.let { formatUptimeShort(it, MinuteClock.now) },
                     modifier = modifier,
                 )
             } else {
