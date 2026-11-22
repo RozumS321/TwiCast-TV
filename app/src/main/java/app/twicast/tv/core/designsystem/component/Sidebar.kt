@@ -220,10 +220,17 @@ private fun SidebarPanelBackground(state: SidebarState) {
                 if (effects) {
                     // Glass (canvas: "Стекло"): the light shows through the rail; opened over the screen it gets
                     // denser so the content below does not compete with the labels. Grain and a hairline rim.
-                    drawRect(Color.White.copy(alpha = SidebarFrostAlpha))
-                    if (fraction > 0f) drawRect(glassTint.copy(alpha = SidebarGlassOpenAlpha * fraction))
+                    if (isDarkTheme) {
+                        drawRect(Color.White.copy(alpha = SidebarFrostAlpha))
+                        if (fraction > 0f) drawRect(glassTint.copy(alpha = SidebarGlassOpenAlpha * fraction))
+                    } else {
+                        // Light storm: a thin white film, so the lavender clouds behind still show through.
+                        val film = SidebarLightFilmAlpha + (SidebarLightFilmOpenAlpha - SidebarLightFilmAlpha) * fraction
+                        drawRect(Color.White.copy(alpha = film))
+                    }
                     drawRect(grainBrush, alpha = SidebarGrainAlpha)
-                    drawRect(Color.White.copy(alpha = SidebarRimAlpha), Offset(size.width - lineWidth, 0f), Size(lineWidth, size.height))
+                    val rim = if (isDarkTheme) Color.White.copy(alpha = SidebarRimAlpha) else Color.Black.copy(alpha = SidebarLightRimAlpha)
+                    drawRect(rim, Offset(size.width - lineWidth, 0f), Size(lineWidth, size.height))
                 } else {
                     drawRect(colors.surface)
                     drawRect(colors.outlineVariant, Offset(size.width - lineWidth, 0f), Size(lineWidth, size.height))
@@ -251,6 +258,9 @@ private const val EdgeShadowAlpha = 0.12f
 private val SidebarGlass = Color(0xFF1C1B1F)
 /** Collapsed: frost the background's light passes through. */
 private const val SidebarFrostAlpha = 0.09f
+private const val SidebarLightFilmAlpha = 0.12f
+private const val SidebarLightFilmOpenAlpha = 0.32f
+private const val SidebarLightRimAlpha = 0.1f
 /** Opened over the screen: darker, so the labels read over whatever is below. */
 private const val SidebarGlassOpenAlpha = 0.45f
 private const val SidebarRimAlpha = 0.10f

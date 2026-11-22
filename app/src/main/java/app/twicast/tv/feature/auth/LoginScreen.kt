@@ -1,5 +1,11 @@
 package app.twicast.tv.feature.auth
 
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -57,6 +63,7 @@ fun LoginScreen(
     modifier: Modifier = Modifier,
     onContinueAsGuest: (() -> Unit)? = null,
 ) {
+    val panelShadow = TwiTheme.colors.isDark
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -65,9 +72,11 @@ fun LoginScreen(
                 .width(TwiDimens.LoginPanelWidth)
                 .graphicsLayer {
                     shape = TwiShapes.Panel
-                    shadowElevation = TwiDimens.LoginPanelShadowElevation.toPx()
+                    // A heavy grey shadow on the light theme looked dated: a hairline edge is enough there.
+                    shadowElevation = if (panelShadow) TwiDimens.LoginPanelShadowElevation.toPx() else 0f
                 }
                 .background(TwiTheme.colors.dialog, TwiShapes.Panel)
+                .border(TwiDimens.OutlineWidth, TwiTheme.colors.outlineVariant, TwiShapes.Panel)
                 .padding(horizontal = TwiDimens.LoginPanelHorizontalPadding, vertical = TwiDimens.LoginPanelVerticalPadding),
         ) {
             Column(
@@ -192,16 +201,27 @@ private fun LoginStatus(state: LoginUiState, onNewCode: () -> Unit) {
 
 @Composable
 private fun WaitingIndicator() {
+    // The dot breathes while we wait: a ring swells out of it and fades, once every 1.6 s (draw phase only).
+    val pulse = rememberInfiniteTransition(label = "waiting").animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(PulseMillis, easing = LinearEasing)),
+        label = "pulse",
+    )
+    val dotColor = TwiTheme.colors.primary
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(TwiDimens.StatusDotSpacing),
     ) {
         Box(
             Modifier
-                .border(TwiDimens.StatusDotRing, TwiTheme.colors.primaryContainer, CircleShape)
-                .padding(TwiDimens.StatusDotRing)
-                .size(TwiDimens.StatusDotSize)
-                .background(TwiTheme.colors.primary, CircleShape),
+                .size(TwiDimens.StatusDotSize + TwiDimens.StatusDotRing * 2)
+                .drawBehind {
+                    val dot = TwiDimens.StatusDotSize.toPx() / 2
+                    val t = pulse.value
+                    drawCircle(dotColor.copy(alpha = 0.45f * (1f - t)), radius = dot * (1f + 1.4f * t))
+                    drawCircle(dotColor, radius = dot)
+                },
         )
         StatusText(stringResource(R.string.login_waiting), highlighted = true)
     }
@@ -242,16 +262,14 @@ private fun LoginQr(state: LoginUiState) {
         Box(
             modifier = Modifier
                 .size(TwiDimens.QrSize)
-                .graphicsLayer {
-                    shape = TwiShapes.Qr
-                    shadowElevation = TwiDimens.QrShadowElevation.toPx()
-                }
-                .background(TwiTheme.colors.surface, TwiShapes.Qr)
+                // Flat white: a QR code needs a solid light field, and the translucent glass surface over a
+                // shadow read as a grey bevel on the light theme.
+                .background(QrPaper, TwiShapes.Qr)
                 .border(TwiDimens.OutlineWidth, TwiTheme.colors.outlineVariant, TwiShapes.Qr)
                 .padding(TwiDimens.QrPadding),
         ) {
             if (state is LoginUiState.WaitingForConfirmation) {
-                QrCode(state.verificationUri, TwiTheme.colors.onSurface, Modifier.fillMaxSize())
+                QrCode(state.verificationUri, QrInk, Modifier.fillMaxSize())
             } else {
                 SkeletonBlock(rememberSkeletonPulse(), TwiShapes.CodeCell, Modifier.fillMaxSize())
             }
@@ -266,3 +284,7 @@ private fun formatUserCode(code: String): String =
 
 private fun secondsUntil(epochMillis: Long): Long =
     TimeUnit.MILLISECONDS.toSeconds((epochMillis - System.currentTimeMillis()).coerceAtLeast(0))
+
+private const val PulseMillis = 1600
+private val QrPaper = androidx.compose.ui.graphics.Color.White
+private val QrInk = androidx.compose.ui.graphics.Color(0xFF0E0E10)

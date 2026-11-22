@@ -218,7 +218,7 @@ private fun StormAnimation(tokens: TwiEffectsTokens, backdrop: EmberBackdrop) {
         var seconds = StormStartSeconds
         val frameMillis = MillisPerSecond.toLong() / StormFramesPerSecond
         while (true) {
-            val (sharp, blurred) = withContext(Dispatchers.Default) { renderStorm(look, seconds) }
+            val (sharp, blurred) = withContext(Dispatchers.Default) { renderStorm(look, seconds, if (dark) BackdropBrighten else LightStormBlurTone) }
             backdrop.sharp = sharp
             backdrop.blurred = blurred
             // The first seconds after launch are the busiest: the clouds stand still until the app has settled.
@@ -237,11 +237,17 @@ private const val StormFramesPerSecond = 12
 private const val StormStartSeconds = 4f
 private const val StormBlurRadius = 5
 
-private fun renderStorm(look: StormLook, seconds: Float): Pair<ImageBitmap, ImageBitmap> {
+/**
+ * Glass over the light storm: the blur is toned slightly down instead of brightened (brightened, the pale clouds
+ * washed out to white and glass read as a white sheet).
+ */
+private const val LightStormBlurTone = 0.94f
+
+private fun renderStorm(look: StormLook, seconds: Float, brighten: Float): Pair<ImageBitmap, ImageBitmap> {
     val pixels = stormFrame(look, seconds)
     val sharp = Bitmap.createBitmap(pixels, StormWidthPx, StormHeightPx, Bitmap.Config.ARGB_8888)
     val soft = pixels.copyOf()
-    frostBlur(soft, StormWidthPx, StormHeightPx, StormBlurRadius, BackdropBrighten)
+    frostBlur(soft, StormWidthPx, StormHeightPx, StormBlurRadius, brighten)
     val blurred = Bitmap.createBitmap(soft, StormWidthPx, StormHeightPx, Bitmap.Config.ARGB_8888)
     return sharp.asImageBitmap() to blurred.asImageBitmap()
 }
