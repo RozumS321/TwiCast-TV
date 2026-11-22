@@ -93,8 +93,9 @@ fun StreamCard(
                 ambientShadowColor = colors.primary
                 spotShadowColor = colors.primary
             }
-            // A raised surface, not the base one: the text under a focused preview stands out (feedback).
-            .focusBackground(focusProgress, colors.surfaceVariant, TwiShapes.Card)
+            // A raised, opaque surface: the text under a focused preview stands out (feedback), and the glow
+            // below cannot show through it in patches (glass surfaces are translucent with effects on).
+            .focusBackground(focusProgress, if (TwiTheme.effects) colors.dialogInset else colors.surfaceVariant, TwiShapes.Card)
             .focusRing(focusProgress, colors.primary, TwiShapes.Card, TwiDimens.FocusBorderWidth)
             .trackFocus(focusProgress)
             .onFocusChanged { focused = it.isFocused }
