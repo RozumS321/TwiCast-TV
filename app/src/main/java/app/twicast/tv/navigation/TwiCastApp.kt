@@ -1,5 +1,6 @@
 package app.twicast.tv.navigation
 
+import app.twicast.tv.core.designsystem.component.LaunchOverlay
 import kotlinx.coroutines.delay
 import app.twicast.tv.feature.screensaver.ScreensaverIdleMillis
 import app.twicast.tv.feature.screensaver.Screensaver
@@ -319,6 +320,8 @@ private fun Shell(
         }
     }
     if (idle) Screensaver(liveFollowedCount, Modifier.fillMaxSize())
+    // The opened card's preview growing into the player, over everything (the sidebar hides at once).
+    LaunchOverlay()
     }
 }
 
