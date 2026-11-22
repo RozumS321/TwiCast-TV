@@ -105,8 +105,8 @@ private fun CategoriesGrid(
         state = gridState,
         // The side inset is split between padding and content padding so a scaled card is not clipped.
         contentPadding = PaddingValues(
-            start = TwiDimens.GridFocusInset,
-            end = TwiDimens.GridFocusInset,
+            start = TwiDimens.CardGlowInset,
+            end = TwiDimens.CardGlowInset,
             top = TwiDimens.GridTopPadding,
             bottom = TwiDimens.FocusOverflowPadding,
         ),
@@ -114,7 +114,7 @@ private fun CategoriesGrid(
         verticalArrangement = Arrangement.spacedBy(TwiDimens.GridVerticalSpacing),
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset)
+            .padding(horizontal = TwiDimens.ContentStartPadding - TwiDimens.CardGlowInset)
             .focusRestorer(),
     ) {
         itemsIndexed(state.categories, key = { _, item -> item.category.id }, contentType = { _, _ -> "category" }) { index, item ->

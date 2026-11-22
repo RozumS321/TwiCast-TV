@@ -124,8 +124,8 @@ private fun StreamsGrid(grid: StreamsGridState.Content, onStreamClick: (Stream) 
         columns = GridCells.Fixed(Columns),
         state = gridState,
         contentPadding = PaddingValues(
-            start = TwiDimens.GridFocusInset,
-            end = TwiDimens.GridFocusInset,
+            start = TwiDimens.CardGlowInset,
+            end = TwiDimens.CardGlowInset,
             top = TwiDimens.GridTopPadding,
             bottom = TwiDimens.FocusOverflowPadding,
         ),
@@ -133,7 +133,7 @@ private fun StreamsGrid(grid: StreamsGridState.Content, onStreamClick: (Stream) 
         verticalArrangement = Arrangement.spacedBy(TwiDimens.GridVerticalSpacing),
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset)
+            .padding(horizontal = TwiDimens.ContentStartPadding - TwiDimens.CardGlowInset)
             .focusRestorer(),
     ) {
         itemsIndexed(grid.streams, key = { _, stream -> stream.id }, contentType = { _, _ -> "stream" }) { index, stream ->

@@ -113,8 +113,8 @@ private fun ChannelsGrid(
     LazyVerticalGrid(
         columns = GridCells.Fixed(GridColumns),
         contentPadding = PaddingValues(
-            start = TwiDimens.GridFocusInset,
-            end = TwiDimens.GridFocusInset,
+            start = TwiDimens.CardGlowInset,
+            end = TwiDimens.CardGlowInset,
             top = TwiDimens.GridTopPadding,
             bottom = TwiDimens.FocusOverflowPadding,
         ),
@@ -122,7 +122,7 @@ private fun ChannelsGrid(
         verticalArrangement = Arrangement.spacedBy(TwiDimens.ChannelGridSpacing),
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset)
+            .padding(horizontal = TwiDimens.ContentStartPadding - TwiDimens.CardGlowInset)
             .focusRestorer(),
     ) {
         item(key = "live-title", span = { GridItemSpan(maxLineSpan) }, contentType = ContentType.TITLE) {

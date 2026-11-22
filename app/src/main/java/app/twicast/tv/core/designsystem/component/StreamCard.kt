@@ -1,5 +1,7 @@
 package app.twicast.tv.core.designsystem.component
 
+import app.twicast.tv.core.designsystem.theme.TwiThemeConfig
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
@@ -79,7 +81,6 @@ fun StreamCard(
     val spacing = if (dense) TwiDimens.CardContentSpacingDense else TwiDimens.CardContentSpacing
     // The player grows out of this card when it opens.
     val placed = remember { arrayOfNulls<LayoutCoordinates>(1) }
-    var focused by remember { mutableStateOf(false) }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(spacing),
@@ -98,7 +99,6 @@ fun StreamCard(
             .focusBackground(focusProgress, if (TwiTheme.effects) colors.dialogInset else colors.surfaceVariant, TwiShapes.Card)
             .focusRing(focusProgress, colors.primary, TwiShapes.Card, TwiDimens.FocusBorderWidth)
             .trackFocus(focusProgress)
-            .onFocusChanged { focused = it.isFocused }
             .onPlaced { placed[0] = it }
             .clickable(interactionSource = interactionSource, indication = null) {
                 LaunchOrigin.launch(placed[0], thumbnailUrl, onClick)
@@ -108,7 +108,7 @@ fun StreamCard(
         // Canvas "Карточка · зрители на превью": live viewers sit on the preview with the live lamp, light on a dark
         // pill (they were too faint under it). The time stays in the other corner; a recording shows its length there.
         StreamThumbnail(
-            focused,
+            focusProgress,
             thumbnailUrl,
             live,
             watchedFraction,
@@ -121,8 +121,8 @@ fun StreamCard(
 
 @Composable
 private fun StreamThumbnail(
-    /** Focused, the preview's bottom corners go square: it joins the card's surface below (feedback). */
-    joined: Boolean,
+    /** With focus the preview's bottom corners square off, in step with the card's surface fading in below. */
+    focusProgress: FocusProgress,
     thumbnailUrl: String?,
     live: Boolean,
     watchedFraction: Float?,
@@ -133,7 +133,13 @@ private fun StreamThumbnail(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(TwiAspect.Thumbnail)
-            .clip(if (joined) TwiShapes.ThumbnailTop else TwiShapes.Thumbnail)
+            // Draw-phase only: the corners follow the focus animation without recomposing (they used to snap).
+            .graphicsLayer {
+                val radius = TwiThemeConfig.radius.thumbnail.toPx()
+                val bottom = radius * (1f - focusProgress.value)
+                shape = RoundedCornerShape(topStart = radius, topEnd = radius, bottomStart = bottom, bottomEnd = bottom)
+                clip = true
+            }
             .background(TwiTheme.colors.surfaceVariant),
     ) {
         if (thumbnailUrl != null) {

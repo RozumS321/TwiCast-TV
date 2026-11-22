@@ -151,6 +151,12 @@ object TwiDimens {
     val QualityRowSpacing = 6.dp
 
     val GridFocusInset = 8.dp
+
+    /**
+     * Room a row or grid leaves around its cards for the focus glow (FocusShadowElevation spreads ~20dp): the list
+     * starts this much earlier and pads its content back, so cards stay in place and the glow is not cut off.
+     */
+    val CardGlowInset = 24.dp
     val GridTopPadding = 20.dp
     val GridVerticalSpacing = 22.dp
     val CategoryGridHorizontalSpacing = 20.dp
@@ -309,8 +315,6 @@ object TwiShapes {
     private val r = TwiThemeConfig.radius
     val Card = RoundedCornerShape(r.card)
     val Thumbnail = RoundedCornerShape(r.thumbnail)
-    /** A focused card's preview: rounded on top only, square where it meets the card below. */
-    val ThumbnailTop = RoundedCornerShape(topStart = r.thumbnail, topEnd = r.thumbnail)
     val Cover = RoundedCornerShape(r.thumbnail)
     val Hero = RoundedCornerShape(r.card)
     val Button = RoundedCornerShape(r.button)

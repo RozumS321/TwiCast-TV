@@ -53,7 +53,7 @@ private fun rememberHomeRowState(): LazyListState =
     rememberLazyListState(prefetchStrategy = remember { LazyListPrefetchStrategy(nestedPrefetchItemCount = RowPrefetchCards) })
 
 private val RowPadding = PaddingValues(
-    start = TwiDimens.GridFocusInset,
+    start = TwiDimens.CardGlowInset,
     end = TwiDimens.ContentEndPadding,
     top = TwiDimens.HomeRowTitleSpacing,
     bottom = TwiDimens.FocusOverflowPadding,
@@ -91,7 +91,7 @@ fun StreamRow(
             horizontalArrangement = Arrangement.spacedBy(TwiDimens.HomeCardSpacing),
             // No focusRestorer: Down/Up must land on the card right under/over the focused one, not the row's last.
             modifier = Modifier
-                .padding(start = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset)
+                .padding(start = TwiDimens.ContentStartPadding - TwiDimens.CardGlowInset)
                 .enterAtFocusColumn(focusTargets, LocalFocusColumnAnchor.current),
         ) {
             itemsIndexed(streams, key = { _, it -> it.id }, contentType = { _, _ -> "stream" }) { index, stream ->
@@ -136,7 +136,7 @@ fun RecentRow(
             contentPadding = RowPadding,
             horizontalArrangement = Arrangement.spacedBy(TwiDimens.HomeCardSpacing),
             modifier = Modifier
-                .padding(start = TwiDimens.ContentStartPadding - TwiDimens.GridFocusInset)
+                .padding(start = TwiDimens.ContentStartPadding - TwiDimens.CardGlowInset)
                 .enterAtFocusColumn(focusTargets, LocalFocusColumnAnchor.current),
         ) {
             itemsIndexed(items, key = { _, it -> it.entry.key }, contentType = { _, it -> it::class }) { index, item ->
