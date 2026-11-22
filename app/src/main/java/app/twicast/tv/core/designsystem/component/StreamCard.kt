@@ -1,5 +1,7 @@
 package app.twicast.tv.core.designsystem.component
 
+import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.graphics.Color
 import app.twicast.tv.core.designsystem.theme.GeistMono
@@ -70,6 +72,8 @@ fun StreamCard(
     val interactionSource = remember { MutableInteractionSource() }
     val colors = TwiTheme.colors
     val spacing = if (dense) TwiDimens.CardContentSpacingDense else TwiDimens.CardContentSpacing
+    // The player grows out of this card when it opens.
+    val placed = remember { arrayOfNulls<LayoutCoordinates>(1) }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(spacing),
@@ -85,7 +89,11 @@ fun StreamCard(
             .focusBackground(focusProgress, colors.surface, TwiShapes.Card)
             .focusRing(focusProgress, colors.primary, TwiShapes.Card, TwiDimens.FocusBorderWidth)
             .trackFocus(focusProgress)
-            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
+            .onPlaced { placed[0] = it }
+            .clickable(interactionSource = interactionSource, indication = null) {
+                LaunchOrigin.from(placed[0])
+                onClick()
+            }
             .padding(bottom = spacing),
     ) {
         // Canvas "Карточка · зрители на превью": live viewers sit on the preview with the live lamp, light on a dark

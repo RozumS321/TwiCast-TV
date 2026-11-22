@@ -17,6 +17,9 @@ object TwiMotion {
     const val SidebarLabelFadeInDelayMillis = 80
     const val SidebarLabelFadeOutMillis = 100
     const val ScreenFadeMillis = 180
+
+    /** A card growing into the player. */
+    const val LaunchMillis = 450
     const val SkeletonPulseMillis = 900
 
     /** The one curve of [TwiThemeConfig] (fast start, long soft landing). */

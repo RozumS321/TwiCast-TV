@@ -1,5 +1,8 @@
 package app.twicast.tv.navigation
 
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import app.twicast.tv.core.designsystem.component.LaunchOrigin
 import app.twicast.tv.feature.update.UpdateViewModel
 import app.twicast.tv.feature.changelog.ChangelogRoute
 import app.twicast.tv.feature.changelog.ChangelogDestination
@@ -268,7 +271,17 @@ private fun Shell(
                     onClipClick = { channel, clip -> navController.navigate(channel.playerDestination(clipSlug = clip.id).copy(title = clip.title)) },
                 )
             }
-            composable<PlayerDestination> {
+            // The player grows out of the card that opened it and shrinks back into it (canvas: "Плеер · открытие эфира").
+            composable<PlayerDestination>(
+                enterTransition = {
+                    scaleIn(tween(TwiMotion.LaunchMillis, easing = TwiMotion.Decelerate), PlayerLaunchScale, LaunchOrigin.origin) +
+                        fadeIn(tween(TwiMotion.ScreenFadeMillis))
+                },
+                popExitTransition = {
+                    scaleOut(tween(TwiMotion.LaunchMillis, easing = TwiMotion.Decelerate), PlayerLaunchScale, LaunchOrigin.origin) +
+                        fadeOut(tween(TwiMotion.LaunchMillis))
+                },
+            ) {
                 PlayerRoute(onClose = navController::popBackStack, onOpenChannel = navController::openChannel)
             }
         }
@@ -340,3 +353,6 @@ private fun NotificationPermission(wanted: Boolean) {
         if (wanted && !granted) launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 }
+
+/** How small the player starts, around the card it grows from (a dense card is ~1/6 of the screen wide). */
+private const val PlayerLaunchScale = 0.2f
