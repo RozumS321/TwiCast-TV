@@ -1,5 +1,7 @@
 package app.twicast.tv.core.designsystem.component
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.ImageShader
@@ -89,6 +91,10 @@ class SidebarState internal constructor(private val scope: CoroutineScope) {
 
     private var pending: Job? = null
 
+    /** Open (or opening): what is only worth drawing when the menu is out — the flowing logo, its wordmark. */
+    var expanded by mutableStateOf(false)
+        private set
+
     internal fun onFocusChanged(hasFocus: Boolean) {
         pending?.cancel()
         pending = scope.launch {
@@ -96,6 +102,7 @@ class SidebarState internal constructor(private val scope: CoroutineScope) {
             // ready: open only when the focus stays, so passing through never flashes the menu open and shut.
             if (hasFocus) delay(ExpandDelayMillis)
             val target = if (hasFocus) 1f else 0f
+            expanded = hasFocus
             launch { expansion.animateTo(target, TwiMotion.sidebar()) }
             launch { labels.animateTo(target, if (hasFocus) TwiMotion.sidebarLabelIn() else TwiMotion.sidebarLabelOut()) }
         }
@@ -272,7 +279,9 @@ private val NavigationItemShape = RoundedCornerShape(TwiDimens.NavigationItemRad
 @Composable
 private fun SidebarLogo(state: SidebarState, modifier: Modifier = Modifier) {
     val colors = TwiTheme.colors
-    val auroraSeconds = rememberAuroraSeconds()
+    // The mark flows only while the menu is open: collapsed it is a still frame, so a screen at rest draws
+    // nothing at all (it redrew 20 times a second on every screen, competing with scrolling on weak TVs).
+    val auroraSeconds = rememberAuroraSeconds(animated = state.expanded)
     val wordStart = stringResource(R.string.brand_word_start)
     val wordEnd = stringResource(R.string.brand_word_end)
     Row(
@@ -289,7 +298,8 @@ private fun SidebarLogo(state: SidebarState, modifier: Modifier = Modifier) {
             style = TwiTheme.typography.logo,
             color = colors.onSurface,
             maxLines = 1,
-            modifier = Modifier.graphicsLayer { alpha = state.labelAlpha }.auroraText(auroraSeconds),
+            // The wordmark's offscreen colour layer only while it can be seen.
+            modifier = Modifier.graphicsLayer { alpha = state.labelAlpha }.then(if (state.expanded) Modifier.auroraText(auroraSeconds) else Modifier),
         )
     }
 }
