@@ -1,5 +1,8 @@
 package app.twicast.tv.feature.player
 
+import androidx.compose.runtime.CompositionLocalProvider
+import app.twicast.tv.core.designsystem.theme.TwiTheme
+import app.twicast.tv.core.designsystem.theme.TwiCastTheme
 import app.twicast.tv.feature.player.components.sleepLeftText
 import app.twicast.tv.feature.player.components.SleepWarning
 import app.twicast.tv.feature.player.components.SleepTimerPanel
@@ -82,56 +85,67 @@ fun PlayerRoute(onClose: () -> Unit, onOpenChannel: (String) -> Unit, viewModel:
     }
     val currentController by rememberUpdatedState(controller)
     LaunchedEffect(viewModel) { viewModel.seekRequests.collect { currentController.seekTo(it) } }
-    PlayerScreen(
-        state = state,
-        embedController = embedController,
-        nativeController = nativeController,
-        listener = listener,
-        // While the sleep timer's panel or warning is up, keys belong to it: the controls stay down.
-        onRemoteActivity = { if (!sleepUi.capturesKeys) viewModel.onRemoteActivity() },
-        onOpenQuality = viewModel::onOpenQuality,
-        onQualitySelected = { quality ->
-            controller.setQuality(quality.id)
-            viewModel.onQualitySelected(quality.id)
-        },
-        onToggleChat = viewModel::onToggleChat,
-        onOpenChannel = { onOpenChannel(state.channel.channelLogin) },
-        onSeekStep = viewModel::onSeekStep,
-        onRestart = viewModel::onRestart,
-        onBack = { if (!viewModel.onBack()) onClose() },
-        sleepLeft = sleepLeftText(sleepUi.choice, sleepUi.leftMillis),
-        sleepCapturesKeys = sleepUi.capturesKeys,
-        onOpenSleep = {
-            viewModel.onBack()
-            sleepViewModel.onOpenMenu()
-        },
-        sleepOverlay = {
-            when (sleepUi.panel) {
-                SleepPanel.Menu -> SleepTimerPanel(
-                    choice = sleepUi.choice,
-                    allowed = sleepUi.allowed,
-                    onChoose = sleepViewModel::onChoose,
-                    onAllow = openAdminRequest,
-                    modifier = Modifier.align(Alignment.CenterEnd),
-                )
-                SleepPanel.Ask -> SleepAskCard(
-                    onAllow = openAdminRequest,
-                    onOnlyStop = sleepViewModel::onExplained,
-                    modifier = Modifier.align(Alignment.BottomEnd),
-                )
-                SleepPanel.None -> Unit
-            }
-            val left = sleepUi.leftMillis
-            if (sleepUi.warning && left != null) {
-                SleepWarning(left, sleepViewModel::onExtend, sleepViewModel::onCancelTimer, Modifier.fillMaxSize())
-            }
-        },
-        chat = { modifier ->
-            val messages by chatViewModel.messages.collectAsStateWithLifecycle()
-            ChatPanel(messages, modifier)
-        },
-    )
+    // The player is always video in a dark room: its glass panels, menus and dialogs use the dark palette
+    // whatever theme is chosen (on the light theme their dark text vanished on the dark glass).
+    val effects = TwiTheme.effects
+    // No storm behind the player's glass: its blurred slice is of the app's background (light on the light theme),
+    // and drawn under a button over video it turned the button white.
+    TwiCastTheme(darkTheme = true, effects = effects) {
+    CompositionLocalProvider(LocalEmberBackdrop provides null) {
+        PlayerScreen(
+            state = state,
+            embedController = embedController,
+            nativeController = nativeController,
+            listener = listener,
+            // While the sleep timer's panel or warning is up, keys belong to it: the controls stay down.
+            onRemoteActivity = { if (!sleepUi.capturesKeys) viewModel.onRemoteActivity() },
+            onOpenQuality = viewModel::onOpenQuality,
+            onQualitySelected = { quality ->
+                controller.setQuality(quality.id)
+                viewModel.onQualitySelected(quality.id)
+            },
+            onToggleChat = viewModel::onToggleChat,
+            onOpenChannel = { onOpenChannel(state.channel.channelLogin) },
+            onSeekStep = viewModel::onSeekStep,
+            onRestart = viewModel::onRestart,
+            onBack = { if (!viewModel.onBack()) onClose() },
+            sleepLeft = sleepLeftText(sleepUi.choice, sleepUi.leftMillis),
+            sleepCapturesKeys = sleepUi.capturesKeys,
+            onOpenSleep = {
+                viewModel.onBack()
+                sleepViewModel.onOpenMenu()
+            },
+            sleepOverlay = {
+                when (sleepUi.panel) {
+                    SleepPanel.Menu -> SleepTimerPanel(
+                        choice = sleepUi.choice,
+                        allowed = sleepUi.allowed,
+                        onChoose = sleepViewModel::onChoose,
+                        onAllow = openAdminRequest,
+                        modifier = Modifier.align(Alignment.CenterEnd),
+                    )
+                    SleepPanel.Ask -> SleepAskCard(
+                        onAllow = openAdminRequest,
+                        onOnlyStop = sleepViewModel::onExplained,
+                        modifier = Modifier.align(Alignment.BottomEnd),
+                    )
+                    SleepPanel.None -> Unit
+                }
+                val left = sleepUi.leftMillis
+                if (sleepUi.warning && left != null) {
+                    SleepWarning(left, sleepViewModel::onExtend, sleepViewModel::onCancelTimer, Modifier.fillMaxSize())
+                }
+            },
+            chat = { modifier ->
+                val messages by chatViewModel.messages.collectAsStateWithLifecycle()
+                ChatPanel(messages, modifier)
+            },
+        )
+    }
+    }
     // Declared after the screen: closes the sleep panel before the player handles Back.
     BackHandler(enabled = sleepUi.panel != SleepPanel.None) { sleepViewModel.onBack() }
+    // Back on the last-minute warning: someone is watching — the timer is switched off.
+    BackHandler(enabled = sleepUi.warning) { sleepViewModel.onCancelTimer() }
 }
 
