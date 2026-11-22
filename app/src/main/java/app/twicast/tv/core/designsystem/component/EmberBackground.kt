@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import app.twicast.tv.core.designsystem.theme.TwiBackdropStyle
 import app.twicast.tv.core.designsystem.theme.TwiEffectsTokens
+import app.twicast.tv.core.designsystem.theme.TwiTheme
 import app.twicast.tv.core.designsystem.theme.TwiThemeConfig
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -129,6 +130,7 @@ fun EmberBackground(backdrop: EmberBackdrop, modifier: Modifier = Modifier) {
         TwiBackdropStyle.Storm -> StormAnimation(tokens, backdrop)
     }
     val grain = remember { grainBitmap() }
+    val ground = if (TwiTheme.colors.isDark) tokens.stormDark.ground else tokens.stormLight.ground
     Box(modifier.onSizeChanged { backdrop.size = it }) {
         when (tokens.backdrop) {
             TwiBackdropStyle.Bloom -> Box(
@@ -143,7 +145,7 @@ fun EmberBackground(backdrop: EmberBackdrop, modifier: Modifier = Modifier) {
                     .matchParentSize()
                     .graphicsLayer()
                     .drawBehind {
-                        drawRect(tokens.stormGround)
+                        drawRect(ground)
                         backdrop.sharp?.let { frame ->
                             drawImage(frame, dstSize = IntSize(size.width.roundToInt(), size.height.roundToInt()), filterQuality = FilterQuality.Low)
                         }
@@ -200,17 +202,19 @@ private fun BloomAnimation(tokens: TwiEffectsTokens, backdrop: EmberBackdrop) {
  */
 @Composable
 private fun StormAnimation(tokens: TwiEffectsTokens, backdrop: EmberBackdrop) {
-    val look = remember(tokens) {
+    val dark = TwiTheme.colors.isDark
+    val look = remember(tokens, dark) {
+        val storm = if (dark) tokens.stormDark else tokens.stormLight
         StormLook(
-            ground = tokens.stormGround.toArgb(),
-            cloud = tokens.stormCloud.toArgb(),
-            light = tokens.stormLight.toArgb(),
-            edge = tokens.stormEdge.toArgb(),
+            ground = storm.ground.toArgb(),
+            cloud = storm.cloud.toArgb(),
+            light = storm.light.toArgb(),
+            edge = storm.edge.toArgb(),
             cover = tokens.stormCover,
             brightness = tokens.stormBrightness,
         )
     }
-    LaunchedEffect(backdrop) {
+    LaunchedEffect(backdrop, look) {
         var seconds = StormStartSeconds
         val frameMillis = MillisPerSecond.toLong() / StormFramesPerSecond
         while (true) {

@@ -109,6 +109,24 @@ fun TwiColorScheme.withGlass(tokens: TwiEffectsTokens) = copy(
     dialogInset = GlassDialogInset,
 )
 
+/**
+ * Light effects (canvas "Эффекты · светлая тема"): frosted white glass over the pale storm; dialogs stay solid white.
+ */
+fun TwiColorScheme.withLightGlass(tokens: TwiEffectsTokens) = copy(
+    background = tokens.stormLight.ground,
+    surface = White.copy(alpha = LightGlassAlpha),
+    surfaceVariant = White.copy(alpha = LightGlassRaisedAlpha),
+    outline = Black.copy(alpha = tokens.glassRimAlpha * 0.8f),
+    outlineVariant = Black.copy(alpha = tokens.glassRimAlpha * 0.8f),
+    surfaceOverlay = White.copy(alpha = DenseGlassAlpha),
+    dialog = White,
+    dialogInset = LightDialogInset,
+)
+
+private val LightDialogInset = Color(0xFFEFEFF1)
+private const val LightGlassAlpha = 0.62f
+private const val LightGlassRaisedAlpha = 0.78f
+
 /** Lighter than the dark room behind it, so glass reads as a frosted pane, not a hole. */
 private val GlassTint = Color(0xFF2C2B30)
 private val GlassDialog = Color(0xFF1A1A1D)

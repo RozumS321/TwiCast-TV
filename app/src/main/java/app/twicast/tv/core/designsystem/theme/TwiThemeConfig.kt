@@ -102,8 +102,10 @@ data class TwiMotionTokens(
 @Immutable
 data class CubicCurve(val a: Float, val b: Float, val c: Float, val d: Float)
 
-/** "Эффекты интерфейса": the Ember Bloom background and glass surfaces. No blur: Android 11 TVs have none. */
+/** Storm colours: the ground, the clouds, their lit parts and the brightest edges. */
 @Immutable
+data class TwiStormColors(val ground: Color, val cloud: Color, val light: Color, val edge: Color)
+
 /** What "Эффекты интерфейса" paints behind the screens. */
 enum class TwiBackdropStyle {
     /** Soft light rising from the bottom, breathing (radial gradients and film grain). */
@@ -113,13 +115,14 @@ enum class TwiBackdropStyle {
     Storm,
 }
 
+/** "Эффекты интерфейса": the living background and glass surfaces. No blur: Android 11 TVs have none. */
+@Immutable
 data class TwiEffectsTokens(
     val backdrop: TwiBackdropStyle,
-    /** Storm: from the dark ground up to the lit cloud edges; how much sky the clouds cover; their strength. */
-    val stormGround: Color,
-    val stormCloud: Color,
-    val stormLight: Color,
-    val stormEdge: Color,
+    /** Storm: from the ground up to the lit cloud edges, for the dark and the light theme. */
+    val stormDark: TwiStormColors,
+    val stormLight: TwiStormColors,
+    /** How much sky the clouds cover; their strength. */
     val stormCover: Float,
     val stormBrightness: Float,
     /** Ember Bloom: warm light rising from the dark, from the core outwards. */
@@ -178,10 +181,19 @@ val TwiThemeConfig = TwiThemeTokens(
     effects = TwiEffectsTokens(
         // Feedback: the storm "не так в глаза бьёт", the bloom was too bright.
         backdrop = TwiBackdropStyle.Storm,
-        stormGround = Color(0xFF07060C),
-        stormCloud = Color(0xFF241A52),
-        stormLight = Color(0xFF5B3FB8),
-        stormEdge = Color(0xFF8C6CFF),
+        stormDark = TwiStormColors(
+            ground = Color(0xFF07060C),
+            cloud = Color(0xFF241A52),
+            light = Color(0xFF5B3FB8),
+            edge = Color(0xFF8C6CFF),
+        ),
+        // Canvas "Эффекты · светлая тема": a pale lavender storm on Twitch's light grey.
+        stormLight = TwiStormColors(
+            ground = Color(0xFFF7F7F8),
+            cloud = Color(0xFFEAE2FB),
+            light = Color(0xFFD5C2FF),
+            edge = Color(0xFFB794FF),
+        ),
         stormCover = 0.55f,
         stormBrightness = 0.7f,
         // The living background in Twitch purple instead of ember orange.

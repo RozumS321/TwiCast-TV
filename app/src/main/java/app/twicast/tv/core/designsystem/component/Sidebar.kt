@@ -200,6 +200,7 @@ private fun Sidebar(
 private fun SidebarPanelBackground(state: SidebarState) {
     val colors = TwiTheme.colors
     val effects = TwiTheme.effects
+    val isDarkTheme = TwiTheme.colors.isDark
     val shadowColor = colors.shadow
     // Frosted glass is matte: the same film grain as the background, inside the panel.
     val grainBrush = remember { ShaderBrush(ImageShader(grainBitmap(), TileMode.Repeated, TileMode.Repeated)) }
@@ -212,13 +213,15 @@ private fun SidebarPanelBackground(state: SidebarState) {
             }
             .then(if (effects) Modifier.backdropSlice(RectangleShape) else Modifier)
             .drawBehind {
+                // Light effects: white frosted glass, not the dark tint of the dark storm.
+                val glassTint = if (isDarkTheme) SidebarGlass else Color.White
                 val fraction = state.expandProgress
                 val lineWidth = TwiDimens.OutlineWidth.toPx()
                 if (effects) {
                     // Glass (canvas: "Стекло"): the light shows through the rail; opened over the screen it gets
                     // denser so the content below does not compete with the labels. Grain and a hairline rim.
                     drawRect(Color.White.copy(alpha = SidebarFrostAlpha))
-                    if (fraction > 0f) drawRect(SidebarGlass.copy(alpha = SidebarGlassOpenAlpha * fraction))
+                    if (fraction > 0f) drawRect(glassTint.copy(alpha = SidebarGlassOpenAlpha * fraction))
                     drawRect(grainBrush, alpha = SidebarGrainAlpha)
                     drawRect(Color.White.copy(alpha = SidebarRimAlpha), Offset(size.width - lineWidth, 0f), Size(lineWidth, size.height))
                 } else {

@@ -42,9 +42,10 @@ object TwiTheme {
  */
 @Composable
 fun TwiCastTheme(darkTheme: Boolean, effects: Boolean = false, content: @Composable () -> Unit) {
-    // Effects draw warm light on a dark room: they always use the dark palette, with glass surfaces.
+    // Effects: the storm behind glass surfaces, dark or light like the chosen theme.
     val colors = when {
-        effects -> DarkTwiColorScheme.withGlass(TwiThemeConfig.effects)
+        effects && darkTheme -> DarkTwiColorScheme.withGlass(TwiThemeConfig.effects)
+        effects -> LightTwiColorScheme.withLightGlass(TwiThemeConfig.effects)
         darkTheme -> DarkTwiColorScheme
         else -> LightTwiColorScheme
     }
