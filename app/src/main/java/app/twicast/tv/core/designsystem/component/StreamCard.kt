@@ -1,5 +1,6 @@
 package app.twicast.tv.core.designsystem.component
 
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -84,13 +85,14 @@ fun StreamCard(
         verticalArrangement = Arrangement.spacedBy(spacing),
         modifier = modifier
             .width(width)
-            .focusTransform(
-                progress = focusProgress,
-                focusedScale = TwiScale.CardFocused,
-                shape = TwiShapes.Card,
-                shadowElevation = TwiDimens.FocusShadowElevation,
-                shadowColor = colors.primary,
-            )
+            .focusTransform(progress = focusProgress, focusedScale = TwiScale.CardFocused, shape = TwiShapes.Card)
+            // The same purple glow as a focused category cover (feedback), growing with focus.
+            .graphicsLayer {
+                shape = TwiShapes.Card
+                shadowElevation = TwiDimens.FocusShadowElevation.toPx() * focusProgress.value
+                ambientShadowColor = colors.primary
+                spotShadowColor = colors.primary
+            }
             // A raised surface, not the base one: the text under a focused preview stands out (feedback).
             .focusBackground(focusProgress, colors.surfaceVariant, TwiShapes.Card)
             .focusRing(focusProgress, colors.primary, TwiShapes.Card, TwiDimens.FocusBorderWidth)
