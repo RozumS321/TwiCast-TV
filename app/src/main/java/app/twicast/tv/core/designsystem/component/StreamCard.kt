@@ -88,21 +88,11 @@ fun StreamCard(
         modifier = modifier
             .width(width)
             .focusTransform(progress = focusProgress, focusedScale = TwiScale.CardFocused, shape = TwiShapes.Card)
-            // The same purple glow as a focused category cover (feedback), growing with focus.
-            .graphicsLayer {
-                shape = TwiShapes.Card
-                val p = focusProgress.value
-                shadowElevation = TwiDimens.FocusShadowElevation.toPx() * p
-                // The shadow is drawn as if the card were solid: while its surface fades in or out it showed
-                // through as a dark block. Its colour fades much faster (p³), so mid-way there is almost none.
-                val glow = colors.primary.copy(alpha = p * p * p)
-                ambientShadowColor = glow
-                spotShadowColor = glow
-            }
-            // A raised, opaque surface: the text under a focused preview stands out (feedback), and the glow
-            // below cannot show through it in patches (glass surfaces are translucent with effects on).
-            .focusBackground(focusProgress, if (TwiTheme.effects) colors.dialogInset else colors.surfaceVariant, TwiShapes.Card)
+            // The same purple glow as a focused category cover (feedback), as a pre-rendered image fading in.
+            .focusGlow(focusProgress, colors.primary, TwiThemeConfig.radius.card, CardGlowSpread, CardGlowDrop)
             .focusRing(focusProgress, colors.primary, TwiShapes.Card, TwiDimens.FocusBorderWidth)
+            // A raised, opaque surface: the text under a focused preview stands out (feedback).
+            .focusBackground(focusProgress, if (TwiTheme.effects) colors.dialogInset else colors.surfaceVariant, TwiShapes.Card)
             .trackFocus(focusProgress)
             .onFocusChanged { focused = it.isFocused }
             .onPlaced { placed[0] = it }
@@ -311,3 +301,7 @@ private val ThumbnailJoinedShape = RoundedCornerShape(
     topStart = TwiThemeConfig.radius.thumbnail,
     topEnd = TwiThemeConfig.radius.thumbnail,
 )
+
+/** How far the focus glow reaches past a card, and how far it sits lower (light from above). */
+private val CardGlowSpread = 22.dp
+private val CardGlowDrop = 6.dp
