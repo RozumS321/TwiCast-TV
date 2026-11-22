@@ -176,7 +176,7 @@ val TwiThemeConfig = TwiThemeTokens(
         scrim = Color(0x520E0E10),
     ),
     radius = TwiRadiusTokens(button = 10.dp, thumbnail = 10.dp, card = 14.dp, panel = 20.dp, badge = 6.dp),
-    focus = TwiFocusTokens(ringWidth = 2.dp, ringGap = 2.dp, cardScale = 1.04f, buttonScale = 1.04f, shadows = false),
+    focus = TwiFocusTokens(ringWidth = 2.dp, ringGap = 2.dp, cardScale = 1f, buttonScale = 1.04f, shadows = false),
     motion = TwiMotionTokens(easing = CubicCurve(0.22f, 1f, 0.36f, 1f), shortMillis = 150, mediumMillis = 300, longMillis = 500),
     effects = TwiEffectsTokens(
         // Feedback: the storm "не так в глаза бьёт", the bloom was too bright.
