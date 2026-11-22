@@ -1,5 +1,6 @@
 package app.twicast.tv.core.designsystem.component
 
+import androidx.compose.runtime.snapshots.Snapshot
 import android.graphics.Bitmap
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -227,8 +228,11 @@ private fun StormAnimation(tokens: TwiEffectsTokens, backdrop: EmberBackdrop) {
             val (sharp, blurred) = withContext(Dispatchers.Default) {
                 renderStorm(look, seconds, if (dark) BackdropBrighten else LightStormBlurTone)
             }
-            backdrop.sharp = sharp
-            backdrop.blurred = blurred
+            // Both in one snapshot: the screen and the glass change in the same frame, not in two frames in a row.
+            Snapshot.withMutableSnapshot {
+                backdrop.sharp = sharp
+                backdrop.blurred = blurred
+            }
             // The first seconds after launch are the busiest: the clouds stand still until the app has settled.
             if (!backdrop.started) {
                 delay(StartDelayMillis)
