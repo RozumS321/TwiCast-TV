@@ -81,6 +81,7 @@ fun StreamCard(
     val spacing = if (dense) TwiDimens.CardContentSpacingDense else TwiDimens.CardContentSpacing
     // The player grows out of this card when it opens.
     val placed = remember { arrayOfNulls<LayoutCoordinates>(1) }
+    var focused by remember { mutableStateOf(false) }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(spacing),
@@ -103,6 +104,7 @@ fun StreamCard(
             .focusBackground(focusProgress, if (TwiTheme.effects) colors.dialogInset else colors.surfaceVariant, TwiShapes.Card)
             .focusRing(focusProgress, colors.primary, TwiShapes.Card, TwiDimens.FocusBorderWidth)
             .trackFocus(focusProgress)
+            .onFocusChanged { focused = it.isFocused }
             .onPlaced { placed[0] = it }
             .clickable(interactionSource = interactionSource, indication = null) {
                 LaunchOrigin.launch(placed[0], thumbnailUrl, onClick)
@@ -112,7 +114,7 @@ fun StreamCard(
         // Canvas "Карточка · зрители на превью": live viewers sit on the preview with the live lamp, light on a dark
         // pill (they were too faint under it). The time stays in the other corner; a recording shows its length there.
         StreamThumbnail(
-            focusProgress,
+            focused,
             thumbnailUrl,
             live,
             watchedFraction,
@@ -125,8 +127,8 @@ fun StreamCard(
 
 @Composable
 private fun StreamThumbnail(
-    /** With focus the preview's bottom corners square off, in step with the card's surface fading in below. */
-    focusProgress: FocusProgress,
+    /** Focused: the preview's bottom corners go square, joining the card's surface below (feedback). */
+    joined: Boolean,
     thumbnailUrl: String?,
     live: Boolean,
     watchedFraction: Float?,
@@ -137,13 +139,9 @@ private fun StreamThumbnail(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(TwiAspect.Thumbnail)
-            // Draw-phase only: the corners follow the focus animation without recomposing (they used to snap).
-            .graphicsLayer {
-                val radius = TwiThemeConfig.radius.thumbnail.toPx()
-                val bottom = radius * (1f - focusProgress.value)
-                shape = RoundedCornerShape(topStart = radius, topEnd = radius, bottomStart = bottom, bottomEnd = bottom)
-                clip = true
-            }
+            // Corners switch with focus (two cards at a time recompose). Animating the clip shape every frame was
+            // what made weak 2 GB TVs drop a quarter of the frames while scrolling (measured: 23% → 9%).
+            .clip(if (joined) ThumbnailJoinedShape else TwiShapes.Thumbnail)
             .background(TwiTheme.colors.surfaceVariant),
     ) {
         if (thumbnailUrl != null) {
@@ -307,3 +305,9 @@ private fun TimeBadge(text: String, modifier: Modifier = Modifier) {
 }
 
 private val LampRim = Color(0x59000000)
+
+/** A focused card's preview: rounded on top, square where it meets the card's surface below. */
+private val ThumbnailJoinedShape = RoundedCornerShape(
+    topStart = TwiThemeConfig.radius.thumbnail,
+    topEnd = TwiThemeConfig.radius.thumbnail,
+)
