@@ -1,5 +1,6 @@
 package app.twicast.tv.core.designsystem.component
 
+import androidx.core.graphics.createBitmap
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -51,7 +52,7 @@ private fun glowBitmap(width: Int, height: Int, radiusPx: Float, spreadPx: Int, 
     return glowCache.getOrPut(key xor color.toLong()) {
         val w = ((width + spreadPx * 2) / GlowScale).coerceAtLeast(1)
         val h = ((height + spreadPx * 2) / GlowScale).coerceAtLeast(1)
-        val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(w, h)
         val inset = spreadPx / GlowScale.toFloat()
         Canvas(bitmap).drawRoundRect(
             RectF(inset, inset, w - inset, h - inset),

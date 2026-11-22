@@ -21,5 +21,4 @@
     <string name="sleep_cancel">Отключить таймер</string>
     <string name="sleep_admin_explanation">TwiCast усыпляет приставку, когда срабатывает таймер сна, — так вместе с ней гаснет телевизор. Больше это право ничего не даёт.</string>
     <string name="sleep_until_end">до конца эфира</string>
-    <string name="sleep_1_debug">1 минута (отладка)</string>
 </resources>

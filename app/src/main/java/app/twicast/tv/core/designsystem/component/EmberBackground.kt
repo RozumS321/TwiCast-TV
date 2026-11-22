@@ -1,5 +1,6 @@
 package app.twicast.tv.core.designsystem.component
 
+import androidx.core.graphics.createBitmap
 import androidx.compose.runtime.snapshots.Snapshot
 import android.graphics.Bitmap
 import androidx.compose.animation.core.Animatable
@@ -268,8 +269,8 @@ private class StormRenderer {
     private val soft = IntArray(size)
     private val scratch = IntArray(size)
     private val ring = Array(StormRing) {
-        Bitmap.createBitmap(StormWidthPx, StormHeightPx, Bitmap.Config.ARGB_8888) to
-            Bitmap.createBitmap(StormWidthPx, StormHeightPx, Bitmap.Config.ARGB_8888)
+        createBitmap(StormWidthPx, StormHeightPx) to
+            createBitmap(StormWidthPx, StormHeightPx)
     }
     private val images = ring.map { (sharp, blurred) -> sharp.asImageBitmap() to blurred.asImageBitmap() }
     private var next = 0
@@ -311,7 +312,7 @@ private fun DrawScope.drawEmber(tokens: TwiEffectsTokens, t: Float) {
 private fun renderBackdrop(tokens: TwiEffectsTokens, t: Float, screen: IntSize): ImageBitmap {
     val width = BackdropWidthPx
     val height = (BackdropWidthPx * screen.height / screen.width.toFloat()).roundToInt().coerceAtLeast(1)
-    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    val bitmap = createBitmap(width, height)
     val image = bitmap.asImageBitmap()
     CanvasDrawScope().draw(Density(1f), LayoutDirection.Ltr, Canvas(image), Size(width.toFloat(), height.toFloat())) {
         drawEmber(tokens, t)
