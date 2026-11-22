@@ -90,9 +90,13 @@ fun StreamCard(
             // The same purple glow as a focused category cover (feedback), growing with focus.
             .graphicsLayer {
                 shape = TwiShapes.Card
-                shadowElevation = TwiDimens.FocusShadowElevation.toPx() * focusProgress.value
-                ambientShadowColor = colors.primary
-                spotShadowColor = colors.primary
+                val p = focusProgress.value
+                shadowElevation = TwiDimens.FocusShadowElevation.toPx() * p
+                // The shadow is drawn as if the card were solid: while its surface fades in or out it showed
+                // through as a dark block. Its colour fades much faster (p³), so mid-way there is almost none.
+                val glow = colors.primary.copy(alpha = p * p * p)
+                ambientShadowColor = glow
+                spotShadowColor = glow
             }
             // A raised, opaque surface: the text under a focused preview stands out (feedback), and the glow
             // below cannot show through it in patches (glass surfaces are translucent with effects on).
