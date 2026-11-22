@@ -1,5 +1,7 @@
 package app.twicast.tv.feature.following
 
+import app.twicast.tv.core.designsystem.theme.TwiShapes
+import app.twicast.tv.core.designsystem.component.twiSurface
 import app.twicast.tv.core.designsystem.component.StreamCard
 import app.twicast.tv.core.designsystem.format.formatUptimeShort
 import app.twicast.tv.core.designsystem.format.formatViewerCount
@@ -127,8 +129,36 @@ private fun ChannelsGrid(
             SectionTitle(stringResource(R.string.following_live), state.live.size, live = true)
         }
         if (state.live.isEmpty()) {
-            item(key = "live-empty", span = { GridItemSpan(maxLineSpan) }, contentType = ContentType.EMPTY) {
-                Text(stringResource(R.string.following_nobody_live), style = TwiTheme.typography.body, color = TwiTheme.colors.onSurfaceVariant)
+            item(key = "live-empty", span = { GridItemSpan(maxLineSpan) }, contentType = ContentType.EMPTY) { NobodyLive() }
+            if (state.popular.isNotEmpty()) {
+                item(key = "popular-title", span = { GridItemSpan(maxLineSpan) }, contentType = ContentType.TITLE) {
+                    Text(
+                        stringResource(R.string.following_popular_now),
+                        style = TwiTheme.typography.rowTitleDense,
+                        color = TwiTheme.colors.onSurface,
+                        modifier = Modifier.padding(top = TwiDimens.FollowingSectionSpacing - TwiDimens.ChannelGridSpacing),
+                    )
+                }
+                itemsIndexed(
+                    state.popular,
+                    key = { _, stream -> "popular-" + stream.userId },
+                    span = { _, _ -> GridItemSpan(LiveSpan) },
+                    contentType = { _, _ -> ContentType.CHANNEL },
+                ) { index, stream ->
+                    StreamCard(
+                        title = stream.channelName,
+                        subtitle = stream.categoryName,
+                        viewerCountText = formatViewerCount(stream.viewerCount),
+                        thumbnailUrl = rememberTwitchImageUrl(stream.thumbnailTemplate, TwiDimens.StreamCardGridWidth, TwiAspect.Thumbnail),
+                        avatarUrl = stream.avatarUrl,
+                        onClick = { onStreamClick(stream) },
+                        width = TwiDimens.StreamCardGridWidth,
+                        uptimeText = stream.startedAtMillis?.let { formatUptimeShort(it, System.currentTimeMillis()) },
+                        modifier = Modifier
+                            .leftToSidebar(sidebar, isFirstInRow(index, GridColumns / LiveSpan))
+                            .then(if (index == 0) Modifier.requestInitialFocus() else Modifier),
+                    )
+                }
             }
         }
         itemsIndexed(
@@ -173,11 +203,26 @@ private fun ChannelsGrid(
                 subtitle = channel.categoryName,
                 liveViewers = null,
                 // Nobody live: the first offline channel takes the initial focus.
-                first = state.live.isEmpty() && index == 0,
+                first = state.live.isEmpty() && state.popular.isEmpty() && index == 0,
                 onClick = { onChannelClick(channel) },
                 modifier = Modifier.leftToSidebar(sidebar, isFirstInRow(index, GridColumns / OfflineSpan)),
             )
         }
+    }
+}
+
+/** Canvas "Подписки · никого нет в эфире": a calm note instead of an empty section — we will notify when they go live. */
+@Composable
+private fun NobodyLive() {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(TwiDimens.RowHintSpacing),
+        modifier = Modifier
+            .fillMaxWidth()
+            .twiSurface(TwiShapes.Panel)
+            .padding(horizontal = TwiDimens.ScreenTopPadding, vertical = TwiDimens.FollowingSectionSpacing / 2),
+    ) {
+        Text(stringResource(R.string.following_nobody_live), style = TwiTheme.typography.listTitle, color = TwiTheme.colors.onSurface)
+        Text(stringResource(R.string.following_nobody_live_hint), style = TwiTheme.typography.body, color = TwiTheme.colors.onSurfaceVariant)
     }
 }
 

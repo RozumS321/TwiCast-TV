@@ -1,5 +1,7 @@
 package app.twicast.tv.feature.following
 
+import kotlinx.collections.immutable.persistentListOf
+import java.util.Locale
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,6 +25,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 private const val LiveLimit = 100
+private const val PopularLimit = 8
 
 sealed interface FollowingUiState {
     data object Loading : FollowingUiState
@@ -40,6 +43,8 @@ sealed interface FollowingUiState {
     data class Content(
         val live: ImmutableList<Stream>,
         val offline: ImmutableList<FollowedChannel>,
+        /** Nobody followed is live: what is popular now in the device language, so the screen is not a dead end. */
+        val popular: ImmutableList<Stream> = persistentListOf(),
     ) : FollowingUiState
 }
 
@@ -76,6 +81,12 @@ class FollowingViewModel @Inject constructor(
                 live is AppResult.Failure -> FollowingUiState.Error(live.error)
                 follows is AppResult.Failure -> FollowingUiState.Error(follows.error)
                 else -> content((live as AppResult.Success).value, (follows as AppResult.Success).value.channels)
+            }
+            // Canvas "Подписки · никого нет в эфире": popular streams instead of an empty section. Best effort.
+            val shown = _uiState.value
+            if (shown is FollowingUiState.Content && shown.live.isEmpty()) {
+                val popular = streamsRepository.getTopStreams(Locale.getDefault().language, PopularLimit)
+                if (popular is AppResult.Success) _uiState.value = shown.copy(popular = popular.value.toImmutableList())
             }
         }
     }

@@ -57,6 +57,16 @@ class FollowingViewModelTest {
     }
 
     @Test
+    fun `nobody live brings popular streams, someone live does not`() = runTest(mainRule.dispatcher) {
+        streams.results = mapOf(java.util.Locale.getDefault().language to AppResult.Success(listOf(stream("7"), stream("8"))))
+        follows.result = AppResult.Success(Follows(1, listOf(channel("2"))))
+        assertEquals(listOf("user-7", "user-8"), (viewModel().uiState.value as FollowingUiState.Content).popular.map { it.userId })
+
+        streams.followed = AppResult.Success(listOf(stream("2")))
+        assertEquals(emptyList<String>(), (viewModel().uiState.value as FollowingUiState.Content).popular.map { it.userId })
+    }
+
+    @Test
     fun `no follows is empty, failures are errors`() = runTest(mainRule.dispatcher) {
         assertEquals(FollowingUiState.Empty, viewModel().uiState.value)
 

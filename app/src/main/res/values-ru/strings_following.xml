@@ -9,10 +9,12 @@
         <item quantity="other">%d каналов</item>
     </plurals>
     <string name="following_empty">Вы пока ни на кого не подписаны. Подписаться можно на twitch.tv — подписки появятся здесь.</string>
-    <string name="following_nobody_live">Сейчас никто из подписок не в эфире.</string>
+    <string name="following_nobody_live">Сейчас никто из подписок не в эфире</string>
 
     <string name="profile_signed_in_with">Вход выполнен через Twitch</string>
     <string name="profile_follows">подписок</string>
     <string name="profile_live_now">сейчас в эфире</string>
     <string name="profile_version">TwiCast TV · версия %s</string>
+    <string name="following_nobody_live_hint">Пришлём уведомление, когда кто-то начнёт. А пока — что смотрят другие</string>
+    <string name="following_popular_now">Популярное сейчас</string>
 </resources>
