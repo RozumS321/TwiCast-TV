@@ -1,5 +1,6 @@
 package app.twicast.tv.feature.player.components
 
+import android.os.SystemClock
 import android.graphics.Color
 import android.util.Log
 import androidx.annotation.OptIn
@@ -33,6 +34,33 @@ import kotlin.math.roundToInt
 
 private const val HttpNotFound = 404
 private const val LiveSegmentTitle = "live"
+
+/**
+ * Says when a picture that should be moving has stood still for [stuckMillis]. Fed with the player's position
+ * every few seconds; after reporting a stall it starts counting afresh.
+ */
+internal class StallWatch(private val stuckMillis: Long) {
+    private var lastPosition = Long.MIN_VALUE
+    private var stillSince = 0L
+
+    fun isStuck(wantsToPlay: Boolean, position: Long, now: Long): Boolean {
+        if (!wantsToPlay || position != lastPosition) {
+            lastPosition = position
+            stillSince = now
+            return false
+        }
+        if (now - stillSince < stuckMillis) return false
+        stillSince = now
+        return true
+    }
+}
+
+/** How often the live stall watchdog looks, and how long a still picture counts as stuck. */
+private const val StallCheckMillis = 2_000L
+private const val StallMillis = 10_000L
+
+/** Automatic restarts in a row after a live playback error before the error is shown. */
+private const val MaxRecoveries = 2
 private const val ProgressIntervalMillis = 1_000L
 
 /** One selectable video track: what the quality menu shows and how to force it. */
@@ -149,6 +177,8 @@ fun NativeStreamView(
     DisposableEffect(player) {
         var initialQualityApplied = false
         var adBreak = false
+        // Consecutive automatic restarts after an error; reset once the picture moves again.
+        var recoveries = 0
         var startedPlaying = false
         fun reportQualities() = currentListener.value.onQualities(controller.qualities(), controller.currentQualityId())
         val callbacks = object : Player.Listener {
@@ -169,6 +199,12 @@ fun NativeStreamView(
                 if (nowAd != adBreak) {
                     adBreak = nowAd
                     currentListener.value.onAdBreak(nowAd)
+                    // Back from an ad stitched into the stream: rejoin the live edge rather than crawl across the seam
+                    // (feedback: after a mid-roll ~30 min in, the picture froze).
+                    if (!nowAd) {
+                        Log.i(PerfTag, "ad over, back to live")
+                        player.seekToDefaultPosition()
+                    }
                 }
             }
 
@@ -176,6 +212,7 @@ fun NativeStreamView(
                 if (isPlaying) Log.i(PerfTag, "native playing")
                 if (isPlaying) {
                     startedPlaying = true
+                    recoveries = 0
                     currentListener.value.onStateChanged(EmbedState.Playing)
                 }
             }
@@ -205,6 +242,13 @@ fun NativeStreamView(
                     // Usher has no playlist for a channel that is not broadcasting.
                     isLive && (error.cause as? HttpDataSource.InvalidResponseCodeException)?.responseCode == HttpNotFound ->
                         currentListener.value.onStateChanged(EmbedState.Offline)
+                    // A live stream hiccups (often at an ad seam): restart at the live edge a couple of times first.
+                    isLive && recoveries < MaxRecoveries -> {
+                        recoveries++
+                        Log.w(PerfTag, "live error, restart $recoveries/$MaxRecoveries")
+                        player.seekToDefaultPosition()
+                        player.prepare()
+                    }
                     else -> currentListener.value.onStateChanged(EmbedState.Error)
                 }
             }
@@ -225,6 +269,25 @@ fun NativeStreamView(
             controller.detach()
             player.removeListener(callbacks)
             player.release()
+        }
+    }
+
+    // Stall watchdog for live streams: the picture should move; if it has not for a while although we want it
+    // to play (and no error came), the player is stuck — typically on an ad stitched into the stream. Rejoin the
+    // live edge with a fresh playlist instead of showing a frozen frame forever.
+    if (isLive) {
+        LaunchedEffect(player) {
+            val watch = StallWatch(StallMillis)
+            while (true) {
+                delay(StallCheckMillis)
+                val wantsToPlay = player.playWhenReady && player.playerError == null &&
+                    player.playbackState != Player.STATE_IDLE && player.playbackState != Player.STATE_ENDED
+                if (watch.isStuck(wantsToPlay, player.currentPosition, SystemClock.elapsedRealtime())) {
+                    Log.w(PerfTag, "live stalled, rejoining the live edge")
+                    player.seekToDefaultPosition()
+                    player.prepare()
+                }
+            }
         }
     }
 
