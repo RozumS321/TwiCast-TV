@@ -106,6 +106,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    // Release builds skip their own "lint vital" pass (~30 s): scripts/check.sh and CI lint the code already.
+    lint {
+        checkReleaseBuilds = false
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -172,4 +177,6 @@ dependencies {
 // scripts/check.sh runs only the tests of the packages that changed; a package without tests is not a failure.
 tasks.withType<Test>().configureEach {
     filter.isFailOnNoMatchingTests = false
+    // Unit tests in several JVMs at once: half the cores (CI runners and the Mac alike).
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
 }
