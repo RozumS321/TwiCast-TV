@@ -20,7 +20,7 @@ interface AppearanceSettingsRepository {
 
     suspend fun setThemeMode(mode: ThemeMode)
 
-    /** "Эффекты интерфейса": living background, glass and richer motion. Off by default (feedback: the plain fill reads better); on for those who want it. */
+    /** "Эффекты интерфейса": living background, glass and richer motion. On by default for everyone; a manual choice in settings is kept. */
     val effects: Flow<Boolean>
 
     suspend fun setEffects(enabled: Boolean)
@@ -45,7 +45,7 @@ class DataStoreAppearanceSettingsRepository @Inject constructor(
         dataStore.edit { it[themeModeKey] = mode.name }
     }
 
-    override val effects: Flow<Boolean> = dataStore.data.map { it[effectsKey] ?: false }
+    override val effects: Flow<Boolean> = dataStore.data.map { it[effectsKey] ?: true }
 
     override suspend fun setEffects(enabled: Boolean) {
         dataStore.edit { it[effectsKey] = enabled }
